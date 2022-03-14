@@ -24,7 +24,7 @@
  */
 
 /* -------------------------------------------------------------------------- *
- *  PROP.C - ³Æ¼ïÀßÄêÍÑ¥×¥í¥Ñ¥Æ¥£¥·¡¼¥È¤ÈÀßÄêÃÍ´ÉÍı                           *
+ *  PROP.C - å„ç¨®è¨­å®šç”¨ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚·ãƒ¼ãƒˆã¨è¨­å®šå€¤ç®¡ç†                           *
  * -------------------------------------------------------------------------- */
 
 #include <sys/stat.h>
@@ -225,6 +225,7 @@ void LoadConfig(void)
 	char	buf[CFGLEN];
 	FILEH fp;
 
+	Config.MenuLanguage = (int32_t)GetPrivateProfileInt((const char*)ini_title, "MenuLanguage", 0, winx68k_ini);
 	winx = GetPrivateProfileInt(ini_title, "WinPosX", 0, winx68k_ini);
 	winy = GetPrivateProfileInt(ini_title, "WinPosY", 0, winx68k_ini);
 
@@ -372,6 +373,8 @@ void SaveConfig(void)
 	char	buf[CFGLEN], buf2[CFGLEN];
 	FILEH fp;
 
+	wsprintf(buf, "%d", Config.MenuLanguage);
+	WritePrivateProfileString((const char*)ini_title, "MenuLanguage", buf, winx68k_ini);
 	wsprintf(buf, "%d", winx);
 	WritePrivateProfileString(ini_title, "WinPosX", buf, winx68k_ini);
 	wsprintf(buf, "%d", winy);
@@ -605,7 +608,7 @@ PropPage_Init(void)
 	    gtk_label_new("Others"));
 	gtk_widget_show(note);
 
-	/* ¥Ú¡¼¥¸²¼Éô¥Ü¥¿¥ó */
+	/* ãƒšãƒ¼ã‚¸ä¸‹éƒ¨ãƒœã‚¿ãƒ³ */
 	ok_button = gtk_button_new_with_label("OK");
 	gtk_table_attach_defaults(GTK_TABLE(dialog_table), ok_button,
 	    1, 2, 9, 10);

@@ -5,6 +5,7 @@
 
 typedef struct
 {
+	int32_t MenuLanguage;
 	DWORD SampleRate;
 	DWORD BufferSize;
 	int WinPosX;
