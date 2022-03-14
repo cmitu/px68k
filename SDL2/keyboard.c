@@ -23,7 +23,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include "common.h"
 #include "joystick.h"
 #include "prop.h"

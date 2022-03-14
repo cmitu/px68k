@@ -13,11 +13,11 @@ extern "C" {
 #include "prop.h"
 #include "status.h"
 #include "joystick.h"
-#include "mkcgrom.h"
+//#include "mkcgrom.h"
 #include "winx68k.h"
 #include "windraw.h"
 #include "winui.h"
-#include "../x68k/m68000.h" // xxx ����Ϥ����줤��ʤ��ʤ�Ϥ�
+#include "../x68k/m68000.h" // xxx これはいずれいらなくなるはず
 #include "../m68000/m68000.h"
 #include "../x68k/memory.h"
 #include "mfp.h"
@@ -113,21 +113,21 @@ void
 WinX68k_SCSICheck(void)
 {
 	static const BYTE SCSIIMG[] = {
-		0x00, 0xfc, 0x00, 0x14,			// $fc0000 SCSI��ư�ѤΥ���ȥꥢ�ɥ쥹
-		0x00, 0xfc, 0x00, 0x16,			// $fc0004 IOCS�٥�������Υ���ȥꥢ�ɥ쥹(ɬ��"Human"��8�Х�����)
+		0x00, 0xfc, 0x00, 0x14,			// $fc0000 SCSI起動用のエントリアドレス
+		0x00, 0xfc, 0x00, 0x16,			// $fc0004 IOCSベクタ設定のエントリアドレス(必ず"Human"の8バイト前)
 		0x00, 0x00, 0x00, 0x00,			// $fc0008 ?
-		0x48, 0x75, 0x6d, 0x61,			// $fc000c ��
-		0x6e, 0x36, 0x38, 0x6b,			// $fc0010 ID "Human68k"	(ɬ����ư����ȥ�ݥ���Ȥ�ľ��)
-		0x4e, 0x75,				// $fc0014 "rts"		(��ư����ȥ�ݥ����)
-		0x23, 0xfc, 0x00, 0xfc, 0x00, 0x2a,	// $fc0016 ��		(IOCS�٥������ꥨ��ȥ�ݥ����)
+		0x48, 0x75, 0x6d, 0x61,			// $fc000c ↓
+		0x6e, 0x36, 0x38, 0x6b,			// $fc0010 ID "Human68k"	(必ず起動エントリポイントの直前)
+		0x4e, 0x75,				// $fc0014 "rts"		(起動エントリポイント)
+		0x23, 0xfc, 0x00, 0xfc, 0x00, 0x2a,	// $fc0016 ↓		(IOCSベクタ設定エントリポイント)
 		0x00, 0x00, 0x07, 0xd4,			// $fc001c "move.l #$fc002a, $7d4.l"
 		0x74, 0xff,				// $fc0020 "moveq #-1, d2"
 		0x4e, 0x75,				// $fc0022 "rts"
 //		0x53, 0x43, 0x53, 0x49, 0x49, 0x4e,	// $fc0024 ID "SCSIIN"
-// ��¢SCSI��ON�ˤ���ȡ�SASI�ϼ�ưŪ��OFF�ˤʤä��㤦�餷����
-// ��äơ�ID�ϥޥå����ʤ��褦�ˤ��Ƥ�����
+// 内蔵SCSIをONにすると、SASIは自動的にOFFになっちゃうらしい…
+// よって、IDはマッチしないようにしておく…
 		0x44, 0x55, 0x4d, 0x4d, 0x59, 0x20,	// $fc0024 ID "DUMMY "
-		0x70, 0xff,				// $fc002a "moveq #-1, d0"	(SCSI IOCS�����륨��ȥ�ݥ����)
+		0x70, 0xff,				// $fc002a "moveq #-1, d0"	(SCSI IOCSコールエントリポイント)
 		0x4e, 0x75,				// $fc002c "rts"
 	};
 
@@ -140,7 +140,7 @@ WinX68k_SCSICheck(void)
 
 	scsi = 0;
 	for (i = 0x30600; i < 0x30c00; i += 2) {
-#if 0 // 4���ܿ��ǤϤʤ��������ɥ쥹�����4�Х���Ĺ����������MIPS�ˤ�̵��
+#if 0 // 4の倍数ではない偶数アドレスからの4バイト長アクセスはMIPSには無理
 		p = (DWORD *)(&IPL[i]);
 		if (*p == 0x0000fc00)
 			scsi = 1;
@@ -155,14 +155,14 @@ WinX68k_SCSICheck(void)
 #endif
 	}
 
-	// SCSI��ǥ�ΤȤ�
+	// SCSIモデルのとき
 	if (scsi) {
-		ZeroMemory(IPL, 0x2000);		// ���Τ�8kb
-		memset(&IPL[0x2000], 0xff, 0x1e000);	// �Ĥ��0xff
-		memcpy(IPL, SCSIIMG, sizeof(SCSIIMG));	// �������SCSI BIOS
+		ZeroMemory(IPL, 0x2000);		// 本体は8kb
+		memset(&IPL[0x2000], 0xff, 0x1e000);	// 残りは0xff
+		memcpy(IPL, SCSIIMG, sizeof(SCSIIMG));	// インチキSCSI BIOS
 //		Memory_SetSCSIMode();
 	} else {
-		// SASI��ǥ��IPL�����Τޤ޸�����
+		// SASIモデルはIPLがそのまま見える
 		memcpy(IPL, &IPL[0x20000], 0x20000);
 	}
 }
@@ -184,14 +184,14 @@ WinX68k_LoadROMs(void)
 	}
 
 	if (fp == 0) {
-		Error("BIOS ROM ���᡼�������Ĥ���ޤ���.");
+		Error("BIOS ROM イメージが見つかりません.");
 		return FALSE;
 	}
 
 	File_Read(fp, &IPL[0x20000], 0x20000);
 	File_Close(fp);
 
-	WinX68k_SCSICheck();	// SCSI IPL�ʤ顢$fc0000����SCSI BIOS���֤�
+	WinX68k_SCSICheck();	// SCSI IPLなら、$fc0000〜にSCSI BIOSを置く
 
 	for (i = 0; i < 0x40000; i += 2) {
 		tmp = IPL[i];
@@ -201,19 +201,19 @@ WinX68k_LoadROMs(void)
 
 	fp = File_OpenCurDir((char *)FONTFILE);
 	if (fp == 0) {
-		// cgrom.tmp�����롩
+		// cgrom.tmpがある？
 		fp = File_OpenCurDir((char *)FONTFILETMP);
 		if (fp == 0) {
 #if 1
-			// �ե�������� XXX
-			printf("�ե����ROM���᡼�������Ĥ���ޤ���\n");
+			// フォント生成 XXX
+			printf("フォントROMイメージが見つかりません\n");
 			return FALSE;
 #else
 			MessageBox(hWndMain,
-				"�ե����ROM���᡼�������Ĥ���ޤ���.\nWindows�ե���Ȥ��鿷���˺������ޤ�.",
-				"�����ԡ��Υ�å�����", MB_ICONWARNING | MB_OK);
+				"フォントROMイメージが見つかりません.\nWindowsフォントから新規に作成します.",
+				"けろぴーのメッセージ", MB_ICONWARNING | MB_OK);
 			SSTP_SendMes(SSTPMES_MAKEFONT);
-			make_cgromdat(FONT, FALSE, "�ͣ� �����å�", "�ͣ� ��ī");
+			make_cgromdat(FONT, FALSE, "ＭＳ ゴシック", "ＭＳ 明朝");
 			//WinX68k_MakeFont();
 			//DialogBox(hInst, MAKEINTRESOURCE(IDD_PROGBAR),
 			//		hWndMain, (DLGPROC)MakeFontProc);
@@ -322,7 +322,7 @@ WinX68k_Cleanup(void)
 
 #define CLOCK_SLICE 200
 // -----------------------------------------------------------------------------------
-//  �����Τᤤ��롼��
+//  コアのめいんるーぷ
 // -----------------------------------------------------------------------------------
 void WinX68k_Exec(void)
 {
@@ -368,7 +368,7 @@ void WinX68k_Exec(void)
 
 	do {
 		int m, n = (ICount>CLOCK_SLICE)?CLOCK_SLICE:ICount;
-//		C68K.ICount = m68000_ICountBk = 0;			// ������ȯ������Ϳ���Ƥ����ʤ��ȥ����CARAT��
+//		C68K.ICount = m68000_ICountBk = 0;			// 割り込み発生前に与えておかないとダメ（CARAT）
 
 		if ( hsync ) {
 			hsync = 0;
@@ -385,9 +385,9 @@ void WinX68k_Exec(void)
 					MFP_Int(9);
 			} else {
 				if ( CRTC_VEND>=VLINE_TOTAL ) {
-					if ( (long)vline==(CRTC_VEND-VLINE_TOTAL) ) MFP_Int(9);		// ���������ƥ��󥰥���Ȥ���TOTAL<VEND��
+					if ( (long)vline==(CRTC_VEND-VLINE_TOTAL) ) MFP_Int(9);		// エキサイティングアワーとか（TOTAL<VEND）
 				} else {
-					if ( (long)vline==(VLINE_TOTAL-1) ) MFP_Int(9);			// ���쥤�������饤�ޡ��ϥ���Ǥʤ��ȥ��ᡩ
+					if ( (long)vline==(VLINE_TOTAL-1) ) MFP_Int(9);			// クレイジークライマーはコレでないとダメ？
 				}
 			}
 		}
@@ -414,7 +414,7 @@ void WinX68k_Exec(void)
 				if (/*fdctrace&&*/(oldpc != C68k_Get_Reg(&C68K, C68K_PC)))
 				{
 //					//tracing--;
-				  fprintf(fp, "D0:%08X D1:%08X D2:%08X D3:%08X D4:%08X D5:%08X D6:%08X D7:%08X CR:%04X\n", C68K.D[0], C68K.D[1], C68K.D[2], C68K.D[3], C68K.D[4], C68K.D[5], C68K.D[6], C68K.D[7], 0/* xxx �Ȥꤢ����0 C68K.ccr */);
+				  fprintf(fp, "D0:%08X D1:%08X D2:%08X D3:%08X D4:%08X D5:%08X D6:%08X D7:%08X CR:%04X\n", C68K.D[0], C68K.D[1], C68K.D[2], C68K.D[3], C68K.D[4], C68K.D[5], C68K.D[6], C68K.D[7], 0/* xxx とりあえず0 C68K.ccr */);
 				  fprintf(fp, "A0:%08X A1:%08X A2:%08X A3:%08X A4:%08X A5:%08X A6:%08X A7:%08X SR:%04X\n", C68K.A[0], C68K.A[1], C68K.A[2], C68K.A[3], C68K.A[4], C68K.A[5], C68K.A[6], C68K.A[7], C68k_Get_Reg(&C68K, C68K_SR) >> 8/* regs.sr_high*/);
 					fprintf(fp, "<%04X> (%08X ->) %08X : %s\n", Memory_ReadW(C68k_Get_Reg(&C68K, C68K_PC)), oldpc, C68k_Get_Reg(&C68K, C68K_PC), buf);
 				}
@@ -433,8 +433,8 @@ void WinX68k_Exec(void)
 //			C68K.ICount = n;
 //			C68k_Exec(&C68K, C68K.ICount);
 			C68k_Exec(&C68K, n);
-//			m = (n-C68K.ICount-m68000_ICountBk);			// �в᥯���å���
-			m = (n-m68000_ICountBk);			// �в᥯���å���
+//			m = (n-C68K.ICount-m68000_ICountBk);			// 経過クロック数
+			m = (n-m68000_ICountBk);			// 経過クロック数
 			ClkUsed += m*10;
 			usedclk = ClkUsed/clkdiv;
 			clk_line += usedclk;
@@ -457,11 +457,11 @@ void WinX68k_Exec(void)
 			if ( (MFP[MFP_AER]&0x40)&&(vline==CRTC_IntLine) )
 				MFP_Int(1);
 			if ( (!DispFrame)&&(vline>=CRTC_VSTART)&&(vline<CRTC_VEND) ) {
-				if ( CRTC_VStep==1 ) {				// HighReso 256dot��2���ɤߡ�
+				if ( CRTC_VStep==1 ) {				// HighReso 256dot（2度読み）
 					if ( vline%2 )
 						WinDraw_DrawLine();
 				} else if ( CRTC_VStep==4 ) {		// LowReso 512dot
-					WinDraw_DrawLine();				// 1��������2�������ʥ��󥿡��졼����
+					WinDraw_DrawLine();				// 1走査線で2回描く（インターレース）
 					VLINE++;
 					WinDraw_DrawLine();
 				} else {							// High 512dot / Low 256dot
@@ -494,12 +494,12 @@ void WinX68k_Exec(void)
 		}
 	} while ( vline<VLINE_TOTAL );
 
-	if ( CRTC_Mode&2 ) {		// FastClr�ӥåȤ�Ĵ����PITAPAT��
-		if ( CRTC_FastClr ) {	// FastClr=1 ��� CRTC_Mode&2 �ʤ� ��λ
+	if ( CRTC_Mode&2 ) {		// FastClrビットの調整（PITAPAT）
+		if ( CRTC_FastClr ) {	// FastClr=1 且つ CRTC_Mode&2 なら 終了
 			CRTC_FastClr--;
 			if ( !CRTC_FastClr )
 				CRTC_Mode &= 0xfd;
-		} else {				// FastClr����
+		} else {				// FastClr開始
 			if ( CRTC_Regs[0x29]&0x10 )
 				CRTC_FastClr = 1;
 			else
@@ -652,7 +652,7 @@ int main(int argc, char *argv[])
 	SDL_DisplayMode sdl_dispmode;
 	SDL_GetCurrentDisplayMode(0, &sdl_dispmode);
 	p6logd("width: %d height: %d", sdl_dispmode.w, sdl_dispmode.h);
-	// �ʥӥ��������С���������ץ꤬��������
+	// ナビゲーションバーを除くアプリが触れる画面
 	realdisp_w = sdl_dispmode.w, realdisp_h = sdl_dispmode.h;
 
 	SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 1 );
@@ -663,7 +663,7 @@ int main(int argc, char *argv[])
 #if TARGET_OS_IPHONE
 	sdl_window = SDL_CreateWindow(APPNAME" SDL", 0, 0, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, SDL_WINDOW_OPENGL|SDL_WINDOW_SHOWN|SDL_WINDOW_BORDERLESS);
 #else
-	// for Android: window size�λ���ϴط��ʤ��ե륹���꡼��ˤʤ�ߤ���
+	// for Android: window sizeの指定は関係なくフルスクリーンになるみたい
 	sdl_window = SDL_CreateWindow(APPNAME" SDL", 0, 0, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, SDL_WINDOW_OPENGL|SDL_WINDOW_SHOWN);
 #endif
 #else
@@ -683,10 +683,10 @@ int main(int argc, char *argv[])
 	glEnable(GL_BLEND);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	//glViewport(0, 0, 800, 600); //���������䤵�ʤ���OpenGL�β��̤Ϥ��ޤ�
+	//glViewport(0, 0, 800, 600); //ここを増やさないとOpenGLの画面はせまい
 	glViewport(0, 0, sdl_dispmode.w, sdl_dispmode.h);
-	// ���ޥۤ䥿�֤μ²��̤˴ط��ʤ�OpenGL�������ΰ��800x600�Ȥ��롣
-	// 800x600�ˤ�����̣���äˤʤ���
+	// スマホやタブの実画面に関係なくOpenGLの描画領域を800x600とする。
+	// 800x600にした意味は特にない。
 	glOrthof(0, 800, 600, 0, -1, 1);
 	//  glOrthof(0, 1024, 0, 1024, -1, 1);
 	glMatrixMode(GL_MODELVIEW);
@@ -721,7 +721,7 @@ int main(int argc, char *argv[])
 		exit (1);
 	}
 
-	Keyboard_Init(); //WinDraw_Init()���˰�ư
+	Keyboard_Init(); //WinDraw_Init()前に移動
 
 	if (!WinDraw_Init()) {
 		WinDraw_Cleanup();
@@ -752,7 +752,7 @@ int main(int argc, char *argv[])
 	Timer_Init();
 
 	MIDI_Init();
-	MIDI_SetMimpiMap(Config.ToneMapFile);	// ��������ե��������ȿ��
+	MIDI_SetMimpiMap(Config.ToneMapFile);	// 音色設定ファイル使用反映
 	MIDI_EnableMimpiDef(Config.ToneMap);
 
 	if (sdlaudio == 0 && !DSound_Init(Config.SampleRate, Config.BufferSize)) {
@@ -767,7 +767,7 @@ int main(int argc, char *argv[])
 #endif
 	DSound_Play();
 
-	// command line ������ꤷ�����
+	// command line から指定した場合
 	switch (argc) {
 	case 3:
 		strcpy(Config.FDDImage[1], argv[2]);
@@ -921,7 +921,7 @@ int main(int argc, char *argv[])
 		if (menu_mode == menu_out
 		    && Joystick_get_downstate_psp(PSP_CTRL_SELECT)) {
 			Keyboard_ToggleSkbd();
-			// 2���ɤ߽���
+			// 2度読み除け
 			Joystick_reset_downstate_psp(PSP_CTRL_SELECT);
 		}
 
@@ -1009,9 +1009,9 @@ int main(int argc, char *argv[])
 
 	}
 end_loop:
-	Memory_WriteB(0xe8e00d, 0x31);	// SRAM�񤭹��ߵ���
-	Memory_WriteD(0xed0040, Memory_ReadD(0xed0040)+1); // �ѻ���Ư����(min.)
-	Memory_WriteD(0xed0044, Memory_ReadD(0xed0044)+1); // �ѻ���ư���
+	Memory_WriteB(0xe8e00d, 0x31);	// SRAM書き込み許可
+	Memory_WriteD(0xed0040, Memory_ReadD(0xed0040)+1); // 積算稼働時間(min.)
+	Memory_WriteD(0xed0044, Memory_ReadD(0xed0044)+1); // 積算起動回数
 
 	OPM_Cleanup();
 #ifndef	NO_MERCURY

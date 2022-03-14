@@ -2,12 +2,16 @@
 #define winx68k_joy_h
 
 #include "common.h"
+
 #ifndef PSP
-#include <SDL.h>
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-#include <SDL_keycode.h>
+#ifndef SDL1
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_keycode.h>
+#include <SDL2/SDL_joystick.h>
+#else
+#include <SDL/SDL.h>
+#include <SDL/SDL_joystick.h>
 #endif
-#include <SDL_joystick.h>
 #endif
 
 #define	JOY_UP		0x01

@@ -48,7 +48,7 @@ int audio_fd = -1;
 static void sdlaudio_callback(void *userdata, unsigned char *stream, int len);
 
 #ifndef NOSOUND
-#include	"SDL.h"
+#include	"SDL2/SDL.h"
 #include	"SDL_audio.h"
 
 int

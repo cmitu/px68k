@@ -28,7 +28,7 @@
  * -------------------------------------------------------------------------- */
 
 #include <sys/stat.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 #include "common.h"
 #include "winx68k.h"

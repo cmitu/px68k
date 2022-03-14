@@ -8,7 +8,7 @@
 #ifdef PSP
 #include <pspctrl.h>
 #else
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #endif
 #if defined(ANDROID) || TARGET_OS_IPHONE || defined(PSP)
 #include "mouse.h"

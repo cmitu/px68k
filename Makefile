@@ -1,3 +1,46 @@
+# system platform
+ifeq "$(PLATFORM)" ""
+PLATFORM := $(shell uname)
+endif
+
+ifdef SDL
+ifeq "$(PLATFORM)" "Darwin"
+SDL_CONFIG?= ./osx/sdl-config-mac
+else
+SDL_CONFIG?= sdl-config
+endif
+else
+ifeq "$(PLATFORM)" "Darwin"
+SDL2 :=1
+SDL_CONFIG?= ./osx/sdl2-config-mac
+else
+SDL2 :=1
+SDL_CONFIG?= sdl2-config
+endif
+endif
+
+ifeq ($(shell uname -m),aarch64)
+MOPT=
+else
+ifeq ($(shell uname -m),x86_64)
+MOPT=
+else
+ifeq ($(shell uname -m),armv8l)
+MOPT=
+else
+MOPT=
+endif
+endif
+endif
+
+ifdef SDL
+PROGRAM = px68k.sdl
+CDEBUGFLAGS = -DSDL1
+else
+PROGRAM = px68k.sdl2
+CDEBUGFLAGS = -DSDL2
+endif
+
 include version.txt
 
 CC	 = gcc
@@ -9,27 +52,28 @@ DEPEND	 = gccmakedep
 DEPEND_DEFINES =
 
 # for debug
-CDEBUGFLAGS = -g -O0 -fno-strict-aliasing
-
-#
-# enable SDL_gfx
-#
-CDEBUGFLAGS+= -DUSE_SDLGFX
+# CDEBUGFLAGS += -g -O0 -fno-strict-aliasing
+CDEBUGFLAGS += -Os  -fstrict-aliasing
 
 #
 # disable sound
 #
-#CDEBUGFLAGS+= -DNO_SOUND
+# CDEBUGFLAGS+= -DNO_SOUND
+
+#
+# Big endian (PowerPC...)
+#
+# CDEBUGFLAGS+= -D__BIG_ENDIAN__
 
 #
 # disable mercury unit
 #
-CDEBUGFLAGS+= -DNO_MERCURY
+# CDEBUGFLAGS+= -DNO_MERCURY
 
 #
 # enable RFMDRV
 #
-#CDEBUGFLAGS+= -DRFMDRV
+# CDEBUGFLAGS+= -DRFMDRV
 
 #
 # for Opt.
@@ -55,40 +99,23 @@ CDEBUGFLAGS+= -DNO_MERCURY
 
 CDEBUGFLAGS+=-DPX68K_VERSION=$(PX68K_VERSION)
 
-ifdef SDL2
-# SDL 2.0
-SDL_CONFIG?= sdl2-config
-else
-# SDL 1.2
-SDL_CONFIG?= sdl-config
-endif
+CDEBUGFLAGS+=-DHAVE_STDINT_H
 
 SDL_INCLUDE=	`$(SDL_CONFIG) --cflags`
-ifdef SDL2
-SDL_LIB=	`$(SDL_CONFIG) --libs` -lSDL2_gfx
-else
-SDL_LIB=	`$(SDL_CONFIG) --libs` -lSDL_gfx
-endif
-
-ifeq ($(shell uname -m),armv6l)
-MOPT=
-else
-ifeq ($(shell uname -m),x86_64)
-MOPT=
-else
-MOPT= -m32
-endif
-endif
+SDL_LIB=		`$(SDL_CONFIG) --libs`
 
 LDLIBS = -lm
 
-EXTRA_INCLUDES= -I./x11 -I./x68k -I./fmgen -I./win32api $(SDL_INCLUDE)
+EXTRA_INCLUDES= -I./SDL2 -I./x68k -I./fmgen -I./win32api $(SDL_INCLUDE)
 
 CXXDEBUGFLAGS= $(CDEBUGFLAGS)
 
 CFLAGS= $(MOPT) $(CDEBUGFLAGS) $(EXTRA_INCLUDES)
 CXXFLAGS= $(MOPT) $(CXXDEBUGFLAGS) $(EXTRA_INCLUDES)
 CXXLDOPTIONS= $(CXXDEBUGFLAGS)
+
+# CFLAGS   += -DC68K_NO_JUMP_TABLE
+# CFLAGS   += -DC68K_CONST_JUMP_TABLE
 
 CPUOBJS= x68k/d68k.o m68000/m68000.o
 C68KOBJS= m68000/c68k/c68k.o m68000/c68k/c68kexec.o
@@ -97,14 +124,21 @@ X68KOBJS= x68k/adpcm.o x68k/bg.o x68k/crtc.o x68k/dmac.o x68k/fdc.o x68k/fdd.o x
 
 FMGENOBJS= fmgen/fmgen.o fmgen/fmg_wrap.o fmgen/file.o fmgen/fmtimer.o fmgen/opm.o fmgen/opna.o fmgen/psg.o
 
-X11OBJS= x11/joystick.o x11/juliet.o x11/keyboard.o x11/mouse.o x11/prop.o x11/status.o x11/timer.o x11/dswin.o x11/windraw.o x11/winui.o x11/about.o x11/common.o
+SDL2OBJS= SDL2/juliet.o SDL2/mouse.o SDL2/status.o SDL2/timer.o SDL2/about.o SDL2/common.o SDL2/prop.o SDL2/joystick.o SDL2/winui.o SDL2/dswin.o SDL2/keyboard.o 
 
-X11CXXOBJS= x11/winx68k.o
+ifdef SDL
+SDLOBJS= SDL2/SDL1/windraw.o
+SDLCXXOBJS= SDL2/SDL1/winx68k.o
+else
+SDLOBJS= SDL2/windraw.o
+SDLCXXOBJS= SDL2/winx68k.o
+endif
+
 
 WIN32APIOBJS= win32api/dosio.o win32api/fake.o win32api/peace.o
 
-COBJS=		$(X68KOBJS) $(X11OBJS) $(WIN32APIOBJS) $(CPUOBJS) $(C68KOBJS)
-CXXOBJS=	$(FMGENOBJS) $(X11CXXOBJS)
+COBJS=		$(X68KOBJS) $(SDL2OBJS) $(SDLOBJS) $(WIN32APIOBJS) $(CPUOBJS) $(C68KOBJS)
+CXXOBJS=	$(FMGENOBJS) $(SDLCXXOBJS)
 OBJS=		$(COBJS) $(CXXOBJS)
 
 CSRCS=		$(COBJS:.o=.c)
@@ -119,20 +153,26 @@ SRCS=		$(CSRCS) $(CXXSRCS)
 .cpp.o:
 	$(CXX) -o $@ $(CXXFLAGS) -c $*.cpp
 
-all:: px68k
+all:: $(PROGRAM)
 
-px68k: $(OBJS)
+$(PROGRAM): $(OBJS)
 	$(RM) $@
-	$(CXXLINK) $(MOPT) -o $@ $(CXXLDOPTIONS) $(OBJS) $(SDL_LIB) $(LDLIBS)
+	$(CXXLINK) $(MOPT) -o $(PROGRAM) $(CXXLDOPTIONS) $(OBJS) $(SDL_LIB) $(LDLIBS)
 
 depend::
 	$(DEPEND) -- $(CXXFLAGS) $(DEPEND_DEFINES) -- $(SRCS)
 
 clean::
-	$(RM) px68k
+	$(RM) $(PROGRAM)
 	$(RM) $(OBJS)
 	$(RM) *.CKP *.ln *.BAK *.bak *.o core errs ,* *~ *.a .emacs_* tags TAGS make.log MakeOut   "#"*
 
 tags::
 	find . -name "*.h" -o -name "*.c" -o -name "*.cpp" | $(TAGS) -
+
+mac::
+	-rm -rf "$(PROGRAM).app/"
+	mkdir "$(PROGRAM).app/"
+	cp -r "osx/Contents/" "$(PROGRAM).app/Contents"
+	cp $(PROGRAM) "$(PROGRAM).app/Contents/MacOS/px68k"
 
