@@ -831,11 +831,10 @@ int32_t WinUI_Menu(int32_t first)
 						FDD_SetFD(drv, tmpstr, 0);
 						strcpy((char *)Config.FDDImage[drv], tmpstr);
 					} else {
-						char exthds[]={'H','D','S'};
 						char strwork[MAX_PATH];
 						strcpy(strwork, tmpstr);
 						upper(strwork);	 /*拡張子判別用大文字変換*/
-						p = strstr(strwork, exthds);
+						p = strstr(strwork, ".HDS");
 						if (p == NULL ) {
 						 strcpy((char *)Config.HDImage[drv - 2], tmpstr);
 						 Config.SCSIEXHDImage[drv - 2][0] = '\0';
