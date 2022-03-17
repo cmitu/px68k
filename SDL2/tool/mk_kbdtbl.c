@@ -15,10 +15,10 @@ unsigned char code_tbl[] = {
 	0x5f, 0x55, 0x56, 0x35, 0xfe, 0x57, 3, 0x60, 0x72, 0x73, 0xfe, 0x4f, 3
 };
 
-int ct_ptr = 0;
+int32_t ct_ptr = 0;
 unsigned char get_code(void)
 {
-	static int cnt = 0;
+	static int32_t cnt = 0;
 	static unsigned char cc;
 	unsigned char c;
 
@@ -38,12 +38,12 @@ unsigned char get_code(void)
 	return c;
 }
 
-void prt_tbl(int x, int y, int w, int h, char *s)
+void prt_tbl(int32_t x, int32_t y, int32_t w, int32_t h, char *s)
 {
 	printf("{%3d, %3d, %3d, %3d, \"%s\", 0x%x},\n",
 	       x, y, w, h, s, get_code());
 }
-void prt_tblc(int x, int y, int w, int h, char c)
+void prt_tblc(int32_t x, int32_t y, int32_t w, int32_t h, char c)
 {
 	printf("{%3d, %3d, %3d, %3d, \"%c\", 0x%x},\n",
 	       x, y, w, h, c, get_code());
@@ -51,7 +51,7 @@ void prt_tblc(int x, int y, int w, int h, char c)
 
 main()
 {
-	int x, y, w, h, i;
+	int32_t x, y, w, h, i;
 	char s[256];
 	char str[][10] = {"KAN", "ROM", "COD", "CAP", "KIG", "TOR", "HLP", //0
 			  "HOM", "INS", "DEL", "CLR", "/", "*", "-", // 7

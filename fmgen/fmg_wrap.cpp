@@ -1,9 +1,9 @@
-// cisc¥¿¥ó¥Î¥¨¥í¥¬¥¾¥¦¥­¥Ü¥ó¥Ì¤ò¶¯°ú¤Ë¤±¤í¤Ô¡¼¤Ë·Ò¤°¤¿¤á¤Î
-// extern "C" ¤ÎÆþ¤ìÊý¤¬¤­¤Á¤ã¤Ê¤¯¤Æ¥¹¥Æ¥­¡Ê¤©
+// ciscã‚¿ãƒ³ãƒŽã‚¨ãƒ­ã‚¬ã‚¾ã‚¦ã‚­ãƒœãƒ³ãƒŒã‚’å¼·å¼•ã«ã‘ã‚ã´ãƒ¼ã«ç¹‹ããŸã‚ã®
+// extern "C" ã®å…¥ã‚Œæ–¹ãŒãã¡ã‚ƒãªãã¦ã‚¹ãƒ†ã‚­ï¼ˆã‰
 
-// readme.txt¤Ë½¾¤Ã¤Æ¡¢²þÊÑÅÀ¡§
-//  - opna.cpp¤ËYMF288ÍÑ¤Î¥¯¥é¥¹ÄÉ²Ã¤·¤Æ¤Þ¤¹¡£OPNA¤½¤Î¤Þ¤ó¤Þ¤À¤±¤É¤Í¡Ê¤Û¤ó¤È¤ÏÀµ¤·¤¯¤Ê¤¤¤¬¤Þ¤¢¤¤¤¤¤ä¡Ë
-//  - Â¿Ê¬Â¾¤ÏÏ®¤Ã¤Æ¤Ê¤¤¤Ï¤º¡Ä¡Ä
+// readme.txtã«å¾“ã£ã¦ã€æ”¹å¤‰ç‚¹ï¼š
+//  - opna.cppã«YMF288ç”¨ã®ã‚¯ãƒ©ã‚¹è¿½åŠ ã—ã¦ã¾ã™ã€‚OPNAãã®ã¾ã‚“ã¾ã ã‘ã©ã­ï¼ˆã»ã‚“ã¨ã¯æ­£ã—ããªã„ãŒã¾ã‚ã„ã„ã‚„ï¼‰
+//  - å¤šåˆ†ä»–ã¯å¼„ã£ã¦ãªã„ã¯ãšâ€¦â€¦
 
 extern "C" {
 
@@ -25,28 +25,28 @@ extern "C" {
 #define RMBUFSIZE (256*1024)
 
 typedef struct {
-	unsigned int time;
-	int reg;
-	BYTE data;
+	uint32_t time;
+	int32_t reg;
+	uint8_t data;
 } RMDATA;
 
 };
 
 static RMDATA RMData[RMBUFSIZE];
-static int RMPtrW;
-static int RMPtrR;
+static int32_t RMPtrW;
+static int32_t RMPtrR;
 
 class MyOPM : public FM::OPM
 {
 public:
 	MyOPM();
 	virtual ~MyOPM() {}
-	void WriteIO(DWORD adr, BYTE data);
-	void Count2(DWORD clock);
+	void WriteIO(int32_t adr, uint8_t data);
+	void Count2(uint32_t clock);
 private:
 	virtual void Intr(bool);
-	int CurReg;
-	DWORD CurCount;
+	int32_t CurReg;
+	uint32_t CurCount;
 };
 
 
@@ -55,7 +55,7 @@ MyOPM::MyOPM()
 	CurReg = 0;
 }
 
-void MyOPM::WriteIO(DWORD adr, BYTE data)
+void MyOPM::WriteIO(int32_t adr, uint8_t data)
 {
 	if( adr&1 ) {
 		if ( CurReg==0x1b ) {
@@ -64,12 +64,12 @@ void MyOPM::WriteIO(DWORD adr, BYTE data)
 		}
 		SetReg((int)CurReg, (int)data);
 		if ( (juliet_YM2151IsEnable())&&(Config.SoundROMEO) ) {
-			int newptr = (RMPtrW+1)%RMBUFSIZE;
+			int32_t newptr = (RMPtrW+1)%RMBUFSIZE;
 			if ( newptr!=RMPtrR ) {
 #if 0
 				RMData[RMPtrW].time = timeGetTime();
 				RMData[RMPtrW].reg  = CurReg;
-if ( CurReg==0x14 ) data &= 0xf3;	// Int Enable¤Ï¥Þ¥¹¥¯¤¹¤ë
+if ( CurReg==0x14 ) data &= 0xf3;	// Int Enableã¯ãƒžã‚¹ã‚¯ã™ã‚‹
 				RMData[RMPtrW].data = data;
 				RMPtrW = newptr;
 			}
@@ -78,7 +78,7 @@ if ( CurReg==0x14 ) data &= 0xf3;	// Int Enable¤Ï¥Þ¥¹¥¯¤¹¤ë
 			}
 			RMData[RMPtrW].time = timeGetTime();
 			RMData[RMPtrW].reg  = CurReg;
-if ( CurReg==0x14 ) data &= 0xf3;	// Int Enable¤Ï¥Þ¥¹¥¯¤¹¤ë
+if ( CurReg==0x14 ) data &= 0xf3;	// Int Enableã¯ãƒžã‚¹ã‚¯ã™ã‚‹
 			RMData[RMPtrW].data = data;
 			RMPtrW = newptr;
 #endif
@@ -94,7 +94,7 @@ void MyOPM::Intr(bool f)
 }
 
 
-void MyOPM::Count2(DWORD clock)
+void MyOPM::Count2(uint32_t clock)
 {
 	CurCount += clock;
 	Count(CurCount/10);
@@ -104,7 +104,7 @@ void MyOPM::Count2(DWORD clock)
 
 static MyOPM* opm = NULL;
 
-int OPM_Init(int clock, int rate)
+int32_t OPM_Init(int32_t clock, int32_t rate)
 {
 	juliet_load();
 	juliet_prepare();
@@ -132,7 +132,7 @@ void OPM_Cleanup(void)
 }
 
 
-void OPM_SetRate(int clock, int rate)
+void OPM_SetRate(int32_t clock, int32_t rate)
 {
 	if ( opm ) opm->SetRate(clock, rate, TRUE);
 }
@@ -148,48 +148,48 @@ void OPM_Reset(void)
 }
 
 
-BYTE FASTCALL OPM_Read(WORD adr)
+uint8_t FASTCALL OPM_Read(uint16_t adr)
 {
-	BYTE ret = 0;
+	uint8_t ret = 0;
 	(void)adr;
 	if ( opm ) ret = opm->ReadStatus();
 	if ( (juliet_YM2151IsEnable())&&(Config.SoundROMEO) ) {
-		int newptr = (RMPtrW+1)%RMBUFSIZE;
+		int32_t newptr = (RMPtrW+1)%RMBUFSIZE;
 		ret = (ret&0x7f)|((newptr==RMPtrR)?0x80:0x00);
 	}
 	return ret;
 }
 
 
-void FASTCALL OPM_Write(DWORD adr, BYTE data)
+void FASTCALL OPM_Write(int32_t adr, uint8_t data)
 {
 	if ( opm ) opm->WriteIO(adr, data);
 }
 
 
-void OPM_Update(short *buffer, int length, int rate, BYTE *pbsp, BYTE *pbep)
+void OPM_Update(int16_t *buffer, int32_t length, int32_t rate, uint8_t *pbsp, uint8_t *pbep)
 {
 	if ( (!juliet_YM2151IsEnable())||(!Config.SoundROMEO) )
 		if ( opm ) opm->Mix((FM::Sample*)buffer, length, rate, pbsp, pbep);
 }
 
 
-void FASTCALL OPM_Timer(DWORD step)
+void FASTCALL OPM_Timer(uint32_t step)
 {
 	if ( opm ) opm->Count2(step);
 }
 
 
-void OPM_SetVolume(BYTE vol)
+void OPM_SetVolume(uint8_t vol)
 {
-	int v = (vol)?((16-vol)*4):192;		// ¤³¤Î¤¯¤é¤¤¤«¤Ê¤¡
+	int32_t v = (vol)?((16-vol)*4):192;		// ã“ã®ãã‚‰ã„ã‹ãªã
 	if ( opm ) opm->SetVolume(-v);
 }
 
 
-void OPM_RomeoOut(unsigned int delay)
+void OPM_RomeoOut(uint32_t delay)
 {
-	unsigned int t = timeGetTime();
+	uint32_t t = timeGetTime();
 	if ( (juliet_YM2151IsEnable())&&(Config.SoundROMEO) ) {
 		while ( RMPtrW!=RMPtrR ) {
 			if ( (t-RMData[RMPtrR].time)>=delay ) {
@@ -202,24 +202,24 @@ void OPM_RomeoOut(unsigned int delay)
 }
 
 // ----------------------------------------------------------
-// ---------------------------- YMF288 (Ëþ³«ÈÇ¤Þ¡Á¤­¤å¤ê¡Á)
+// ---------------------------- YMF288 (æº€é–‹ç‰ˆã¾ã€œãã‚…ã‚Šã€œ)
 // ----------------------------------------------------------
-// TODO : ROMEO¤Î288¤òÃ¡¤¯¤Î
+// TODO : ROMEOã®288ã‚’å©ãã®
 
 class YMF288 : public FM::Y288
 {
 public:
 	YMF288();
 	virtual ~YMF288() {}
-	void WriteIO(DWORD adr, BYTE data);
-	BYTE ReadIO(DWORD adr);
-	void Count2(DWORD clock);
-	void SetInt(int f) { IntrFlag = f; };
+	void WriteIO(int32_t adr, uint8_t data);
+	uint8_t ReadIO(int32_t adr);
+	void Count2(uint32_t clock);
+	void SetInt(int32_t f) { IntrFlag = f; };
 private:
 	virtual void Intr(bool);
-	int CurReg[2];
-	DWORD CurCount;
-	int IntrFlag;
+	int32_t CurReg[2];
+	uint32_t CurCount;
+	int32_t IntrFlag;
 };
 
 YMF288::YMF288()
@@ -229,19 +229,19 @@ YMF288::YMF288()
 	IntrFlag = 0;
 }
 
-void YMF288::WriteIO(DWORD adr, BYTE data)
+void YMF288::WriteIO(int32_t adr, uint8_t data)
 {
 	if( adr&1 ) {
-		SetReg(((adr&2)?(CurReg[1]+0x100):CurReg[0]), (int)data);
+		SetReg(((adr&2)?(CurReg[1]+0x100):CurReg[0]), (int32_t)data);
 	} else {
-		CurReg[(adr>>1)&1] = (int)data;
+		CurReg[(adr>>1)&1] = (int32_t)data;
 	}
 }
 
 
-BYTE YMF288::ReadIO(DWORD adr)
+uint8_t YMF288::ReadIO(int32_t adr)
 {
-	BYTE ret = 0;
+	uint8_t ret = 0;
 	if ( adr&1 ) {
 		ret = GetReg(((adr&2)?(CurReg[1]+0x100):CurReg[0]));
 	} else {
@@ -257,7 +257,7 @@ void YMF288::Intr(bool f)
 }
 
 
-void YMF288::Count2(DWORD clock)
+void YMF288::Count2(uint32_t clock)
 {
 	CurCount += clock;
 	Count(CurCount/10);
@@ -269,7 +269,7 @@ static YMF288* ymf288a = NULL;
 static YMF288* ymf288b = NULL;
 
 
-int M288_Init(int clock, int rate, const char* path)
+int32_t M288_Init(int32_t clock, int32_t rate, const char* path)
 {
 	ymf288a = new YMF288();
 	ymf288b = new YMF288();
@@ -295,7 +295,7 @@ void M288_Cleanup(void)
 }
 
 
-void M288_SetRate(int clock, int rate)
+void M288_SetRate(int32_t clock, int32_t rate)
 {
 	if ( ymf288a ) ymf288a->SetRate(clock, rate, TRUE);
 	if ( ymf288b ) ymf288b->SetRate(clock, rate, TRUE);
@@ -309,7 +309,7 @@ void M288_Reset(void)
 }
 
 
-BYTE FASTCALL M288_Read(WORD adr)
+uint8_t FASTCALL M288_Read(uint16_t adr)
 {
 	if ( adr<=3 ) {
 		if ( ymf288a )
@@ -325,7 +325,7 @@ BYTE FASTCALL M288_Read(WORD adr)
 }
 
 
-void FASTCALL M288_Write(DWORD adr, BYTE data)
+void FASTCALL M288_Write(int32_t adr, uint8_t data)
 {
 	if ( adr<=3 ) {
 		if ( ymf288a ) ymf288a->WriteIO(adr, data);
@@ -335,24 +335,24 @@ void FASTCALL M288_Write(DWORD adr, BYTE data)
 }
 
 
-void M288_Update(short *buffer, int length)
+void M288_Update(int16_t *buffer, int32_t length)
 {
 	if ( ymf288a ) ymf288a->Mix((FM::Sample*)buffer, length);
 	if ( ymf288b ) ymf288b->Mix((FM::Sample*)buffer, length);
 }
 
 
-void FASTCALL M288_Timer(DWORD step)
+void FASTCALL M288_Timer(uint32_t step)
 {
 	if ( ymf288a ) ymf288a->Count2(step);
 	if ( ymf288b ) ymf288b->Count2(step);
 }
 
 
-void M288_SetVolume(BYTE vol)
+void M288_SetVolume(uint8_t vol)
 {
-	int v1 = (vol)?((16-vol)*4-24):192;		// ¤³¤Î¤¯¤é¤¤¤«¤Ê¤¡
-	int v2 = (vol)?((16-vol)*4):192;		// ¾¯¤·¾®¤µ¤á¤Ë
+	int32_t v1 = (vol)?((16-vol)*4-24):192;		// ã“ã®ãã‚‰ã„ã‹ãªã
+	int32_t v2 = (vol)?((16-vol)*4):192;		// å°‘ã—å°ã•ã‚ã«
 	if ( ymf288a ) {
 		ymf288a->SetVolumeFM(-v1);
 		ymf288a->SetVolumePSG(-v2);

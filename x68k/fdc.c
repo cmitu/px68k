@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------------------
 //  FDC.C - Floppy Disk Controller (uPD72065)
-//  ToDo : Ì¤¼ÂÁõ¥³¥Þ¥ó¥É¡¢¸Õ»¶½­¤¤ÉôÊ¬¡ÊÂ¿¿ô¡Ë¤Î¸«Ä¾¤·¡¢DMAC¤È¤ÎÏ¢·ÈÉô¤Î¸«Ä¾¤·
-//    D88¤Ç¤Î¥¨¥é¡¼½èÍý¤È¤«¥Þ¥·¤Ë¤Ê¤Ã¤¿¤Ï¤º¡Ä¡Ä¤Ç¤â¤½¤ÎÊ¬±ø¤¤¡Ä¡Ä
+//  ToDo : æœªå®Ÿè£…ã‚³ãƒžãƒ³ãƒ‰ã€èƒ¡æ•£è‡­ã„éƒ¨åˆ†ï¼ˆå¤šæ•°ï¼‰ã®è¦‹ç›´ã—ã€DMACã¨ã®é€£æºéƒ¨ã®è¦‹ç›´ã—
+//    D88ã§ã®ã‚¨ãƒ©ãƒ¼å‡¦ç†ã¨ã‹ãƒžã‚·ã«ãªã£ãŸã¯ãšâ€¦â€¦ã§ã‚‚ãã®åˆ†æ±šã„â€¦â€¦
 // ---------------------------------------------------------------------------------------
 
 #include "fdc.h"
@@ -13,75 +13,75 @@
 #include "fileio.h"
 #include "winx68k.h"
 
-static const BYTE CMD_TABLE[32] = {0, 0, 8, 2, 1, 8, 8, 1, 0, 8, 1, 0, 8, 5, 0, 2,
+static const uint8_t CMD_TABLE[32] = {0, 0, 8, 2, 1, 8, 8, 1, 0, 8, 1, 0, 8, 5, 0, 2,
                                    0, 8, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 8, 0, 0};
-static const BYTE DAT_TABLE[32] = {0, 0, 7, 0, 1, 7, 7, 0, 2, 7, 7, 0, 7, 7, 0, 0,
+static const uint8_t DAT_TABLE[32] = {0, 0, 7, 0, 1, 7, 7, 0, 2, 7, 7, 0, 7, 7, 0, 0,
                                    0, 7, 0, 0, 1, 0, 0, 0, 0, 7, 0, 0, 0, 7, 0, 0};
 
 /*  Params for Read / ReadDel / ReadDiag / Write / WriteDel / ScanEq / ScanLEq / ScanHEq  */
 typedef struct {
-	BYTE cmd;
-	BYTE us;
-	BYTE c;
-	BYTE h;
-	BYTE r;
-	BYTE n;
-	BYTE eot;
-	BYTE gsl;
-	BYTE dtl;
+	uint8_t cmd;
+	uint8_t us;
+	uint8_t c;
+	uint8_t h;
+	uint8_t r;
+	uint8_t n;
+	uint8_t eot;
+	uint8_t gsl;
+	uint8_t dtl;
 } FDCPRM0;
 
 /*  Params for ReadID / Seek / SenseDevStat */
 typedef struct {
-	BYTE cmd;
-	BYTE us;
-	BYTE n;
+	uint8_t cmd;
+	uint8_t us;
+	uint8_t n;
 } FDCPRM1;
 
 /*  Params for WriteID  */
 typedef struct {
-	BYTE cmd;
-	BYTE us;
-	BYTE n;
-	BYTE sc;
-	BYTE gap;
-	BYTE d;
+	uint8_t cmd;
+	uint8_t us;
+	uint8_t n;
+	uint8_t sc;
+	uint8_t gap;
+	uint8_t d;
 } FDCPRM2;
 
 
 /*  Response for many commands  */
 typedef struct {
-	BYTE st0;
-	BYTE st1;
-	BYTE st2;
-	BYTE c;
-	BYTE h;
-	BYTE r;
-	BYTE n;
+	uint8_t st0;
+	uint8_t st1;
+	uint8_t st2;
+	uint8_t c;
+	uint8_t h;
+	uint8_t r;
+	uint8_t n;
 } FDCRSP;
 
 
 typedef struct {
-	int cmd;
+	int32_t cmd;
 
-	int cyl;
-	int drv;
-	int ready;
-	int ctrl;
-	int wexec;
+	int32_t cyl;
+	int32_t drv;
+	int32_t ready;
+	int32_t ctrl;
+	int32_t wexec;
 
-	int rdptr;
-	int wrptr;
-	int rdnum;
-	int wrnum;
-	int bufnum;
-	int st0;
-	int st1;
-	int st2;
-	BYTE RspBuf[10];
-	BYTE PrmBuf[10];
-	BYTE DataBuf[0x8000];
-	BYTE ScanBuf[0x8000];
+	int32_t rdptr;
+	int32_t wrptr;
+	int32_t rdnum;
+	int32_t wrnum;
+	int32_t bufnum;
+	int32_t st0;
+	int32_t st1;
+	int32_t st2;
+	uint8_t RspBuf[10];
+	uint8_t PrmBuf[10];
+	uint8_t DataBuf[0x8000];
+	uint8_t ScanBuf[0x8000];
 } FDC;
 
 static FDC fdc;
@@ -94,20 +94,20 @@ static FDC fdc;
 #define MT(p) ((p->us>>7)&1)
 
 // -----------------------------------------------------------------------
-//   ³ä¤ê¹þ¤ß¥Ù¥¯¥¿
+//   å‰²ã‚Šè¾¼ã¿ãƒ™ã‚¯ã‚¿
 // -----------------------------------------------------------------------
-DWORD FASTCALL FDC_Int(BYTE irq)
+int32_t FASTCALL FDC_Int(uint8_t irq)
 {
 	IRQH_IRQCallBack(irq);
 	if (irq==1)
-		return ((DWORD)IOC_IntVect);
+		return ((long)IOC_IntVect);
 	else
 		return -1;
 }
 
 
 // -----------------------------------------------------------------------
-//   ½é´ü²½
+//   åˆæœŸåŒ–
 // -----------------------------------------------------------------------
 void FDC_Init(void)
 {
@@ -115,7 +115,7 @@ void FDC_Init(void)
 }
 
 
-void FDC_SetForceReady(int n)
+void FDC_SetForceReady(int32_t n)
 {
 	fdc.ready = n;
 }
@@ -129,7 +129,7 @@ static void FDC_SetInt(void)
 
 
 // -----------------------------------------------------------------------
-//   Excution Phase ¤Î½ªÎ»
+//   Excution Phase ã®çµ‚äº†
 // -----------------------------------------------------------------------
 void FDC_EPhaseEnd(void)
 {
@@ -150,7 +150,7 @@ void FDC_EPhaseEnd(void)
 }
 
 
-int FDC_IsDataReady(void)
+int32_t FDC_IsDataReady(void)
 {
 	return ((fdc.bufnum)?1:0);
 }
@@ -164,13 +164,8 @@ static void FDC_ExecCmd(void)
 	FDCPRM2* prm2 = (FDCPRM2*)fdc.PrmBuf;
 	FDCRSP* rsp   = (FDCRSP*)fdc.RspBuf;
 	FDCID id;
-	int ret;
+	int32_t ret;
 
-/*{
-FILE* fp = fopen("_fdc.txt", "a");
-fprintf(fp, "Cmd:%d  CurCy:%d  \n", fdc.cmd, fdc.cyl);
-fclose(fp);
-}*/
 
 	switch ( fdc.cmd ) {
 	case 2:		// ReadDiagnostic
@@ -212,11 +207,6 @@ fclose(fp);
 		if ( !fdc.cyl )                            rsp->st0 |= 0x10;
 		if ( (FDD_IsReady(fdc.drv))||(fdc.ready) ) rsp->st0 |= 0x20;
 		if ( FDD_IsReadOnly(fdc.drv) )             rsp->st0 |= 0x40;
-/*{
-FILE* fp = fopen("_fdc.txt", "a");
-fprintf(fp, "  ### SDS  Ret=$%02X\n", rsp->st0);
-fclose(fp);
-}*/
 		break;
 	case 5:		// WriteData
 	case 9:		// WriteDeletedData
@@ -273,21 +263,16 @@ fclose(fp);
 			fdc.st0 |= 0x48;
 		}
 		if ( fdc.st0&0x40 ) FDC_EPhaseEnd();
-/*{
-FILE* fp = fopen("_fdc.txt", "a");
-fprintf(fp, "  ### Read  C:$%02X H:$%02X R:$%02X N:$%02X  EOT=$%02X  ret=$%02X/$%02X/$%02X\n", id.c, id.h, id.r, id.n, prm0->eot, fdc.st0, fdc.st1, fdc.st2);
-fclose(fp);
-}*/
 		break;
 	case 7:		// Recalibrate
 		fdc.st0 = prm1->us&7;
 		fdc.cyl = 0;
 		if ( (!FDD_IsReady(fdc.drv))&&(!fdc.ready) ) {
-			fdc.st0 |= 0x48;		// FD¤Ê¤·
+			fdc.st0 |= 0x48;		// FDãªã—
 		} else if ( (fdc.drv>=0)&&(fdc.drv<2) ) {
-			fdc.st0 |= 0x20;		// FD¤¢¤ê¡¢¥É¥é¥¤¥Ö¤¢¤ê
+			fdc.st0 |= 0x20;		// FDã‚ã‚Šã€ãƒ‰ãƒ©ã‚¤ãƒ–ã‚ã‚Š
 		} else {
-			fdc.st0 |= 0x50;		// ¥É¥é¥¤¥Ö¤Ê¤·
+			fdc.st0 |= 0x50;		// ãƒ‰ãƒ©ã‚¤ãƒ–ãªã—
 		}
 		FDC_SetInt();
 		break;
@@ -375,7 +360,7 @@ static void FDC_WriteBuffer(void)
 	FDCPRM0* prm0 = (FDCPRM0*)fdc.PrmBuf;
 	FDCPRM2* prm2 = (FDCPRM2*)fdc.PrmBuf;
 	FDCID id;
-	int i;
+	uint32_t i;
 
 	switch ( fdc.cmd ) {
 	case 5:		// WriteData
@@ -451,9 +436,9 @@ static void FDC_WriteBuffer(void)
 // -----------------------------------------------------------------------
 //   I/O Read
 // -----------------------------------------------------------------------
-BYTE FASTCALL FDC_Read(DWORD adr)
+uint8_t FASTCALL FDC_Read(int32_t adr)
 {
-	BYTE ret = 0x00;
+	uint8_t ret = 0x00;
 	if ( adr==0xe94001 ) {					/* FDC Status */
 		ret  = 0x80;
 		ret |= ((fdc.rdnum)&&(!fdc.wexec))?0x40:0;
@@ -474,11 +459,6 @@ BYTE FASTCALL FDC_Read(DWORD adr)
 		if ( (fdc.ctrl&1)&&(FDD_IsReady(0)) ) ret = 0x80;
 		if ( (fdc.ctrl&2)&&(FDD_IsReady(1)) ) ret = 0x80;
 	}
-/*{
-FILE* fp = fopen("_fdc.txt", "a");
-fprintf(fp, "Adr:$%08X  ret=$%02X\n", adr, ret);
-fclose(fp);
-}*/
 	return ret;
 }
 
@@ -486,7 +466,7 @@ fclose(fp);
 // -----------------------------------------------------------------------
 //   I/O Write
 // -----------------------------------------------------------------------
-void FASTCALL FDC_Write(DWORD adr, BYTE data)
+void FASTCALL FDC_Write(int32_t adr, uint8_t data)
 {
 	if ( adr==0xe94003 ) {
 		if ( fdc.bufnum ) {                 // WriteData
@@ -531,10 +511,5 @@ void FASTCALL FDC_Write(DWORD adr, BYTE data)
 	} else if ( adr==0xe94007 ) {
 		fdc.drv = (data&0x80)?(data&3):(-1);
 		FDD_SetAccess(fdc.drv);
-/*{
-FILE* fp = fopen("_fdc.txt", "a");
-fprintf(fp, "ActiveDrive=%d\n", fdc.drv);
-fclose(fp);
-}*/
 	}
 }

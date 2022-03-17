@@ -12,208 +12,57 @@
 #include	"crtc.h"
 
 
-static WORD FastClearMask[16] = {
+static uint16_t FastClearMask[16] = {
 	0xffff, 0xfff0, 0xff0f, 0xff00, 0xf0ff, 0xf0f0, 0xf00f, 0xf000,
 	0x0fff, 0x0ff0, 0x0f0f, 0x0f00, 0x00ff, 0x00f0, 0x000f, 0x0000
 };
-	BYTE	CRTC_Regs[24*2];
-	BYTE	CRTC_Mode = 0;
-	DWORD	TextDotX = 768, TextDotY = 512;
-	WORD	CRTC_VSTART, CRTC_VEND;
-	WORD	CRTC_HSTART, CRTC_HEND;
-	DWORD	TextScrollX = 0, TextScrollY = 0;
-	DWORD	GrphScrollX[4] = {0, 0, 0, 0};		// «€ŒÛ§À§∑§¡§„§√§ø°ƒ
-	DWORD	GrphScrollY[4] = {0, 0, 0, 0};
+	uint8_t	CRTC_Regs[24*2];
+	uint8_t	CRTC_Mode = 0;
+	int32_t	TextDotX = 768, TextDotY = 512;
+	uint16_t	CRTC_VSTART, CRTC_VEND;
+	uint16_t	CRTC_HSTART, CRTC_HEND;
+	int32_t	TextScrollX = 0, TextScrollY = 0;
+	uint32_t	GrphScrollX[4] = {0, 0, 0, 0};		// ÈÖçÂàó„Å´„Åó„Å°„ÇÉ„Å£„Åü‚Ä¶
+	uint32_t	GrphScrollY[4] = {0, 0, 0, 0};
 
-	BYTE	CRTC_FastClr = 0;
-	BYTE	CRTC_SispScan = 0;
-	DWORD	CRTC_FastClrLine = 0;
-	WORD	CRTC_FastClrMask = 0;
-	WORD	CRTC_IntLine = 0;
-	BYTE	CRTC_VStep = 2;
+	uint8_t	CRTC_FastClr = 0;
+	uint8_t	CRTC_SispScan = 0;
+	uint32_t	CRTC_FastClrLine = 0;
+	uint16_t	CRTC_FastClrMask = 0;
+	uint16_t	CRTC_IntLine = 0;
+	uint8_t	CRTC_VStep = 2;
 
-	BYTE	VCReg0[2] = {0, 0};
-	BYTE	VCReg1[2] = {0, 0};
-	BYTE	VCReg2[2] = {0, 0};
+	uint8_t	VCReg0[2] = {0, 0};
+	uint8_t	VCReg1[2] = {0, 0};
+	uint8_t	VCReg2[2] = {0, 0};
 
-	BYTE	CRTC_RCFlag[2] = {0, 0};
-	int HSYNC_CLK = 324;
+	uint8_t	CRTC_RCFlag[2] = {0, 0};
+	int32_t HSYNC_CLK = 324;
 
+enum { MODES_ACTUAL, MODES_COMPAT, MODE_NORM = 0, MODE_HIGH, MODES };
+
+	int32_t CHANGEAV_TIMING = 0; /* Separate change of geometry from change of refresh rate */
+	int32_t VID_MODE = MODE_NORM; /* what framerate we start in */
+
+	//extern int VID_MODE, CHANGEAV_TIMING;
 
 // -----------------------------------------------------------------------
-//   §È§π§ø°º§≥§‘°º
+//   „Çâ„Åô„Åü„Éº„Åì„Å¥„Éº
 // -----------------------------------------------------------------------
 void CRTC_RasterCopy(void)
 {
-	DWORD src, dst, line;
 
-	line = (((DWORD)CRTC_Regs[0x2d])<<2);
-	src = (((DWORD)CRTC_Regs[0x2c])<<9);
-	dst = (((DWORD)CRTC_Regs[0x2d])<<9);
+	uint32_t line = (((uint32_t)CRTC_Regs[0x2d])<<2);
+	uint32_t src = (((uint32_t)CRTC_Regs[0x2c])<<9);
+	uint32_t dst = (((uint32_t)CRTC_Regs[0x2d])<<9);
 
-#ifdef USE_ASM
-	if (CRTC_Regs[0x2b]&1)
-		_asm
-		{
-			mov	ebx, src
-			mov	edx, dst
-			mov	cl, 128
-		loop0:
-			mov	eax, dword ptr TVRAM[ebx]
-			mov	dword ptr TVRAM[edx], eax
-			add	ebx, 4
-			add	edx, 4
-			dec	cl
-			jnz	loop0
-		}
-	if (CRTC_Regs[0x2b]&2)
-		_asm
-		{
-			mov	ebx, src
-			mov	edx, dst
-			mov	cl, 128
-		loop1:
-			mov	eax, dword ptr TVRAM[ebx+0x20000]
-			mov	dword ptr TVRAM[edx+0x20000], eax
-			add	ebx, 4
-			add	edx, 4
-			dec	cl
-			jnz	loop1
-		}
-	if (CRTC_Regs[0x2b]&4)
-		_asm
-		{
-			mov	ebx, src
-			mov	edx, dst
-			mov	cl, 128
-		loop2:
-			mov	eax, dword ptr TVRAM[ebx+0x40000]
-			mov	dword ptr TVRAM[edx+0x40000], eax
-			add	ebx, 4
-			add	edx, 4
-			dec	cl
-			jnz	loop2
-		}
-	if (CRTC_Regs[0x2b]&8)
-		_asm
-		{
-			mov	ebx, src
-			mov	edx, dst
-			mov	cl, 128
-		loop3:
-			mov	eax, dword ptr TVRAM[ebx+0x60000]
-			mov	dword ptr TVRAM[edx+0x60000], eax
-			add	ebx, 4
-			add	edx, 4
-			dec	cl
-			jnz	loop3
-		}
-
-	_asm
-	{
-		mov	ecx, line
-		sub	ecx, TextScrollY
-		and	ecx, 1023
-		mov	dl, 4
-	rcdirtylp:
-		mov	byte ptr TextDirtyLine[ecx], 1
-		inc	cx
-		and	cx, 1023
-		dec	dl
-		jnz	rcdirtylp
-	}
-#elif defined(USE_GAS) && defined(__i386__)
-	if (CRTC_Regs[0x2b] & 1) {
-		asm (
-			"mov	%0, %%ebx;"
-			"mov	%1, %%edx;"
-			"mov	$128, %%cl;"
-		"0:"
-			"mov	TVRAM(%%ebx), %%eax;"
-			"mov	%%eax, TVRAM(%%edx);"
-			"add	$4, %%ebx;"
-			"add	$4, %%edx;"
-			"dec	%%cl;"
-			"jnz	0b;"
-		: /* output: nothing */
-		: "m" (src), "m" (dst)
-		: "ax", "bx", "cx", "dx", "memory");
-	}
-
-	if (CRTC_Regs[0x2b] & 2) {
-		asm (
-			"mov	%0, %%ebx;"
-			"mov	%1, %%edx;"
-			"mov	$128, %%cl;"
-		"0:"
-			"mov	TVRAM + 0x20000(%%ebx), %%eax;"
-			"mov	%%eax, TVRAM + 0x20000(%%edx);"
-			"add	$4, %%ebx;"
-			"add	$4, %%edx;"
-			"dec	%%cl;"
-			"jnz	0b;"
-		: /* output: nothing */
-		: "m" (src), "m" (dst)
-		: "ax", "bx", "cx", "dx", "memory");
-	}
-
-	if (CRTC_Regs[0x2b] & 4) {
-		asm (
-			"mov	%0, %%ebx;"
-			"mov	%1, %%edx;"
-			"mov	$128, %%cl;"
-		"0:"
-			"mov	TVRAM + 0x40000(%%ebx), %%eax;"
-			"mov	%%eax, TVRAM + 0x40000(%%edx);"
-			"add	$4, %%ebx;"
-			"add	$4, %%edx;"
-			"dec	%%cl;"
-			"jnz	0b;"
-		: /* output: nothing */
-		: "m" (src), "m" (dst)
-		: "ax", "bx", "cx", "dx", "memory");
-	}
-
-	if (CRTC_Regs[0x2b] & 8) {
-		asm (
-			"mov	%0, %%ebx;"
-			"mov	%1, %%edx;"
-			"mov	$128, %%cl;"
-		"0:"
-			"mov	TVRAM + 0x60000(%%ebx), %%eax;"
-			"mov	%%eax, TVRAM + 0x60000(%%edx);"
-			"add	$4, %%ebx;"
-			"add	$4, %%edx;"
-			"dec	%%cl;"
-			"jnz	0b;"
-		: /* output: nothing */
-		: "m" (src), "m" (dst)
-		: "ax", "bx", "cx", "dx", "memory");
-	}
-
-	asm (
-		"mov	%0, %%ecx;"
-		"sub	(%1), %%ecx;"
-		"and	$1023, %%ecx;"
-		"mov	$4, %%dl;"
-	"0:"
-		"movb	$1, TextDirtyLine(%%ecx);"
-		"inc	%%ecx;"
-		"and	$1023, %%ecx;"
-		"dec	%%dl;"
-		"jnz	0b;"
-	: /* output: nothing */
-	: "m" (line), "g" (TextScrollY)
-	: "cx", "dx", "memory");
-#else /* !USE_ASM && !(USE_GAS && __i386__) */
-{
-	static const DWORD off[4] = { 0, 0x20000, 0x40000, 0x60000 };
-	int i, bit;
+	static const uint32_t off[4] = { 0, 0x20000, 0x40000, 0x60000 };
+	int_fast16_t i, bit;
 
 	for (bit = 0; bit < 4; bit++) {
 		if (CRTC_Regs[0x2b] & (1 << bit)) {
 			memmove(&TVRAM[dst + off[bit]], &TVRAM[src + off[bit]],
-			    sizeof(DWORD) * 128);
+			    sizeof(uint32_t) * 128);
 		}
 	}
 
@@ -222,26 +71,25 @@ void CRTC_RasterCopy(void)
 		TextDirtyLine[line] = 1;
 		line = (line + 1) & 0x3ff;
 	}
-}
-#endif	/* USE_ASM */
+
 
 	TVRAM_RCUpdate();
 }
 
 
 // -----------------------------------------------------------------------
-//   §”§«§™§≥§Û§»§Ì°º§Î§Ï§∏§π§ø
+//   „Å≥„Åß„Åä„Åì„Çì„Å®„Çç„Éº„Çã„Çå„Åò„Åô„Åü
 // -----------------------------------------------------------------------
-// Reg0§Œøß•‚°º•…§œ°¢§—§√§»∏´CRTC§»∆±§∏§¿§±§…ÃÚ≥‰∞„§¶§Œ§«√Ì∞’°£
-// CRTC§œGVRAM§ÿ§Œ•¢•Ø•ª•π ˝À°° •·•‚•Í•ﬁ•√•◊æÂ§«§Œ∏´§® ˝°À§¨ —§Ô§Î§Œ§À¬–§∑°¢
-// VCtrl§œ°¢GVRAM¢™≤ËÃÃ§Œ≈∏≥´ ˝À°§Ú¿©∏Ê§π§Î°£
-// §ƒ§ﬁ§Í°¢•¢•Ø•ª•π ˝À°° CRTC°À§œ16bit•‚°º•…§«°¢…Ωº®§œ256øß•‚°º•…§√§∆§ ª»§§
-//  ˝§‚µˆ§µ§Ï§Î§Œ§Ï§π°£
-// •≥•√•»•ÛµØ∆∞ª˛§‰Ys° ≈≈«»»«°ÀOP§ §…§«ª»§Ô§Ï§∆§ﬁ§’°£
+// Reg0„ÅÆËâ≤„É¢„Éº„Éâ„ÅØ„ÄÅ„Å±„Å£„Å®Ë¶ãCRTC„Å®Âêå„Åò„Å†„Åë„Å©ÂΩπÂâ≤ÈÅï„ÅÜ„ÅÆ„ÅßÊ≥®ÊÑè„ÄÇ
+// CRTC„ÅØGVRAM„Å∏„ÅÆ„Ç¢„ÇØ„Çª„ÇπÊñπÊ≥ïÔºà„É°„É¢„É™„Éû„ÉÉ„Éó‰∏ä„Åß„ÅÆË¶ã„ÅàÊñπÔºâ„ÅåÂ§â„Çè„Çã„ÅÆ„Å´ÂØæ„Åó„ÄÅ
+// VCtrl„ÅØ„ÄÅGVRAM‚ÜíÁîªÈù¢„ÅÆÂ±ïÈñãÊñπÊ≥ï„ÇíÂà∂Âæ°„Åô„Çã„ÄÇ
+// „Å§„Åæ„Çä„ÄÅ„Ç¢„ÇØ„Çª„ÇπÊñπÊ≥ïÔºàCRTCÔºâ„ÅØ16bit„É¢„Éº„Éâ„Åß„ÄÅË°®Á§∫„ÅØ256Ëâ≤„É¢„Éº„Éâ„Å£„Å¶„Å™‰Ωø„ÅÑ
+// Êñπ„ÇÇË®±„Åï„Çå„Çã„ÅÆ„Çå„Åô„ÄÇ
+// „Ç≥„ÉÉ„Éà„É≥Ëµ∑ÂãïÊôÇ„ÇÑYsÔºàÈõªÊ≥¢ÁâàÔºâOP„Å™„Å©„Åß‰Ωø„Çè„Çå„Å¶„Åæ„Åµ„ÄÇ
 
-BYTE FASTCALL VCtrl_Read(DWORD adr)
+uint8_t FASTCALL VCtrl_Read(int32_t adr)
 {
-	BYTE ret = 0xff;
+	uint8_t ret = 0xff;
 	switch(adr&0x701)
 	{
 	case 0x400:
@@ -261,9 +109,9 @@ BYTE FASTCALL VCtrl_Read(DWORD adr)
 }
 
 
-void FASTCALL VCtrl_Write(DWORD adr, BYTE data)
+void FASTCALL VCtrl_Write(int32_t adr, uint8_t data)
 {
-	BYTE old;
+	uint8_t old;
 	switch(adr&0x701)
 	{
 	case 0x401:
@@ -295,31 +143,31 @@ void FASTCALL VCtrl_Write(DWORD adr, BYTE data)
 
 
 // -----------------------------------------------------------------------
-//   CRTC§Ï§∏§π§ø
+//   CRTC„Çå„Åò„Åô„Åü
 // -----------------------------------------------------------------------
-// •Ï•∏•π•ø•¢•Ø•ª•π§Œ•≥°º•…§¨±¯§§ ^^;
+// „É¨„Ç∏„Çπ„Çø„Ç¢„ÇØ„Çª„Çπ„ÅÆ„Ç≥„Éº„Éâ„ÅåÊ±ö„ÅÑ ^^;
 
 void CRTC_Init(void)
 {
-	ZeroMemory(CRTC_Regs, 48);
+	memset(CRTC_Regs, 0, 48);
 	TextScrollX = 0, TextScrollY = 0;
-	ZeroMemory(GrphScrollX, sizeof(GrphScrollX));
-	ZeroMemory(GrphScrollY, sizeof(GrphScrollY));
+	memset(GrphScrollX, 0, sizeof(GrphScrollX));
+	memset(GrphScrollY, 0, sizeof(GrphScrollY));
 }
 
 
-BYTE FASTCALL CRTC_Read(DWORD adr)
+uint8_t FASTCALL CRTC_Read(int32_t adr)
 {
-	BYTE ret;
+	uint8_t ret;
 	if (adr<0xe803ff) {
-		int reg = adr&0x3f;
+		int32_t reg = adr&0x3f;
 		if ( (reg>=0x28)&&(reg<=0x2b) ) return CRTC_Regs[reg];
 		else return 0;
 	} else if ( adr==0xe80481 ) {
-// FastClear§Œ√Ì∞’≈¿°ß
-// FastClr•”•√•»§À1§ÚΩÒ§≠π˛§‡§»°¢§Ω§Œª˛≈¿§«§œReadBack§∑§∆§‚1§œ∏´§®§ §§°£
-// 1ΩÒ§≠π˛§ﬂ∏Â§Œ∫«ΩÈ§Œø‚ƒæµ¢¿˛¥¸¥÷§«1§¨Œ©§¡°¢æ√µÓ§Ú≥´ªœ§π§Î°£
-// 1ø‚ƒæ∆±¥¸¥¸¥÷§«æ√µÓ§¨§™§Ô§Í°¢0§ÀÃ·§Î°ƒ°ƒ§È§∑§“° PITAPAT°À
+// FastClear„ÅÆÊ≥®ÊÑèÁÇπÔºö
+// FastClr„Éì„ÉÉ„Éà„Å´1„ÇíÊõ∏„ÅçËæº„ÇÄ„Å®„ÄÅ„Åù„ÅÆÊôÇÁÇπ„Åß„ÅØReadBack„Åó„Å¶„ÇÇ1„ÅØË¶ã„Åà„Å™„ÅÑ„ÄÇ
+// 1Êõ∏„ÅçËæº„ÅøÂæå„ÅÆÊúÄÂàù„ÅÆÂûÇÁõ¥Â∏∞Á∑öÊúüÈñì„Åß1„ÅåÁ´ã„Å°„ÄÅÊ∂àÂéª„ÇíÈñãÂßã„Åô„Çã„ÄÇ
+// 1ÂûÇÁõ¥ÂêåÊúüÊúüÈñì„ÅßÊ∂àÂéª„Åå„Åä„Çè„Çä„ÄÅ0„Å´Êàª„Çã‚Ä¶‚Ä¶„Çâ„Åó„Å≤ÔºàPITAPATÔºâ
 		if (CRTC_FastClr)
 			ret = CRTC_Mode | 0x02;
 		else
@@ -332,10 +180,11 @@ BYTE FASTCALL CRTC_Read(DWORD adr)
 }
 
 
-void FASTCALL CRTC_Write(DWORD adr, BYTE data)
+void FASTCALL CRTC_Write(int32_t adr, uint8_t data)
 {
-	BYTE old;
-	BYTE reg = (BYTE)(adr&0x3f);
+	uint8_t old;
+	uint8_t reg = (uint8_t)(adr&0x3f);
+	int32_t old_vidmode = VID_MODE;
 	if (adr<0xe80400)
 	{
 		if ( reg>=0x30 ) return;
@@ -345,28 +194,31 @@ void FASTCALL CRTC_Write(DWORD adr, BYTE data)
 		TVRAM_SetAllDirty();
 		switch(reg)
 		{
+		case 0x00:
+		case 0x01:
+			HLINE_TOTAL = (((uint16_t)CRTC_Regs[0]<<8)+CRTC_Regs[1]) * 8;
 		case 0x04:
 		case 0x05:
-			CRTC_HSTART = (((WORD)CRTC_Regs[0x4]<<8)+CRTC_Regs[0x5]);
+			CRTC_HSTART = (((uint16_t)CRTC_Regs[0x4]<<8)+CRTC_Regs[0x5]);
 			TextDotX = (CRTC_HEND-CRTC_HSTART)*8;
-			BG_HAdjust = ((long)BG_Regs[0x0d]-(CRTC_HSTART+4))*8;				// øÂ ø ˝∏˛§œ≤Ú¡¸≈Ÿ§À§Ë§Î1/2§œ§§§È§ §§°©° Tetris°À
+			BG_HAdjust = ((long)BG_Regs[0x0d]-(CRTC_HSTART+4))*8;		// Ê∞¥Âπ≥ÊñπÂêë„ÅØËß£ÂÉèÂ∫¶„Å´„Çà„Çã1/2„ÅØ„ÅÑ„Çâ„Å™„ÅÑÔºüÔºàTetrisÔºâ
 			WinDraw_ChangeSize();
 			break;
 		case 0x06:
 		case 0x07:
-			CRTC_HEND = (((WORD)CRTC_Regs[0x6]<<8)+CRTC_Regs[0x7]);
+			CRTC_HEND = (((uint16_t)CRTC_Regs[0x6]<<8)+CRTC_Regs[0x7]);
 			TextDotX = (CRTC_HEND-CRTC_HSTART)*8;
 			WinDraw_ChangeSize();
 			break;
 		case 0x08:
 		case 0x09:
-			VLINE_TOTAL = (((WORD)CRTC_Regs[8]<<8)+CRTC_Regs[9]);
+			VLINE_TOTAL = (((uint16_t)CRTC_Regs[8]<<8)+CRTC_Regs[9]);
 			HSYNC_CLK = ((CRTC_Regs[0x29]&0x10)?VSYNC_HIGH:VSYNC_NORM)/VLINE_TOTAL;
 			break;
 		case 0x0c:
 		case 0x0d:
-			CRTC_VSTART = (((WORD)CRTC_Regs[0xc]<<8)+CRTC_Regs[0xd]);
-			BG_VLINE = ((long)BG_Regs[0x0f]-CRTC_VSTART)/((BG_Regs[0x11]&4)?1:2);	// BG§»§Ω§Œ¬æ§¨§∫§Ï§∆§Îª˛§Œ∫π ¨
+			CRTC_VSTART = (((uint16_t)CRTC_Regs[0xc]<<8)+CRTC_Regs[0xd]);
+			BG_VLINE = ((long)BG_Regs[0x0f]-CRTC_VSTART)/((BG_Regs[0x11]&4)?1:2);	// BG„Å®„Åù„ÅÆ‰ªñ„Åå„Åö„Çå„Å¶„ÇãÊôÇ„ÅÆÂ∑ÆÂàÜ
 			TextDotY = CRTC_VEND-CRTC_VSTART;
 			if ((CRTC_Regs[0x29]&0x14)==0x10)
 			{
@@ -384,7 +236,7 @@ void FASTCALL CRTC_Write(DWORD adr, BYTE data)
 			break;
 		case 0x0e:
 		case 0x0f:
-			CRTC_VEND = (((WORD)CRTC_Regs[0xe]<<8)+CRTC_Regs[0xf]);
+			CRTC_VEND = (((uint16_t)CRTC_Regs[0xe]<<8)+CRTC_Regs[0xf]);
 			TextDotY = CRTC_VEND-CRTC_VSTART;
 			if ((CRTC_Regs[0x29]&0x14)==0x10)
 			{
@@ -405,6 +257,7 @@ void FASTCALL CRTC_Write(DWORD adr, BYTE data)
 			break;
 		case 0x29:
 			HSYNC_CLK = ((CRTC_Regs[0x29]&0x10)?VSYNC_HIGH:VSYNC_NORM)/VLINE_TOTAL;
+			VID_MODE = !!(CRTC_Regs[0x29]&0x10);
 			TextDotY = CRTC_VEND-CRTC_VSTART;
 			if ((CRTC_Regs[0x29]&0x14)==0x10)
 			{
@@ -418,58 +271,63 @@ void FASTCALL CRTC_Write(DWORD adr, BYTE data)
 			}
 			else
 				CRTC_VStep = 2;
+			if (VID_MODE != old_vidmode)
+			{
+				old_vidmode = VID_MODE;
+				CHANGEAV_TIMING=1;
+			}
 			WinDraw_ChangeSize();
 			break;
 		case 0x12:
 		case 0x13:
-			CRTC_IntLine = (((WORD)CRTC_Regs[0x12]<<8)+CRTC_Regs[0x13])&1023;
+			CRTC_IntLine = (((uint16_t)CRTC_Regs[0x12]<<8)+CRTC_Regs[0x13])&1023;
 			break;
 		case 0x14:
 		case 0x15:
-			TextScrollX = (((DWORD)CRTC_Regs[0x14]<<8)+CRTC_Regs[0x15])&1023;
+			TextScrollX = (((uint32_t)CRTC_Regs[0x14]<<8)+CRTC_Regs[0x15])&1023;
 			break;
 		case 0x16:
 		case 0x17:
-			TextScrollY = (((DWORD)CRTC_Regs[0x16]<<8)+CRTC_Regs[0x17])&1023;
+			TextScrollY = (((uint32_t)CRTC_Regs[0x16]<<8)+CRTC_Regs[0x17])&1023;
 			break;
 		case 0x18:
 		case 0x19:
-			GrphScrollX[0] = (((DWORD)CRTC_Regs[0x18]<<8)+CRTC_Regs[0x19])&1023;
+			GrphScrollX[0] = (((uint32_t)CRTC_Regs[0x18]<<8)+CRTC_Regs[0x19])&1023;
 			break;
 		case 0x1a:
 		case 0x1b:
-			GrphScrollY[0] = (((DWORD)CRTC_Regs[0x1a]<<8)+CRTC_Regs[0x1b])&1023;
+			GrphScrollY[0] = (((uint32_t)CRTC_Regs[0x1a]<<8)+CRTC_Regs[0x1b])&1023;
 			break;
 		case 0x1c:
 		case 0x1d:
-			GrphScrollX[1] = (((DWORD)CRTC_Regs[0x1c]<<8)+CRTC_Regs[0x1d])&511;
+			GrphScrollX[1] = (((uint32_t)CRTC_Regs[0x1c]<<8)+CRTC_Regs[0x1d])&511;
 			break;
 		case 0x1e:
 		case 0x1f:
-			GrphScrollY[1] = (((DWORD)CRTC_Regs[0x1e]<<8)+CRTC_Regs[0x1f])&511;
+			GrphScrollY[1] = (((uint32_t)CRTC_Regs[0x1e]<<8)+CRTC_Regs[0x1f])&511;
 			break;
 		case 0x20:
 		case 0x21:
-			GrphScrollX[2] = (((DWORD)CRTC_Regs[0x20]<<8)+CRTC_Regs[0x21])&511;
+			GrphScrollX[2] = (((uint32_t)CRTC_Regs[0x20]<<8)+CRTC_Regs[0x21])&511;
 			break;
 		case 0x22:
 		case 0x23:
-			GrphScrollY[2] = (((DWORD)CRTC_Regs[0x22]<<8)+CRTC_Regs[0x23])&511;
+			GrphScrollY[2] = (((uint32_t)CRTC_Regs[0x22]<<8)+CRTC_Regs[0x23])&511;
 			break;
 		case 0x24:
 		case 0x25:
-			GrphScrollX[3] = (((DWORD)CRTC_Regs[0x24]<<8)+CRTC_Regs[0x25])&511;
+			GrphScrollX[3] = (((uint32_t)CRTC_Regs[0x24]<<8)+CRTC_Regs[0x25])&511;
 			break;
 		case 0x26:
 		case 0x27:
-			GrphScrollY[3] = (((DWORD)CRTC_Regs[0x26]<<8)+CRTC_Regs[0x27])&511;
+			GrphScrollY[3] = (((uint32_t)CRTC_Regs[0x26]<<8)+CRTC_Regs[0x27])&511;
 			break;
 		case 0x2a:
 		case 0x2b:
 			break;
-		case 0x2c:				// CRTC∆∞∫Ó•›°º•»§Œ•È•π•ø•≥•‘°º§ÚON§À§∑§∆§™§§§∆° §∑§∆§™§§§ø§ﬁ§ﬁ°À°¢
-		case 0x2d:				// Src/Dst§¿§±º°°π —§®§∆§§§Ø§Œ§‚µˆ§µ§Ï§Î§È§∑§§° •…•È•≠•Â•È§»§´°À
-			CRTC_RCFlag[reg-0x2c] = 1;	// Dst —ππ∏Â§Àº¬π‘§µ§Ï§Î°©
+		case 0x2c:				// CRTCÂãï‰Ωú„Éù„Éº„Éà„ÅÆ„É©„Çπ„Çø„Ç≥„Éî„Éº„ÇíON„Å´„Åó„Å¶„Åä„ÅÑ„Å¶Ôºà„Åó„Å¶„Åä„ÅÑ„Åü„Åæ„ÅæÔºâ„ÄÅ
+		case 0x2d:				// Src/Dst„Å†„ÅëÊ¨°„ÄÖÂ§â„Åà„Å¶„ÅÑ„Åè„ÅÆ„ÇÇË®±„Åï„Çå„Çã„Çâ„Åó„ÅÑÔºà„Éâ„É©„Ç≠„É•„É©„Å®„ÅãÔºâ
+			CRTC_RCFlag[reg-0x2c] = 1;	// DstÂ§âÊõ¥Âæå„Å´ÂÆüË°å„Åï„Çå„ÇãÔºü
 			if ((CRTC_Mode&8)&&/*(CRTC_RCFlag[0])&&*/(CRTC_RCFlag[1]))
 			{
 				CRTC_RasterCopy();
@@ -480,7 +338,7 @@ void FASTCALL CRTC_Write(DWORD adr, BYTE data)
 		}
 	}
 	else if (adr==0xe80481)
-	{					// CRTC∆∞∫Ó•›°º•»
+	{					// CRTCÂãï‰Ωú„Éù„Éº„Éà
 		CRTC_Mode = (data|(CRTC_Mode&2));
 		if (CRTC_Mode&8)
 		{				// Raster Copy
@@ -488,17 +346,11 @@ void FASTCALL CRTC_Write(DWORD adr, BYTE data)
 			CRTC_RCFlag[0] = 0;
 			CRTC_RCFlag[1] = 0;
 		}
-		if (CRTC_Mode&2)		// π‚¬Æ•Ø•Í•¢
+		if (CRTC_Mode&2)		// È´òÈÄü„ÇØ„É™„Ç¢
 		{
 			CRTC_FastClrLine = vline;
-						// §≥§Œª˛≈¿§Œ•ﬁ•π•Ø§¨Õ≠∏˙§È§∑§§° •Ø•©°º•π°À
+						// „Åì„ÅÆÊôÇÁÇπ„ÅÆ„Éû„Çπ„ÇØ„ÅåÊúâÂäπ„Çâ„Åó„ÅÑÔºà„ÇØ„Ç©„Éº„ÇπÔºâ
 			CRTC_FastClrMask = FastClearMask[CRTC_Regs[0x2b]&15];
-/*{
-FILE *fp;
-fp=fopen("_crtc.txt", "a");
-fprintf(fp, "FastClr\n");
-fclose(fp);
-}*/
 		}
 	}
 }

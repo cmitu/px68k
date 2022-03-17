@@ -4,21 +4,21 @@
 // ---------------------------------------------------------------------------
 //	$fmgen-Id: fmgen.cpp,v 1.49 2003/09/02 14:51:04 cisc Exp $
 // ---------------------------------------------------------------------------
-//	ª≤πÕ:
+//	ÂèÇËÄÉ:
 //		FM sound generator for M.A.M.E., written by Tatsuyuki Satoh.
 //
-// 	∆Ê:
-//		OPNB §Œ CSM •‚°º•…(ª≈ÕÕ§¨§Ë§Ø§Ô§´§È§ §§)
+// 	Ë¨é:
+//		OPNB „ÅÆ CSM „É¢„Éº„Éâ(‰ªïÊßò„Åå„Çà„Åè„Çè„Åã„Çâ„Å™„ÅÑ)
 //
-//	¿©∏¬:
-//		°¶AR!=31 §« SSGEC §Úª»§¶§»«»∑¡§¨º¬∫›§»∞€§ §Î≤ƒ«Ω¿≠§¢§Í
+//	Âà∂Èôê:
+//		„ÉªAR!=31 „Åß SSGEC „Çí‰Ωø„ÅÜ„Å®Ê≥¢ÂΩ¢„ÅåÂÆüÈöõ„Å®Áï∞„Å™„ÇãÂèØËÉΩÊÄß„ÅÇ„Çä
 //
-//	º’º≠:
-//		Tatsuyuki Satoh §µ§Û(fm.c)
-//		Hiromitsu Shioya §µ§Û(ADPCM-A)
-//		DMP-SOFT. §µ§Û(OPNB)
-//		KAJA §µ§Û(test program)
-//		§€§´∑«º®»ƒ≈˘§«ÕÕ°π§ §¥Ωı∏¿°§§¥ªŸ±Á§Ú§™¥Û§ª§§§ø§¿§§§ø≥ßÕÕ§À
+//	Ë¨ùËæû:
+//		Tatsuyuki Satoh „Åï„Çì(fm.c)
+//		Hiromitsu Shioya „Åï„Çì(ADPCM-A)
+//		DMP-SOFT. „Åï„Çì(OPNB)
+//		KAJA „Åï„Çì(test program)
+//		„Åª„ÅãÊé≤Á§∫ÊùøÁ≠â„ÅßÊßò„ÄÖ„Å™„ÅîÂä©Ë®ÄÔºå„ÅîÊîØÊè¥„Çí„ÅäÂØÑ„Åõ„ÅÑ„Åü„Å†„ÅÑ„ÅüÁöÜÊßò„Å´
 // ---------------------------------------------------------------------------
 
 #include "headers.h"
@@ -37,7 +37,7 @@
 //
 namespace FM
 {
-	const uint8 Operator::notetable[128] =
+	const uint8_t Operator::notetable[128] =
 	{
 		 0,  0,  0,  0,  0,  0,  0,  1,  2,  3,  3,  3,  3,  3,  3,  3, 
 		 4,  4,  4,  4,  4,  4,  4,  5,  6,  7,  7,  7,  7,  7,  7,  7, 
@@ -49,7 +49,7 @@ namespace FM
 		28, 28, 28, 28, 28, 28, 28, 29, 30, 31, 31, 31, 31, 31, 31, 31, 
 	};
 	
-	const int8 Operator::dttable[256] =
+	const int8_t Operator::dttable[256] =
 	{
 		  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 		  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -69,7 +69,7 @@ namespace FM
 		-16,-16,-18,-20,-22,-24,-26,-28,-32,-34,-38,-40,-44,-44,-44,-44,
 	};
 
-	const int8 Operator::decaytable1[64][8] = 
+	const int8_t Operator::decaytable1[64][8] = 
 	{
 		0, 0, 0, 0, 0, 0, 0, 0,		0, 0, 0, 0, 0, 0, 0, 0,
 		1, 1, 1, 1, 1, 1, 1, 1,		1, 1, 1, 1, 1, 1, 1, 1,
@@ -105,12 +105,12 @@ namespace FM
 		16,16,16,16,16,16,16,16,	16,16,16,16,16,16,16,16,
 	};
 
-	const int Operator::decaytable2[16] = 
+	const int32_t Operator::decaytable2[16] = 
 	{
 		1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2047, 2047, 2047, 2047, 2047
 	};
 
-	const int8 Operator::attacktable[64][8] = 
+	const int8_t Operator::attacktable[64][8] = 
 	{
 		-1,-1,-1,-1,-1,-1,-1,-1,	-1,-1,-1,-1,-1,-1,-1,-1,
 		 4, 4, 4, 4, 4, 4, 4, 4,	 4, 4, 4, 4, 4, 4, 4, 4,
@@ -146,7 +146,7 @@ namespace FM
 		 0, 0, 0, 0, 0, 0, 0, 0,	 0, 0 ,0, 0, 0, 0, 0, 0,
 	};
 
-	const int Operator::ssgenvtable[8][2][3][2] =
+	const int32_t Operator::ssgenvtable[8][2][3][2] =
 	{
 		1, 1,  1, 1,  1, 1,		// 08 
 		0, 1,  1, 1,  1, 1,		// 08 56~
@@ -167,8 +167,8 @@ namespace FM
 	};
 
 	// fixed equasion-based tables
-	int		pmtable[2][8][FM_LFOENTS];
-	uint	amtable[2][4][FM_LFOENTS];
+	int32_t		pmtable[2][8][FM_LFOENTS];
+	uint32_t	amtable[2][4][FM_LFOENTS];
 
 	static bool tablemade = false;
 }
@@ -177,7 +177,7 @@ namespace FM
 {
 
 // ---------------------------------------------------------------------------
-//	•∆°º•÷•Î∫Ó¿Æ
+//	„ÉÜ„Éº„Éñ„É´‰ΩúÊàê
 //
 void MakeLFOTable()
 {
@@ -186,7 +186,7 @@ void MakeLFOTable()
 
 	tablemade = true;
 	
-	int i;
+	int_fast32_t i;
 
 	static const double pms[2][8] = 
 	{ 
@@ -199,24 +199,24 @@ void MakeLFOTable()
 	//	1.000963
 	//	lfofref[level * max * wave];
 	//	pre = lfofref[level][pms * wave >> 8];
-	static const uint8 amt[2][4] = 
+	static const uint8_t amt[2][4] = 
 	{
 		{ 31, 6, 4, 3 }, // OPNA
 		{ 31, 2, 1, 0 }, //	OPM
 	};
 	
-	for (int type = 0; type < 2; type++)
+	for (int_fast32_t type = 0; type < 2; type++)
 	{
 		for (i=0; i<8; i++)
 		{
 			double pmb = pms[type][i];
-			for (int j=0; j<FM_LFOENTS; j++)
+			for (int32_t j=0; j<FM_LFOENTS; j++)
 			{
 				//double v = pow(2.0, pmb * (2 * j - FM_LFOENTS+1) / (FM_LFOENTS-1));
 				double w = 0.6 * pmb * sin(2 * j * 3.14159265358979323846 / FM_LFOENTS) + 1;
 //				pmtable[type][i][j] = int(0x10000 * (v - 1));
 //				if (type == 0)
-					pmtable[type][i][j] = int(0x10000 * (w - 1));
+					pmtable[type][i][j] = int32_t(0x10000 * (w - 1));
 //				else
 //					pmtable[type][i][j] = int(0x10000 * (v - 1));
 
@@ -225,7 +225,7 @@ void MakeLFOTable()
 		}
 		for (i=0; i<4; i++)
 		{
-			for (int j=0; j<FM_LFOENTS; j++)
+			for (int32_t j=0; j<FM_LFOENTS; j++)
 			{
 				amtable[type][i][j] = (((j * 4) >> amt[type][i]) * 2) << 2;
 			}
@@ -235,15 +235,15 @@ void MakeLFOTable()
 
 
 // ---------------------------------------------------------------------------
-//	•¡•√•◊∆‚§«∂¶ƒÃ§ …Ù ¨
+//	„ÉÅ„ÉÉ„ÉóÂÜÖ„ÅßÂÖ±ÈÄö„Å™ÈÉ®ÂàÜ
 //
 Chip::Chip()
 : ratio_(0), aml_(0), pml_(0), pmv_(0), optype_(typeN)
 {
 }
 
-//	•Ø•Ì•√•Ø°¶•µ•Û•◊•Í•Û•∞•Ï°º•»»Ê§À∞Õ¬∏§π§Î•∆°º•÷•Î§Ú∫Ó¿Æ
-void Chip::SetRatio(uint ratio)
+//	„ÇØ„É≠„ÉÉ„ÇØ„Éª„Çµ„É≥„Éó„É™„É≥„Ç∞„É¨„Éº„ÉàÊØî„Å´‰æùÂ≠ò„Åô„Çã„ÉÜ„Éº„Éñ„É´„Çí‰ΩúÊàê
+void Chip::SetRatio(uint32_t ratio)
 {
 	if (ratio_ != ratio)
 	{
@@ -254,7 +254,7 @@ void Chip::SetRatio(uint ratio)
 
 void Chip::MakeTable()
 {
-	int h, l;
+	int_fast16_t h, l;
 	
 	// PG Part
 	static const float dt2lv[4] = { 1.f, 1.414f, 1.581f, 1.732f };
@@ -264,8 +264,8 @@ void Chip::MakeTable()
 		double rr = dt2lv[h] * double(ratio_) / (1 << (2 + FM_RATIOBITS - FM_PGBITS));
 		for (l=0; l<16; l++)
 		{
-			int mul = l ? l * 2 : 1;
-			multable_[h][l] = uint(mul * rr);
+			int32_t mul = l ? l * 2 : 1;
+			multable_[h][l] = uint32_t(mul * rr);
 		}
 	}
 }
@@ -275,10 +275,10 @@ void Chip::MakeTable()
 //	Operator
 //
 bool FM::Operator::tablehasmade = false;
-uint FM::Operator::sinetable[1024];
-int32 FM::Operator::cltable[FM_CLENTS];
+uint32_t FM::Operator::sinetable[1024];
+int32_t FM::Operator::cltable[FM_CLENTS];
 
-//	πΩ√€
+//	ÊßãÁØâ
 FM::Operator::Operator()
 : chip_(0)
 {
@@ -304,7 +304,7 @@ FM::Operator::Operator()
 //	Reset();
 }
 
-//	ΩÈ¥¸≤Ω
+//	ÂàùÊúüÂåñ
 void FM::Operator::Reset()
 {
 	// EG part
@@ -326,14 +326,15 @@ void FM::Operator::Reset()
 
 void Operator::MakeTable()
 {
-	// ¬–øÙ•∆°º•÷•Î§Œ∫Ó¿Æ
+	// ÂØæÊï∞„ÉÜ„Éº„Éñ„É´„ÅÆ‰ΩúÊàê
 	assert(FM_CLENTS >= 256);
 
-	int* p = cltable;
-	int i;
+	int32_t* p = cltable;
+	int_fast32_t i;
+
 	for (i=0; i<256; i++)
 	{
-		int v = int(floor(pow(2., 13. - i / 256.)));
+		int32_t v = int32_t(floor(pow(2., 13. - i / 256.)));
 		v = (v + 2) & ~3;
 		*p++ = v;
 		*p++ = -v;
@@ -347,13 +348,13 @@ void Operator::MakeTable()
 //	for (i=0; i<13*256; i++)
 //		printf("%4d, %d, %d\n", i, cltable[i*2], cltable[i*2+1]);
 
-	// •µ•§•Û•∆°º•÷•Î§Œ∫Ó¿Æ
+	// „Çµ„Ç§„É≥„ÉÜ„Éº„Éñ„É´„ÅÆ‰ΩúÊàê
 	double log2 = log(2.);
 	for (i=0; i<FM_OPSINENTS/2; i++)
 	{
 		double r = (i * 2 + 1) * FM_PI / FM_OPSINENTS;
 		double q = -256 * log(sin(r)) / log2;
-		uint s = (int) (floor(q + 0.5)) + 1;
+		uint32_t s = (int32_t) (floor(q + 0.5)) + 1;
 //		printf("%d, %d\n", s, cltable[s * 2] / 8);
 		sinetable[i]                  = s * 2 ;
 		sinetable[FM_OPSINENTS / 2 + i] = s * 2 + 1;
@@ -366,14 +367,14 @@ void Operator::MakeTable()
 
 
 
-inline void FM::Operator::SetDPBN(uint dp, uint bn)
+inline void FM::Operator::SetDPBN(uint32_t dp, uint32_t bn)
 {
 	dp_ = dp, bn_ = bn; param_changed_ = true; 
 	PARAMCHANGE(1);
 }
 
 
-//	Ω‡»˜
+//	Ê∫ñÂÇô
 void Operator::Prepare()
 {
 	if (param_changed_)
@@ -410,7 +411,7 @@ void Operator::Prepare()
 		// SSG-EG
 		if (ssg_type_ && (eg_phase_ != release))
 		{
-			int m = ar_ >= ((ssg_type_ == 8 || ssg_type_ == 12) ? 56 : 60);
+			int32_t m = ar_ >= ((ssg_type_ == 8 || ssg_type_ == 12) ? 56 : 60);
 
 			assert(0 <= ssg_phase_ && ssg_phase_ <= 2);
 			const int* table = ssgenvtable[ssg_type_ & 7][m][ssg_phase_];
@@ -425,7 +426,7 @@ void Operator::Prepare()
 		dbgopout_ = 0;
 	}
 }
-//	envelop §Œ eg_phase_  —ππ
+//	envelop „ÅÆ eg_phase_ Â§âÊõ¥
 void Operator::ShiftPhase(EGPhase nextphase)
 {
 	switch (nextphase)
@@ -438,7 +439,7 @@ void Operator::ShiftPhase(EGPhase nextphase)
 			if (ssg_phase_ > 2)
 				ssg_phase_ = 1;
 			
-			int m = ar_ >= ((ssg_type_ == 8 || ssg_type_ == 12) ? 56 : 60);
+			int32_t m = ar_ >= ((ssg_type_ == 8 || ssg_type_ == 12) ? 56 : 60);
 
 			assert(0 <= ssg_phase_ && ssg_phase_ <= 2);
 			const int* table = ssgenvtable[ssg_type_ & 7][m][ssg_phase_];
@@ -496,7 +497,7 @@ void Operator::ShiftPhase(EGPhase nextphase)
 }
 
 //	Block/F-Num
-void Operator::SetFNum(uint f)
+void Operator::SetFNum(uint32_t f)
 {
 	dp_ = (f & 2047) << ((f >> 11) & 7);
 	bn_ = notetable[(f >> 7) & 127];
@@ -504,17 +505,17 @@ void Operator::SetFNum(uint f)
 	PARAMCHANGE(2);
 }
 
-//	£±•µ•Û•◊•ÎπÁ¿Æ
+//	Ôºë„Çµ„É≥„Éó„É´ÂêàÊàê
 
-//	ISample §Ú envelop count (2¶–) §À —¥π§π§Î•∑•’•»ŒÃ
+//	ISample „Çí envelop count (2œÄ) „Å´Â§âÊèõ„Åô„Çã„Ç∑„Éï„ÉàÈáè
 #define IS2EC_SHIFT		((20 + FM_PGBITS) - 13)
 
 
-// ∆˛Œœ: s = 20+FM_PGBITS = 29
+// ÂÖ•Âäõ: s = 20+FM_PGBITS = 29
 #define Sine(s)	sinetable[((s) >> (20+FM_PGBITS-FM_OPSINBITS))&(FM_OPSINENTS-1)]
 #define SINE(s) sinetable[(s) & (FM_OPSINENTS-1)]
 
-inline FM::ISample Operator::LogToLin(uint a)
+inline FM::ISample Operator::LogToLin(uint32_t a)
 {
 #if 1 // FM_CLENTS < 0xc00		// 400 for TL, 400 for ENV, 400 for LFO.
 	return (a < FM_CLENTS) ? cltable[a] : 0;
@@ -535,20 +536,20 @@ inline void Operator::EGUpdate()
 	}
 }
 
-inline void Operator::SetEGRate(uint rate)
+inline void Operator::SetEGRate(uint32_t rate)
 {
 	eg_rate_ = rate;
 	eg_count_diff_ = decaytable2[rate / 4] * chip_->GetRatio();
 }
 
-//	EG ∑◊ªª
+//	EG Ë®àÁÆó
 void FM::Operator::EGCalc()
 {
-	eg_count_ = (2047 * 3) << FM_RATIOBITS;				// ##§≥§ŒºÍ»¥§≠§œ∫∆∏Ω¿≠§Úƒ„≤º§µ§ª§Î
+	eg_count_ = (2047 * 3) << FM_RATIOBITS;				// ##„Åì„ÅÆÊâãÊäú„Åç„ÅØÂÜçÁèæÊÄß„Çí‰Ωé‰∏ã„Åï„Åõ„Çã
 	
 	if (eg_phase_ == attack)
 	{
-		int c = attacktable[eg_rate_][eg_curve_count_ & 7];
+		int32_t c = attacktable[eg_rate_][eg_curve_count_ & 7];
 		if (c >= 0)
 		{
 			eg_level_ -= 1 + (eg_level_ >> c);
@@ -598,37 +599,37 @@ inline void FM::Operator::EGStep()
 {
 	eg_count_ -= eg_count_diff_;
 
-	// EG §Œ —≤Ω§œ¡¥•π•Ì•√•»§«∆±¥¸§∑§∆§§§Î§»§§§¶±Ω§‚§¢§Î
+	// EG „ÅÆÂ§âÂåñ„ÅØÂÖ®„Çπ„É≠„ÉÉ„Éà„ÅßÂêåÊúü„Åó„Å¶„ÅÑ„Çã„Å®„ÅÑ„ÅÜÂôÇ„ÇÇ„ÅÇ„Çã
 	if (eg_count_ <= 0)
 		EGCalc();
 }
 
-//	PG ∑◊ªª
+//	PG Ë®àÁÆó
 //	ret:2^(20+PGBITS) / cycle
-inline uint32 FM::Operator::PGCalc()
+inline uint32_t FM::Operator::PGCalc()
 {
-	uint32 ret = pg_count_;
+	uint32_t ret = pg_count_;
 	pg_count_ += pg_diff_;
 	dbgpgout_ = ret;
 	return ret;
 }
 
-inline uint32 FM::Operator::PGCalcL()
+inline uint32_t FM::Operator::PGCalcL()
 {
-	uint32 ret = pg_count_;
+	uint32_t ret = pg_count_;
 	pg_count_ += pg_diff_ + ((pg_diff_lfo_ * chip_->GetPMV()) >> 5);// & -(1 << (2+IS2EC_SHIFT)));
 	dbgpgout_ = ret;
 	return ret /* + pmv * pg_diff_;*/;
 }
 
-//	OP ∑◊ªª
-//	in: ISample (∫«¬Á 8¶–)
+//	OP Ë®àÁÆó
+//	in: ISample (ÊúÄÂ§ß 8œÄ)
 inline FM::ISample FM::Operator::Calc(ISample in)
 {
 	EGStep();
 	out2_ = out_;
 
-	int pgin = PGCalc() >> (20+FM_PGBITS-FM_OPSINBITS);
+	int32_t pgin = PGCalc() >> (20+FM_PGBITS-FM_OPSINBITS);
 	pgin += in >> (20+FM_PGBITS-FM_OPSINBITS-(2+IS2EC_SHIFT));
 	out_ = LogToLin(eg_out_ + SINE(pgin));
 
@@ -640,7 +641,7 @@ inline FM::ISample FM::Operator::CalcL(ISample in)
 {
 	EGStep();
 
-	int pgin = PGCalcL() >> (20+FM_PGBITS-FM_OPSINBITS);
+	int32_t pgin = PGCalcL() >> (20+FM_PGBITS-FM_OPSINBITS);
 	pgin += in >> (20+FM_PGBITS-FM_OPSINBITS-(2+IS2EC_SHIFT));
 	out_ = LogToLin(eg_out_ + SINE(pgin) + ams_[chip_->GetAML()]);
 
@@ -648,13 +649,13 @@ inline FM::ISample FM::Operator::CalcL(ISample in)
 	return out_;
 }
 
-inline FM::ISample FM::Operator::CalcN(uint noise)
+inline FM::ISample FM::Operator::CalcN(uint32_t noise)
 {
 	EGStep();
 	
-	int lv = Max(0, 0x3ff - (tl_out_ + eg_level_)) << 1;
+	int32_t lv = Max(0, 0x3ff - (tl_out_ + eg_level_)) << 1;
 	
-	// noise & 1 ? lv : -lv §»≈˘≤¡ 
+	// noise & 1 ? lv : -lv „Å®Á≠â‰æ° 
 	noise = (noise & 1) - 1;
 	out_ = (lv + noise) ^ noise;
 
@@ -662,16 +663,16 @@ inline FM::ISample FM::Operator::CalcN(uint noise)
 	return out_;
 }
 
-//	OP (FB) ∑◊ªª
-//	Self Feedback §Œ —ƒ¥∫«¬Á = 4¶–
-inline FM::ISample FM::Operator::CalcFB(uint fb)
+//	OP (FB) Ë®àÁÆó
+//	Self Feedback „ÅÆÂ§âË™øÊúÄÂ§ß = 4œÄ
+inline FM::ISample FM::Operator::CalcFB(uint32_t fb)
 {
 	EGStep();
 
 	ISample in = out_ + out2_;
 	out2_ = out_;
 
-	int pgin = PGCalc() >> (20+FM_PGBITS-FM_OPSINBITS);
+	int32_t pgin = PGCalc() >> (20+FM_PGBITS-FM_OPSINBITS);
 	if (fb < 31)
 	{
 		pgin += ((in << (1 + IS2EC_SHIFT)) >> fb) >> (20+FM_PGBITS-FM_OPSINBITS);
@@ -682,14 +683,14 @@ inline FM::ISample FM::Operator::CalcFB(uint fb)
 	return out2_;
 }
 
-inline FM::ISample FM::Operator::CalcFBL(uint fb)
+inline FM::ISample FM::Operator::CalcFBL(uint32_t fb)
 {
 	EGStep();
 	
 	ISample in = out_ + out2_;
 	out2_ = out_;
 
-	int pgin = PGCalcL() >> (20+FM_PGBITS-FM_OPSINBITS);
+	int32_t pgin = PGCalcL() >> (20+FM_PGBITS-FM_OPSINBITS);
 	if (fb < 31)
 	{
 		pgin += ((in << (1 + IS2EC_SHIFT)) >> fb) >> (20+FM_PGBITS-FM_OPSINBITS);
@@ -706,8 +707,8 @@ inline FM::ISample FM::Operator::CalcFBL(uint fb)
 // ---------------------------------------------------------------------------
 //	4-op Channel
 //
-const uint8 Channel4::fbtable[8] = { 31, 7, 6, 5, 4, 3, 2, 1 };
-int Channel4::kftable[64];
+const uint8_t Channel4::fbtable[8] = { 31, 7, 6, 5, 4, 3, 2, 1 };
+int32_t Channel4::kftable[64];
 
 bool Channel4::tablehasmade = false;
 
@@ -724,13 +725,13 @@ Channel4::Channel4()
 void Channel4::MakeTable()
 {
 	// 100/64 cent =  2^(i*100/64*1200)
-	for (int i=0; i<64; i++)
+	for (int32_t i=0; i<64; i++)
 	{
-		kftable[i] = int(0x10000 * pow(2., i / 768.) );
+		kftable[i] = int32_t(0x10000 * pow(2., i / 768.) );
 	}
 }
 
-// •Í•ª•√•»
+// „É™„Çª„ÉÉ„Éà
 void Channel4::Reset()
 {
 	op[0].Reset();
@@ -739,8 +740,8 @@ void Channel4::Reset()
 	op[3].Reset();
 }
 
-//	Calc §ŒÕ—∞’
-int Channel4::Prepare()
+//	Calc „ÅÆÁî®ÊÑè
+int32_t Channel4::Prepare()
 {
 	op[0].Prepare();
 	op[1].Prepare();
@@ -748,39 +749,39 @@ int Channel4::Prepare()
 	op[3].Prepare();
 	
 	pms = pmtable[op[0].type_][op[0].ms_ & 7];
-	int key = (op[0].IsOn() | op[1].IsOn() | op[2].IsOn() | op[3].IsOn()) ? 1 : 0;
-	int lfo = op[0].ms_ & (op[0].amon_ | op[1].amon_ | op[2].amon_ | op[3].amon_ ? 0x37 : 7) ? 2 : 0;
+	int32_t key = (op[0].IsOn() | op[1].IsOn() | op[2].IsOn() | op[3].IsOn()) ? 1 : 0;
+	int32_t lfo = op[0].ms_ & (op[0].amon_ | op[1].amon_ | op[2].amon_ | op[3].amon_ ? 0x37 : 7) ? 2 : 0;
 	return key | lfo;
 }
 
-//	F-Number/BLOCK §Ú¿ﬂƒÍ
-void Channel4::SetFNum(uint f)
+//	F-Number/BLOCK „ÇíË®≠ÂÆö
+void Channel4::SetFNum(uint32_t f)
 {
-	for (int i=0; i<4; i++)
+	for (int_fast16_t i=0; i<4; i++)
 		op[i].SetFNum(f);
 }
 
-//	KC/KF §Ú¿ﬂƒÍ
-void Channel4::SetKCKF(uint kc, uint kf)
+//	KC/KF „ÇíË®≠ÂÆö
+void Channel4::SetKCKF(uint32_t kc, uint32_t kf)
 {
-	static const uint kctable[16] = 
+	static const uint32_t kctable[16] = 
 	{ 
 		5197, 5506, 5833, 6180, 6180, 6547, 6937, 7349, 
 		7349, 7786, 8249, 8740, 8740, 9259, 9810, 10394, 
 	};
 
-	int oct = 19 - ((kc >> 4) & 7);
+	int32_t oct = 19 - ((kc >> 4) & 7);
 
 //printf("%p", this);
-	uint kcv = kctable[kc & 0x0f];
+	uint32_t kcv = kctable[kc & 0x0f];
 	kcv = (kcv + 2) / 4 * 4;
 //printf(" %.4x", kcv);
-	uint dp = kcv * kftable[kf & 0x3f];
+	uint32_t dp = kcv * kftable[kf & 0x3f];
 //printf(" %.4x %.4x %.8x", kcv, kftable[kf & 0x3f], dp >> oct);
 	dp >>= 16 + 3;
 	dp <<= 16 + 3;
 	dp >>= oct;	
-	uint bn = (kc >> 2) & 31;
+	uint32_t bn = (kc >> 2) & 31;
 	op[0].SetDPBN(dp, bn);
 	op[1].SetDPBN(dp, bn);
 	op[2].SetDPBN(dp, bn);
@@ -788,8 +789,8 @@ void Channel4::SetKCKF(uint kc, uint kf)
 //printf(" %.8x\n", dp);
 }
 
-//	•≠°º¿©∏Ê
-void Channel4::KeyControl(uint key)
+//	„Ç≠„ÉºÂà∂Âæ°
+void Channel4::KeyControl(uint32_t key)
 {
 	if (key & 0x1) op[0].KeyOn(); else op[0].KeyOff();
 	if (key & 0x2) op[1].KeyOn(); else op[1].KeyOff();
@@ -797,10 +798,10 @@ void Channel4::KeyControl(uint key)
 	if (key & 0x8) op[3].KeyOn(); else op[3].KeyOff();
 }
 
-//	•¢•Î•¥•Í•∫•‡§Ú¿ﬂƒÍ
-void Channel4::SetAlgorithm(uint algo)
+//	„Ç¢„É´„Ç¥„É™„Ç∫„É†„ÇíË®≠ÂÆö
+void Channel4::SetAlgorithm(uint32_t algo)
 {
-	static const uint8 table1[8][6] = 
+	static const uint8_t table1[8][6] = 
 	{
 		{ 0, 1, 1, 2, 2, 3 },	{ 1, 0, 0, 1, 1, 2 },
 		{ 1, 1, 1, 0, 0, 2 },	{ 0, 1, 2, 1, 1, 2 },
@@ -819,10 +820,10 @@ void Channel4::SetAlgorithm(uint algo)
 	algo_ = algo;
 }
 
-//  πÁ¿Æ
+//  ÂêàÊàê
 ISample Channel4::Calc()
 {
-	int r = 0;
+	int32_t r = 0;
 	switch (algo_)
 	{
 	case 0:
@@ -877,12 +878,12 @@ ISample Channel4::Calc()
 	return r;
 }
 
-//  πÁ¿Æ
+//  ÂêàÊàê
 ISample Channel4::CalcL()
 {
 	chip_->SetPMV(pms[chip_->GetPML()]);
 
-	int r = 0;
+	int32_t r = 0;
 	switch (algo_)
 	{
 	case 0:
@@ -937,21 +938,21 @@ ISample Channel4::CalcL()
 	return r;
 }
 
-//  πÁ¿Æ
-ISample Channel4::CalcN(uint noise)
+//  ÂêàÊàê
+ISample Channel4::CalcN(uint32_t noise)
 {
 	buf[1] = buf[2] = buf[3] = 0;
 
 	buf[0] = op[0].out_; op[0].CalcFB(fb);
 	*out[0] += op[1].Calc(*in[0]);
 	*out[1] += op[2].Calc(*in[1]);
-	int o = op[3].out_;
+	int32_t o = op[3].out_;
 	op[3].CalcN(noise);
 	return *out[2] + o;
 }
 
-//  πÁ¿Æ
-ISample Channel4::CalcLN(uint noise)
+//  ÂêàÊàê
+ISample Channel4::CalcLN(uint32_t noise)
 {
 	chip_->SetPMV(pms[chip_->GetPML()]);
 	buf[1] = buf[2] = buf[3] = 0;
@@ -959,7 +960,7 @@ ISample Channel4::CalcLN(uint noise)
 	buf[0] = op[0].out_; op[0].CalcFBL(fb); 
 	*out[0] += op[1].CalcL(*in[0]);
 	*out[1] += op[2].CalcL(*in[1]);
-	int o = op[3].out_;
+	int32_t o = op[3].out_;
 	op[3].CalcN(noise);
 	return *out[2] + o;
 }

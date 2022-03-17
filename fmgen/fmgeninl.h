@@ -8,17 +8,17 @@
 #define FM_GEN_INL_H
 
 // ---------------------------------------------------------------------------
-//	─ъ┐Їд╜д╬г▓
+//	хоЪцХ░уБЭуБоя╝Т
 //	
 #define FM_PI			3.14159265358979323846
 
-#define FM_SINEPRESIS	2			// EGд╚е╡едеє╟╚д╬└║┼┘д╬║╣  0(─у)-2(╣т)
+#define FM_SINEPRESIS	2			// EGуБиуВ╡уВдуГ│ц│вуБоч▓╛х║жуБох╖о  0(ф╜О)-2(щлШ)
 
 
 #define FM_OPSINBITS	10
 #define FM_OPSINENTS	(1 << FM_OPSINBITS)
 
-#define FM_EGCBITS		18			// eg д╬ count д╬е╖е╒е╚├═
+#define FM_EGCBITS		18			// eg уБо count уБоуВ╖уГХуГИхАд
 #define FM_LFOCBITS		14
 
 #ifdef FM_TUNEBUILD
@@ -26,7 +26,7 @@
  #define FM_RATIOBITS	0
 #else
  #define FM_PGBITS		9		
- #define FM_RATIOBITS	7			// 8-12 дпдщддд▐д╟бй
+ #define FM_RATIOBITS	7			// 8-12 уБПуВЙуБДуБ╛уБзя╝Я
 #endif
 
 #define FM_EGBITS		16
@@ -41,13 +41,13 @@ namespace FM
 // ---------------------------------------------------------------------------
 //	Operator
 //
-//	е╒егб╝е╔е╨е├епе╨е├е╒ебдЄепеъев
+//	уГХуВгуГ╝уГЙуГРуГГуВпуГРуГГуГХуВбуВТуВпуГкуВв
 inline void Operator::ResetFB()
 {
 	out_ = out2_ = 0;
 }
 
-//	енб╝екеє
+//	уВнуГ╝уВкуГ│
 inline void Operator::KeyOn()
 {
 	if (!keyon_)
@@ -64,7 +64,7 @@ inline void Operator::KeyOn()
 	}
 }
 
-//	енб╝еке╒
+//	уВнуГ╝уВкуГХ
 inline void	Operator::KeyOff()
 {
 	if (keyon_)
@@ -74,35 +74,35 @@ inline void	Operator::KeyOff()
 	}
 }
 
-//	еке┌еьб╝е┐д╧▓╘╞п├цдлбй
-inline int Operator::IsOn()
+//	уВкуГЪуГмуГ╝уВ┐уБпчи╝хГНф╕нуБЛя╝Я
+inline int32_t Operator::IsOn()
 {
 	return eg_phase_ - off;
 }
 
 //	Detune (0-7)
-inline void Operator::SetDT(uint dt)
+inline void Operator::SetDT(uint32_t dt)
 {
 	detune_ = dt * 0x20, param_changed_ = true;
 	PARAMCHANGE(4);
 }
 
 //	DT2 (0-3)
-inline void Operator::SetDT2(uint dt2)
+inline void Operator::SetDT2(uint32_t dt2)
 {
 	detune2_ = dt2 & 3, param_changed_ = true;
 	PARAMCHANGE(5);
 }
 
 //	Multiple (0-15)
-inline void Operator::SetMULTI(uint mul)	
+inline void Operator::SetMULTI(uint32_t mul)	
 { 
 	multiple_ = mul, param_changed_ = true;
 	PARAMCHANGE(6);
 }
 
 //	Total Level (0-127) (0.75dB step)
-inline void Operator::SetTL(uint tl, bool csm)
+inline void Operator::SetTL(uint32_t tl, bool csm)
 {
 	if (!csm)
 	{
@@ -113,7 +113,7 @@ inline void Operator::SetTL(uint tl, bool csm)
 }
 
 //	Attack Rate (0-63)
-inline void Operator::SetAR(uint ar)
+inline void Operator::SetAR(uint32_t ar)
 {
 	ar_ = ar; 
 	param_changed_ = true;
@@ -121,7 +121,7 @@ inline void Operator::SetAR(uint ar)
 }
 
 //	Decay Rate (0-63)
-inline void Operator::SetDR(uint dr)
+inline void Operator::SetDR(uint32_t dr)
 { 
 	dr_ = dr; 
 	param_changed_ = true;
@@ -129,7 +129,7 @@ inline void Operator::SetDR(uint dr)
 }
 
 //	Sustain Rate (0-63)
-inline void Operator::SetSR(uint sr)		
+inline void Operator::SetSR(uint32_t sr)		
 { 
 	sr_ = sr;
 	param_changed_ = true;
@@ -137,7 +137,7 @@ inline void Operator::SetSR(uint sr)
 }
 
 //	Sustain Level (0-127)
-inline void Operator::SetSL(uint sl)		
+inline void Operator::SetSL(uint32_t sl)		
 { 
 	sl_ = sl; 
 	param_changed_ = true;
@@ -145,7 +145,7 @@ inline void Operator::SetSL(uint sl)
 }
 
 //	Release Rate (0-63)
-inline void Operator::SetRR(uint rr)		
+inline void Operator::SetRR(uint32_t rr)		
 { 
 	rr_ = rr; 
 	param_changed_ = true;
@@ -153,7 +153,7 @@ inline void Operator::SetRR(uint rr)
 }
 
 //	Keyscale (0-3)
-inline void Operator::SetKS(uint ks)		
+inline void Operator::SetKS(uint32_t ks)		
 { 
 	ks_ = ks; 
 	param_changed_ = true; 
@@ -161,7 +161,7 @@ inline void Operator::SetKS(uint ks)
 }
 
 //	SSG-type Envelop (0-15)
-inline void Operator::SetSSGEC(uint ssgec)	
+inline void Operator::SetSSGEC(uint32_t ssgec)	
 { 
 	if (ssgec & 8)
 		ssg_type_ = ssgec; 
@@ -183,7 +183,7 @@ inline void Operator::Mute(bool mute)
 	PARAMCHANGE(15);
 }
 
-inline void Operator::SetMS(uint ms)
+inline void Operator::SetMS(uint32_t ms)
 {
 	ms_ = ms;
 	param_changed_ = true;
@@ -193,21 +193,21 @@ inline void Operator::SetMS(uint ms)
 // ---------------------------------------------------------------------------
 //	4-op Channel
 
-//	еке┌еьб╝е┐д╬╝я╬р (LFO) дЄ└▀─ъ
+//	уВкуГЪуГмуГ╝уВ┐уБочиощбЮ (LFO) уВТшинхоЪ
 inline void Channel4::SetType(OpType type)
 {
-	for (int i=0; i<4; i++)
+	for (int_fast16_t i=0; i<4; i++)
 		op[i].type_ = type;
 }
 
-//	е╗еые╒бже╒егб╝е╔е╨е├епеьб╝е╚д╬└▀─ъ (0-7)
-inline void Channel4::SetFB(uint feedback)
+//	уВ╗уГлуГХуГ╗уГХуВгуГ╝уГЙуГРуГГуВпуГмуГ╝уГИуБошинхоЪ (0-7)
+inline void Channel4::SetFB(uint32_t feedback)
 {
 	fb = fbtable[feedback];
 }
 
-//	OPNA ╖╧ LFO д╬└▀─ъ
-inline void Channel4::SetMS(uint ms)
+//	OPNA ч│╗ LFO уБошинхоЪ
+inline void Channel4::SetMS(uint32_t ms)
 {
 	op[0].SetMS(ms);
 	op[1].SetMS(ms);
@@ -215,17 +215,17 @@ inline void Channel4::SetMS(uint ms)
 	op[3].SetMS(ms);
 }
 
-//	е┴еуеєе═еыбже▐е╣еп
+//	уГБуГгуГ│уГНуГлуГ╗уГЮуВ╣уВп
 inline void Channel4::Mute(bool m)
 {
-	for (int i=0; i<4; i++)
+	for (int_fast16_t i=0; i<4; i++)
 		op[i].Mute(m);
 }
 
-//	╞т╔Їе╤ещесб╝е┐дЄ║╞╖╫╗╗
+//	хЖЕщГиуГСуГйуГбуГ╝уВ┐уВТхЖНшиИчоЧ
 inline void Channel4::Refresh()
 {
-	for (int i=0; i<4; i++)
+	for (int_fast16_t i=0; i<4; i++)
 		op[i].param_changed_ = true;
 	PARAMCHANGE(3);
 }
@@ -233,7 +233,7 @@ inline void Channel4::Refresh()
 inline void Channel4::SetChip(Chip* chip)
 {
 	chip_ = chip;
-	for (int i=0; i<4; i++)
+	for (int_fast16_t i=0; i<4; i++)
 		op[i].SetChip(chip);
 }
 
@@ -250,14 +250,14 @@ inline void StoreSample(Sample& dest, ISample data)
 
 
 // ---------------------------------------------------------------------------
-//	AM д╬еье┘еыдЄ└▀─ъ
-inline void Chip::SetAML(uint l)
+//	AM уБоуГмуГЩуГлуВТшинхоЪ
+inline void Chip::SetAML(uint32_t l)
 {
 	aml_ = l & (FM_LFOENTS - 1);
 }
 
-//	PM д╬еье┘еыдЄ└▀─ъ
-inline void Chip::SetPML(uint l)
+//	PM уБоуГмуГЩуГлуВТшинхоЪ
+inline void Chip::SetPML(uint32_t l)
 {
 	pml_ = l & (FM_LFOENTS - 1);
 }

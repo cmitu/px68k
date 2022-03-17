@@ -3,7 +3,7 @@
 #include "common.h"
 #include "m68000.h"
 
-int m68000_ICountBk;
+int32_t m68000_ICountBk;
 
 void
 Error(const char *s)

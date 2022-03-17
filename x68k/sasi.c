@@ -11,55 +11,44 @@
 #include "sasi.h"
 #include "irqh.h"
 
-BYTE SASI_Buf[256];
-BYTE SASI_Phase = 0;
-DWORD SASI_Sector = 0;
-DWORD SASI_Blocks = 0;
-BYTE SASI_Cmd[6];
-BYTE SASI_CmdPtr = 0;
-WORD SASI_Device = 0;
-BYTE SASI_Unit = 0;
-short SASI_BufPtr = 0;
-BYTE SASI_RW = 0;
-BYTE SASI_Stat = 0;
-BYTE SASI_Mes = 0;
-BYTE SASI_Error = 0;
-BYTE SASI_SenseStatBuf[4];
-BYTE SASI_SenseStatPtr = 0;
+uint8_t SASI_Buf[256];
+uint8_t SASI_Phase = 0;
+uint32_t SASI_Sector = 0;
+uint32_t SASI_Blocks = 0;
+uint8_t SASI_Cmd[6];
+uint8_t SASI_CmdPtr = 0;
+uint16_t SASI_Device = 0;
+uint8_t SASI_Unit = 0;
+uint16_t SASI_BufPtr = 0;
+uint8_t SASI_RW = 0;
+uint8_t SASI_Stat = 0;
+uint8_t SASI_Mes = 0;
+uint8_t SASI_Error = 0;
+uint8_t SASI_SenseStatBuf[4];
+uint8_t SASI_SenseStatPtr = 0;
 
-extern int hddtrace;
-
-
-int SASI_IsReady(void)
+int32_t SASI_IsReady(void)
 {
 	if ( (SASI_Phase==2)||(SASI_Phase==3)||(SASI_Phase==9) )
 		return 1;
-	else
-		return 0;
+	return 0;
 }
 
 
 // -----------------------------------------------------------------------
-//   §Ô§Í§≥§ﬂ°¡
+//   „Çè„Çä„Åì„Åø
 // -----------------------------------------------------------------------
-DWORD FASTCALL SASI_Int(BYTE irq)
+int32_t FASTCALL SASI_Int(uint8_t irq)
 {
 	IRQH_IRQCallBack(irq);
-if (hddtrace) {
-FILE *fp;
-fp=fopen("_trace68.txt", "a");
-fprintf(fp, "Int (IRQ:%d)\n", irq);
-fclose(fp);
-}
 	if (irq==1)
-		return ((DWORD)IOC_IntVect+2);
-	else
-		return -1;
+		return ((long)IOC_IntVect+2);
+	return -1;
 }
 
 
 // -----------------------------------------------------------------------
-//   ΩÈ¥¸≤Ω
+//   ÂàùÊúüÂåñ
 // -----------------------------------------------------------------------
 void SASI_Init(void)
 {
@@ -78,23 +67,16 @@ void SASI_Init(void)
 
 
 // -----------------------------------------------------------------------
-//   §∑°›§Ø° •Í°º•…ª˛°À
+//   „Åó‚àí„ÅèÔºà„É™„Éº„ÉâÊôÇÔºâ
 // -----------------------------------------------------------------------
-short SASI_Seek(void)
+int32_t SASI_Seek(void)
 {
 	FILEH fp;
-
-if (hddtrace) {
-FILE *fp;
-fp=fopen("_trace68.txt", "a");
-fprintf(fp, "Seek  - Sector:%d  (Time:%08X)\n", SASI_Sector, timeGetTime());
-fclose(fp);
-}
-	ZeroMemory(SASI_Buf, 256);
-	fp = File_Open(Config.HDImage[SASI_Device*2+SASI_Unit]);
+	memset(SASI_Buf, 0, 256);
+	fp = File_Open((char *)Config.HDImage[SASI_Device*2+SASI_Unit]);
 	if (!fp)
 	{
-		ZeroMemory(SASI_Buf, 256);
+		memset(SASI_Buf, 0, 256);
 		return -1;
 	}
 	if (File_Seek(fp, SASI_Sector<<8, FSEEK_SET)!=(SASI_Sector<<8)) 
@@ -114,12 +96,12 @@ fclose(fp);
 
 
 // -----------------------------------------------------------------------
-//   §∑°º§Ø° •È•§•»ª˛°À
+//   „Åó„Éº„ÅèÔºà„É©„Ç§„ÉàÊôÇÔºâ
 // -----------------------------------------------------------------------
-short SASI_Flush(void)
+int32_t SASI_Flush(void)
 {	FILEH fp;
 
-	fp = File_Open(Config.HDImage[SASI_Device*2+SASI_Unit]);
+	fp = File_Open((char *)Config.HDImage[SASI_Device*2+SASI_Unit]);
 	if (!fp) return -1;
 	if (File_Seek(fp, SASI_Sector<<8, FSEEK_SET)!=(SASI_Sector<<8))
 	{
@@ -133,12 +115,6 @@ short SASI_Flush(void)
 	}
 	File_Close(fp);
 
-if (hddtrace) {
-FILE *fp;
-fp=fopen("_trace68.txt", "a");
-fprintf(fp, "Sec Write  - Sector:%d  (Time:%08X)\n", SASI_Sector, timeGetTime());
-fclose(fp);
-}
 	return 1;
 }
 
@@ -146,10 +122,10 @@ fclose(fp);
 // -----------------------------------------------------------------------
 //   I/O Read
 // -----------------------------------------------------------------------
-BYTE FASTCALL SASI_Read(DWORD adr)
+uint8_t FASTCALL SASI_Read(int32_t adr)
 {
-	BYTE ret = 0;
-	short result;
+	uint8_t ret = 0;
+	int32_t result;
 
 	if (adr==0xe96003)
 	{
@@ -161,7 +137,7 @@ BYTE FASTCALL SASI_Read(DWORD adr)
 			ret |= 8;		// C/D
 		if ((SASI_Phase==3)&&(SASI_RW))	// SASI_RW=1:Read
 			ret |= 4;		// I/O
-		if (SASI_Phase==9)		// Phase=9:SenseStatus√Ê
+		if (SASI_Phase==9)		// Phase=9:SenseStatus‰∏≠
 			ret |= 4;		// I/O
 		if ((SASI_Phase==4)||(SASI_Phase==5))
 			ret |= 0x0c;		// I/O & C/D
@@ -170,25 +146,25 @@ BYTE FASTCALL SASI_Read(DWORD adr)
 	}
 	else if (adr ==0xe96001)
 	{
-		if ((SASI_Phase==3)&&(SASI_RW))	// •«°º•ø•Í°º•…√Ê°¡
+		if ((SASI_Phase==3)&&(SASI_RW))	// „Éá„Éº„Çø„É™„Éº„Éâ‰∏≠
 		{
 			ret = SASI_Buf[SASI_BufPtr++];
 			if (SASI_BufPtr==256)
 			{
 				SASI_Blocks--;
-				if (SASI_Blocks)		// §ﬁ§¿∆…§‡•÷•Ì•√•Ø§¨§¢§Î°©
+				if (SASI_Blocks)		// „Åæ„Å†Ë™≠„ÇÄ„Éñ„É≠„ÉÉ„ÇØ„Åå„ÅÇ„ÇãÔºü
 				{
 					SASI_Sector++;
 					SASI_BufPtr = 0;
-					result = SASI_Seek();	// º°§Œ•ª•Ø•ø§Ú•–•√•’•°§À∆…§‡
-					if (!result)		// result=0°ß•§•·°º•∏§Œ∫«∏Â° °·Ãµ∏˙§ •ª•Ø•ø°À§ §È
+					result = SASI_Seek();	// Ê¨°„ÅÆ„Çª„ÇØ„Çø„Çí„Éê„ÉÉ„Éï„Ç°„Å´Ë™≠„ÇÄ
+					if (!result)		// result=0Ôºö„Ç§„É°„Éº„Ç∏„ÅÆÊúÄÂæåÔºàÔºùÁÑ°Âäπ„Å™„Çª„ÇØ„ÇøÔºâ„Å™„Çâ
 					{
 						SASI_Error = 0x0f;
 						SASI_Phase++;
 					}
 				}
 				else
-					SASI_Phase++;		// ªÿƒÍ•÷•Ì•√•Ø§Œ•Í°º•…¥∞Œª
+					SASI_Phase++;		// ÊåáÂÆö„Éñ„É≠„ÉÉ„ÇØ„ÅÆ„É™„Éº„ÉâÂÆå‰∫Ü
 			}
 		}
 		else if (SASI_Phase==4)				// Status Phase
@@ -201,15 +177,15 @@ BYTE FASTCALL SASI_Read(DWORD adr)
 		}
 		else if (SASI_Phase==5)				// MessagePhase
 		{
-			SASI_Phase = 0;				// 0§Ú ÷§π§¿§±°¡°£BusFree§Àµ¢§Í§ﬁ§π
+			SASI_Phase = 0;				// 0„ÇíËøî„Åô„Å†„ÅëxAÊéòÔº¢usFree„Å´Â∏∞„Çä„Åæ„Åô
 		}
-		else if (SASI_Phase==9)				// DataPhase(SenseStat¿ÏÕ—)
+		else if (SASI_Phase==9)				// DataPhase(SenseStatÂ∞ÇÁî®)
 		{
 			ret = SASI_SenseStatBuf[SASI_SenseStatPtr++];
 			if (SASI_SenseStatPtr==4)
 			{
 				SASI_Error = 0;
-				SASI_Phase = 4;				// StatusPhase§ÿ
+				SASI_Phase = 4;				// StatusPhase„Å∏
 			}
 		}
 		if (SASI_Phase==4)
@@ -219,28 +195,20 @@ BYTE FASTCALL SASI_Read(DWORD adr)
 		}
 	}
 
-if (hddtrace&&((SASI_Phase!=3)||(adr!=0xe96001))) {
-FILE *fp;
-fp=fopen("_trace68.txt", "a");
-//fprintf(fp, "Read  - Adr:%08X  Ret:%02X  Phase:%d BufPtr:%d  (Time:%08X)  @ $%08X\n", adr, ret, SASI_Phase, SASI_BufPtr, timeGetTime(), C68k_Get_Reg(&C68K, C68K_PC));
-fprintf(fp, "Read  - Adr:%08X  Ret:%02X  Phase:%d BufPtr:%d  (Time:%08X)  @ $%08X\n", adr, ret, SASI_Phase, SASI_BufPtr, timeGetTime(), C68k_Get_PC(&C68K));
-fclose(fp);
-}
-
 	StatBar_HDD((SASI_Phase)?2:0);
 
 	return ret;
 }
 
 
-// •≥•ﬁ•Û•…§Œ•¡•ß•√•Ø°£¿µƒæ°¢InsideX68k∆‚§Œµ≠Ω“§«§œ§¡§»¬≠§Í§ §§ ^^;°£
-// Ã§µ≠Ω“§Œ§‚§Œ§»§∑§∆°¢
-//   - C2h° ΩÈ¥¸≤Ω∑œ°©°À°£Unit∞ ≥∞§Œ•—•È•·°º•ø§œÃµ§∑°£DataPhase§«10∏ƒ§Œ•«°º•ø§ÚΩÒ§≠§≥§‡°£
-//   - 06h° •’•©°º•ﬁ•√•»°©°À°£œ¿Õ˝•÷•Ì•√•ØªÿƒÍ§¢§Í° 21h§™§≠§ÀªÿƒÍ§∑§∆§§§Î°À°£•÷•Ì•√•ØøÙ§Œ§»§≥§œ6§¨ªÿƒÍ§µ§Ï§∆§§§Î°£
+// „Ç≥„Éû„É≥„Éâ„ÅÆ„ÉÅ„Çß„ÉÉ„ÇØ„ÄÇÊ≠£Áõ¥„ÄÅInsideX68kÂÜÖ„ÅÆË®òËø∞„Åß„ÅØ„Å°„Å®Ë∂≥„Çä„Å™„ÅÑ ^^;„ÄÇ
+// Êú™Ë®òËø∞„ÅÆ„ÇÇ„ÅÆ„Å®„Åó„Å¶„ÄÅ
+//   - C2hÔºàÂàùÊúüÂåñÁ≥ªÔºüÔºâ„ÄÇUnit‰ª•Â§ñ„ÅÆ„Éë„É©„É°„Éº„Çø„ÅØÁÑ°„Åó„ÄÇDataPhase„Åß10ÂÄã„ÅÆ„Éá„Éº„Çø„ÇíÊõ∏„Åç„Åì„ÇÄ„ÄÇ
+//   - 06hÔºà„Éï„Ç©„Éº„Éû„ÉÉ„ÉàÔºüÔºâ„ÄÇË´ñÁêÜ„Éñ„É≠„ÉÉ„ÇØÊåáÂÆö„ÅÇ„ÇäÔºà21h„Åä„Åç„Å´ÊåáÂÆö„Åó„Å¶„ÅÑ„ÇãÔºâ„ÄÇ„Éñ„É≠„ÉÉ„ÇØÊï∞„ÅÆ„Å®„Åì„ÅØ6„ÅåÊåáÂÆö„Åï„Çå„Å¶„ÅÑ„Çã„ÄÇ
 void SASI_CheckCmd(void)
 {
-	short result;
-	SASI_Unit = (SASI_Cmd[1]>>5)&1;			// X68k§«§œ°¢•Ê•À•√•»»÷πÊ§œ0§´1§∑§´ºË§Ï§ §§
+	int32_t result;
+	SASI_Unit = (SASI_Cmd[1]>>5)&1;			// X68k„Åß„ÅØ„ÄÅ„É¶„Éã„ÉÉ„ÉàÁï™Âè∑„ÅØ0„Åã1„Åó„ÅãÂèñ„Çå„Å™„ÅÑ
 
 	switch(SASI_Cmd[0])
 	{
@@ -269,9 +237,9 @@ void SASI_CheckCmd(void)
 		break;
 	case 0x03:					// Request Sense Status
 		SASI_SenseStatBuf[0] = SASI_Error;
-		SASI_SenseStatBuf[1] = (BYTE)((SASI_Unit<<5)|((SASI_Sector>>16)&0x1f));
-		SASI_SenseStatBuf[2] = (BYTE)(SASI_Sector>>8);
-		SASI_SenseStatBuf[3] = (BYTE)SASI_Sector;
+		SASI_SenseStatBuf[1] = (uint8_t)((SASI_Unit<<5)|((SASI_Sector>>16)&0x1f));
+		SASI_SenseStatBuf[2] = (uint8_t)(SASI_Sector>>8);
+		SASI_SenseStatBuf[3] = (uint8_t)SASI_Sector;
 		SASI_Error = 0;
 		SASI_Phase=9;
 		SASI_Stat = 0;
@@ -282,8 +250,8 @@ void SASI_CheckCmd(void)
 		SASI_Stat = 0;
 		break;
 	case 0x08:					// Read Data
-		SASI_Sector = (((DWORD)SASI_Cmd[1]&0x1f)<<16)|(((DWORD)SASI_Cmd[2])<<8)|((DWORD)SASI_Cmd[3]);
-		SASI_Blocks = (DWORD)SASI_Cmd[4];
+		SASI_Sector = (((uint32_t)SASI_Cmd[1]&0x1f)<<16)|(((uint32_t)SASI_Cmd[2])<<8)|((uint32_t)SASI_Cmd[3]);
+		SASI_Blocks = (uint32_t)SASI_Cmd[4];
 		SASI_Phase++;
 		SASI_RW = 1;
 		SASI_BufPtr = 0;
@@ -296,13 +264,13 @@ void SASI_CheckCmd(void)
 		}
 		break;
 	case 0x0a:					// Write Data
-		SASI_Sector = (((DWORD)SASI_Cmd[1]&0x1f)<<16)|(((DWORD)SASI_Cmd[2])<<8)|((DWORD)SASI_Cmd[3]);
-		SASI_Blocks = (DWORD)SASI_Cmd[4];
+		SASI_Sector = (((uint32_t)SASI_Cmd[1]&0x1f)<<16)|(((uint32_t)SASI_Cmd[2])<<8)|((uint32_t)SASI_Cmd[3]);
+		SASI_Blocks = (uint32_t)SASI_Cmd[4];
 		SASI_Phase++;
 		SASI_RW = 0;
 		SASI_BufPtr = 0;
 		SASI_Stat = 0;
-		ZeroMemory(SASI_Buf, 256);
+		memset(SASI_Buf, 0, 256);
 		result = SASI_Seek();
 		if ( (result==0)||(result==-1) )
 		{
@@ -337,31 +305,18 @@ void SASI_CheckCmd(void)
 	default:
 		SASI_Phase += 2;
 	}
-if (hddtrace) {
-FILE *fp;
-fp=fopen("_trace68.txt", "a");
-fprintf(fp, "Com.  - %02X  Dev:%d Unit:%d\n", SASI_Cmd[0], SASI_Device, SASI_Unit);
-fclose(fp);
-}
 }
 
 
 // -----------------------------------------------------------------------
 //   I/O Write
 // -----------------------------------------------------------------------
-void FASTCALL SASI_Write(DWORD adr, BYTE data)
+void FASTCALL SASI_Write(int32_t adr, uint8_t data)
 {
-	short result;
-	int i;
-	BYTE bit;
+	int32_t result;
+	int32_t i;
+	uint8_t bit;
 
-if (hddtrace&&((SASI_Phase!=3)||(adr!=0xe96001))) {
-FILE *fp;
-fp=fopen("_trace68.txt", "a");
-//fprintf(fp, "Write - Adr:%08X Data:%02X  Phase:%d  (Time:%08X)  @ $%08X\n", adr, data, SASI_Phase, timeGetTime(), C68k_Get_Reg(&C68K, C68K_PC));
-fprintf(fp, "Write - Adr:%08X Data:%02X  Phase:%d  (Time:%08X)  @ $%08X\n", adr, data, SASI_Phase, timeGetTime(), C68k_Get_PC(&C68K));
-fclose(fp);
-}
 	if ( (adr==0xe96007)&&(SASI_Phase==0) )
 	{
 		SASI_Device = 0x7f;
@@ -409,38 +364,38 @@ fclose(fp);
 		if (SASI_Phase==2)
 		{
 			SASI_Cmd[SASI_CmdPtr++] = data;
-			if (SASI_CmdPtr==6)			// •≥•ﬁ•Û•…»Øπ‘Ω™Œª
+			if (SASI_CmdPtr==6)			// „Ç≥„Éû„É≥„ÉâÁô∫Ë°åÁµÇ‰∫Ü
 			{
 //				SASI_Phase++;
 				SASI_CheckCmd();
 			}
 		}
-		else if ((SASI_Phase==3)&&(!SASI_RW))		// •«°º•ø•È•§•»√Ê°¡
+		else if ((SASI_Phase==3)&&(!SASI_RW))		// „Éá„Éº„Çø„É©„Ç§„Éà‰∏≠xAÔΩ∑
 		{
 			SASI_Buf[SASI_BufPtr++] = data;
 			if (SASI_BufPtr==256)
 			{
-				result = SASI_Flush();		// ∏Ω∫ﬂ§Œ•–•√•’•°§ÚΩÒ§≠Ω–§π
+				result = SASI_Flush();		// ÁèæÂú®„ÅÆ„Éê„ÉÉ„Éï„Ç°„ÇíÊõ∏„ÅçÂá∫„Åô
 				SASI_Blocks--;
-				if (SASI_Blocks)		// §ﬁ§¿ΩÒ§Ø•÷•Ì•√•Ø§¨§¢§Î°©
+				if (SASI_Blocks)		// „Åæ„Å†Êõ∏„Åè„Éñ„É≠„ÉÉ„ÇØ„Åå„ÅÇ„ÇãÔºü
 				{
 					SASI_Sector++;
 					SASI_BufPtr = 0;
-					result = SASI_Seek();	// º°§Œ•ª•Ø•ø§Ú•–•√•’•°§À∆…§‡
-					if (!result)		// result=0°ß•§•·°º•∏§Œ∫«∏Â° °·Ãµ∏˙§ •ª•Ø•ø°À§ §È
+					result = SASI_Seek();	// Ê¨°„ÅÆ„Çª„ÇØ„Çø„Çí„Éê„ÉÉ„Éï„Ç°„Å´Ë™≠„ÇÄ
+					if (!result)		// result=0Ôºö„Ç§„É°„Éº„Ç∏„ÅÆÊúÄÂæåÔºàÔºùÁÑ°Âäπ„Å™„Çª„ÇØ„ÇøÔºâ„Å™„Çâ
 					{
 						SASI_Error = 0x0f;
 						SASI_Phase++;
 					}
 				}
 				else
-					SASI_Phase++;		// ªÿƒÍ•÷•Ì•√•Ø§Œ•È•§•»¥∞Œª
+					SASI_Phase++;		// ÊåáÂÆö„Éñ„É≠„ÉÉ„ÇØ„ÅÆ„É©„Ç§„ÉàÂÆå‰∫Ü
 			}
 		}
 		else if (SASI_Phase==10)
 		{
 			SASI_SenseStatPtr++;
-			if (SASI_SenseStatPtr==10)			// •≥•ﬁ•Û•…»Øπ‘Ω™Œª
+			if (SASI_SenseStatPtr==10)			// „Ç≥„Éû„É≥„ÉâÁô∫Ë°åÁµÇ‰∫Ü
 			{
 				SASI_Phase = 4;
 			}

@@ -20,10 +20,10 @@ typedef struct {
 
 void CDROM_Init(void);
 void CDROM_Cleanup(void);
-BYTE FASTCALL CDROM_Read(DWORD adr);
-void FASTCALL CDROM_Write(DWORD adr, BYTE data);
+uint8_t FASTCALL CDROM_Read(int32_t adr);
+void FASTCALL CDROM_Write(int32_t adr, uint8_t data);
 
-extern BYTE CDROM_ASPIChecked;
+extern uint8_t CDROM_ASPIChecked;
 
 #endif
 

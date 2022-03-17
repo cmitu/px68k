@@ -28,26 +28,29 @@
  * -------------------------------------------------------------------------- */
 
 #include <sys/stat.h>
-#include <SDL2/SDL.h>
-
 #include "common.h"
+#ifndef SDL1
+#include "SDL2/SDL.h"
+#else
+#include "SDL/SDL.h"
+#endif
 #include "winx68k.h"
 #include "keyboard.h"
 #include "fileio.h"
 #include "prop.h"
 
-BYTE	LastCode = 0;
-BYTE	KEYCONFFILE[] = "xkeyconf.dat";
+uint8_t	LastCode = 0;
+char	KEYCONFFILE[] = "xkeyconf.dat";
 
-int	CurrentHDDNo = 0;
+int32_t	CurrentHDDNo = 0;
 
-BYTE ini_title[] = "WinX68k";
+char ini_title[] = "WinX68k";
 
 static const char MIDI_TYPE_NAME[4][3] = {
 	"LA", "GM", "GS", "XG"
 };
 
-BYTE KeyTableBk[512];
+uint8_t KeyTableBk[512];
 
 Win68Conf Config;
 Win68Conf ConfBk;
@@ -58,18 +61,17 @@ Win68Conf ConfBk;
 
 extern char filepath[MAX_PATH];
 extern char winx68k_ini[MAX_PATH];
-extern int winx, winy;
 extern char joyname[2][MAX_PATH];
 extern char joybtnname[2][MAX_BUTTON][MAX_PATH];
-extern BYTE joybtnnum[2];
+extern uint8_t joybtnnum[2];
 
 #define CFGLEN MAX_PATH
 
 #if 0
-static long solveHEX(char *str) {
+static int32_t solveHEX(char *str) {
 
-	long	ret;
-	int		i;
+	int32_t	ret;
+	int32_t		i;
 	char	c;
 
 	ret = 0;
@@ -88,13 +90,13 @@ static long solveHEX(char *str) {
 			break;
 		}
 		ret <<= 4;
-		ret += (long) c;
+		ret += (int32_t) c;
 	}
 	return(ret);
 }
 #endif
 
-static char *makeBOOL(BYTE value) {
+static char *makeBOOL(uint8_t value) {
 
 	if (value) {
 		return("true");
@@ -102,7 +104,7 @@ static char *makeBOOL(BYTE value) {
 	return("false");
 }
 
-static BYTE Aacmp(char *cmp, char *str) {
+static int32_t Aacmp(char *cmp, char *str) {
 
 	char	p;
 
@@ -121,7 +123,7 @@ static BYTE Aacmp(char *cmp, char *str) {
 	return(0);
 }
 
-static BYTE solveBOOL(char *str) {
+static int32_t solveBOOL(char *str) {
 
 	if ((!Aacmp(str, "TRUE")) || (!Aacmp(str, "ON")) ||
 		(!Aacmp(str, "+")) || (!Aacmp(str, "1")) ||
@@ -131,7 +133,7 @@ static BYTE solveBOOL(char *str) {
 	return(0);
 }
 
-int
+int32_t
 set_modulepath(char *path, size_t len)
 {
 	struct stat sb;
@@ -192,14 +194,18 @@ set_dir:
         return 0;
 #endif
 
-	homepath = getenv("HOME");
+	homepath = (char *)getenv("HOME");
 	if (homepath == 0)
-		homepath = ".";
+		homepath = (char *)".";
 
-	snprintf(path, len, "%s/%s", homepath, ".keropi");
-	if (stat(path, &sb) < 0) {
-		if (mkdir(path, 0700) < 0) {
-			perror(path);
+	snprintf((char *)path, len, "%s/%s", homepath, ".keropi");
+	if (stat((char *)path, &sb) < 0) {
+#ifdef _WIN32
+		if (mkdir((char *)path) < 0) {
+#else
+		if (mkdir((char *)path, 0700) < 0) {
+#endif
+			perror((char *)path);
 			return 1;
 		}
 	} else {
@@ -221,139 +227,152 @@ set_dir:
 
 void LoadConfig(void)
 {
-	int	i, j;
+	int_fast16_t	i, j;
 	char	buf[CFGLEN];
 	FILEH fp;
 
 	Config.MenuLanguage = (int32_t)GetPrivateProfileInt((const char*)ini_title, "MenuLanguage", 0, winx68k_ini);
-	winx = GetPrivateProfileInt(ini_title, "WinPosX", 0, winx68k_ini);
-	winy = GetPrivateProfileInt(ini_title, "WinPosY", 0, winx68k_ini);
+	Config.KeyboardType = (int32_t)GetPrivateProfileInt((const char*)ini_title, "KeyboardType", 0, winx68k_ini);
+	Config.DisplayNo = (int32_t)GetPrivateProfileInt((const char*)ini_title, "DisplayNo", 0, winx68k_ini);
+	Config.WinPosX = (int32_t)GetPrivateProfileInt((const char*)ini_title, "WinPosX", 20, winx68k_ini);
+	Config.WinPosY = (int32_t)GetPrivateProfileInt((const char*)ini_title, "WinPosY", 20, winx68k_ini);
+	winx=Config.WinPosX; winy=Config.WinPosY;
 
 #ifdef PSP
-	Config.FrameRate = (BYTE)GetPrivateProfileInt(ini_title, "FrameRate", 5, winx68k_ini);
+	Config.FrameRate = (uint8_t)GetPrivateProfileInt((const char*)ini_title, "FrameRate", 5, winx68k_ini);
 #else
-	Config.FrameRate = (BYTE)GetPrivateProfileInt(ini_title, "FrameRate", 7, winx68k_ini);
+	Config.FrameRate = (uint8_t)GetPrivateProfileInt((const char*)ini_title, "FrameRate", 7, winx68k_ini);
 #endif
 	if (!Config.FrameRate) Config.FrameRate = 7;
-	GetPrivateProfileString(ini_title, "StartDir", "", buf, MAX_PATH, winx68k_ini);
+	Config.ram_size = (int32_t)GetPrivateProfileInt((const char*)ini_title, "RAM(MB)", 2, winx68k_ini);
+	GetPrivateProfileString((const char*)ini_title, "StartDir", "", buf, MAX_PATH, winx68k_ini);
 	if (buf[0] != 0)
 		strncpy(filepath, buf, sizeof(filepath));
 	else
 		filepath[0] = 0;
 
-	Config.OPM_VOL = GetPrivateProfileInt(ini_title, "OPM_Volume", 12, winx68k_ini);
-	Config.PCM_VOL = GetPrivateProfileInt(ini_title, "PCM_Volume", 15, winx68k_ini);
-	Config.MCR_VOL = GetPrivateProfileInt(ini_title, "MCR_Volume", 13, winx68k_ini);
+	Config.OPM_VOL = GetPrivateProfileInt((const char*)ini_title, "OPM_Volume", 12, winx68k_ini);
+	Config.PCM_VOL = GetPrivateProfileInt((const char*)ini_title, "PCM_Volume", 15, winx68k_ini);
+	Config.MCR_VOL = GetPrivateProfileInt((const char*)ini_title, "MCR_Volume", 13, winx68k_ini);
 #ifdef PSP
-	Config.SampleRate = GetPrivateProfileInt(ini_title, "SampleRate", 11025, winx68k_ini);
+	Config.SampleRate = GetPrivateProfileInt((const char*)ini_title, "SampleRate", 11025, winx68k_ini);
 #else
-	Config.SampleRate = GetPrivateProfileInt(ini_title, "SampleRate", 22050, winx68k_ini);
+	Config.SampleRate = GetPrivateProfileInt((const char*)ini_title, "SampleRate", 22050, winx68k_ini);
 #endif
-	Config.BufferSize = GetPrivateProfileInt(ini_title, "BufferSize", 50, winx68k_ini);
+	Config.BufferSize = GetPrivateProfileInt((const char*)ini_title, "BufferSize", 50, winx68k_ini);
 
-	Config.MouseSpeed = GetPrivateProfileInt(ini_title, "MouseSpeed", 10, winx68k_ini);
+	Config.MouseSpeed = GetPrivateProfileInt((const char*)ini_title, "MouseSpeed", 10, winx68k_ini);
 
-	GetPrivateProfileString(ini_title, "FDDStatWin", "1", buf, CFGLEN, winx68k_ini);
+	GetPrivateProfileString((const char*)ini_title, "FDDStatWin", "1", buf, CFGLEN, winx68k_ini);
 	Config.WindowFDDStat = solveBOOL(buf);
-	GetPrivateProfileString(ini_title, "FDDStatFullScr", "1", buf, CFGLEN, winx68k_ini);
+	GetPrivateProfileString((const char*)ini_title, "FDDStatFullScr", "1", buf, CFGLEN, winx68k_ini);
 	Config.FullScrFDDStat = solveBOOL(buf);
 
-	GetPrivateProfileString(ini_title, "DSAlert", "1", buf, CFGLEN, winx68k_ini);
+	GetPrivateProfileString((const char*)ini_title, "DSAlert", "1", buf, CFGLEN, winx68k_ini);
 	Config.DSAlert = solveBOOL(buf);
-	GetPrivateProfileString(ini_title, "SoundLPF", "1", buf, CFGLEN, winx68k_ini);
+	GetPrivateProfileString((const char*)ini_title, "SoundLPF", "1", buf, CFGLEN, winx68k_ini);
 	Config.Sound_LPF = solveBOOL(buf);
-	GetPrivateProfileString(ini_title, "UseRomeo", "0", buf, CFGLEN, winx68k_ini);
+	GetPrivateProfileString((const char*)ini_title, "UseRomeo", "0", buf, CFGLEN, winx68k_ini);
 	Config.SoundROMEO = solveBOOL(buf);
-	GetPrivateProfileString(ini_title, "MIDI_SW", "1", buf, CFGLEN, winx68k_ini);
+	GetPrivateProfileString((const char*)ini_title, "MIDI_SW", "1", buf, CFGLEN, winx68k_ini);
 	Config.MIDI_SW = solveBOOL(buf);
-	GetPrivateProfileString(ini_title, "MIDI_Reset", "0", buf, CFGLEN, winx68k_ini);
+	GetPrivateProfileString((const char*)ini_title, "MIDI_Reset", "0", buf, CFGLEN, winx68k_ini);
 	Config.MIDI_Reset = solveBOOL(buf);
-	Config.MIDI_Type = GetPrivateProfileInt(ini_title, "MIDI_Type", 1, winx68k_ini);
+	Config.MIDI_Type = GetPrivateProfileInt((const char*)ini_title, "MIDI_Type", 1, winx68k_ini);
 
-	GetPrivateProfileString(ini_title, "JoySwap", "0", buf, CFGLEN, winx68k_ini);
+	GetPrivateProfileString((const char*)ini_title, "JoySwap", "0", buf, CFGLEN, winx68k_ini);
 	Config.JoySwap = solveBOOL(buf);
 
-	GetPrivateProfileString(ini_title, "JoyKey", "0", buf, CFGLEN, winx68k_ini);
+	GetPrivateProfileString((const char*)ini_title, "JoyKey", "0", buf, CFGLEN, winx68k_ini);
 	Config.JoyKey = solveBOOL(buf);
-	GetPrivateProfileString(ini_title, "JoyKeyReverse", "0", buf, CFGLEN, winx68k_ini);
+	GetPrivateProfileString((const char*)ini_title, "JoyKeyReverse", "0", buf, CFGLEN, winx68k_ini);
 	Config.JoyKeyReverse = solveBOOL(buf);
-	GetPrivateProfileString(ini_title, "JoyKeyJoy2", "0", buf, CFGLEN, winx68k_ini);
+	GetPrivateProfileString((const char*)ini_title, "JoyKeyJoy2", "0", buf, CFGLEN, winx68k_ini);
 	Config.JoyKeyJoy2 = solveBOOL(buf);
-	GetPrivateProfileString(ini_title, "SRAMBootWarning", "1", buf, CFGLEN, winx68k_ini);
+	GetPrivateProfileString((const char*)ini_title, "SRAMBootWarning", "1", buf, CFGLEN, winx68k_ini);
 	Config.SRAMWarning = solveBOOL(buf);
 
-	GetPrivateProfileString(ini_title, "WinDrvLFN", "1", buf, CFGLEN, winx68k_ini);
+	GetPrivateProfileString((const char*)ini_title, "WinDrvLFN", "1", buf, CFGLEN, winx68k_ini);
 	Config.LongFileName = solveBOOL(buf);
-	GetPrivateProfileString(ini_title, "WinDrvFDD", "1", buf, CFGLEN, winx68k_ini);
+	GetPrivateProfileString((const char*)ini_title, "WinDrvFDD", "1", buf, CFGLEN, winx68k_ini);
 	Config.WinDrvFD = solveBOOL(buf);
 
-	Config.WinStrech = GetPrivateProfileInt(ini_title, "WinStretch", 1, winx68k_ini);
+	Config.WinStrech = GetPrivateProfileInt((const char*)ini_title, "WinStretch", 1, winx68k_ini);
 
-	GetPrivateProfileString(ini_title, "DSMixing", "0", buf, CFGLEN, winx68k_ini);
+	GetPrivateProfileString((const char*)ini_title, "DSMixing", "0", buf, CFGLEN, winx68k_ini);
 	Config.DSMixing = solveBOOL(buf);
 
-	Config.XVIMode = (BYTE)GetPrivateProfileInt(ini_title, "XVIMode", 0, winx68k_ini);
+	Config.XVIMode = (uint8_t)GetPrivateProfileInt((const char*)ini_title, "XVIMode", 0, winx68k_ini);
 
-	GetPrivateProfileString(ini_title, "CDROM_ASPI", "1", buf, CFGLEN, winx68k_ini);
+	GetPrivateProfileString((const char*)ini_title, "CDROM_ASPI", "1", buf, CFGLEN, winx68k_ini);
 	Config.CDROM_ASPI = solveBOOL(buf);
-	Config.CDROM_SCSIID = (BYTE)GetPrivateProfileInt(ini_title, "CDROM_SCSIID", 6, winx68k_ini);
-	Config.CDROM_ASPI_Drive = (BYTE)GetPrivateProfileInt(ini_title, "CDROM_ASPIDrv", 0, winx68k_ini);
-	Config.CDROM_IOCTRL_Drive = (BYTE)GetPrivateProfileInt(ini_title, "CDROM_CTRLDrv", 16, winx68k_ini);
-	GetPrivateProfileString(ini_title, "CDROM_Enable", "1", buf, CFGLEN, winx68k_ini);
+	Config.CDROM_SCSIID = (uint8_t)GetPrivateProfileInt((const char*)ini_title, "CDROM_SCSIID", 6, winx68k_ini);
+	Config.CDROM_ASPI_Drive = (uint8_t)GetPrivateProfileInt((const char*)ini_title, "CDROM_ASPIDrv", 0, winx68k_ini);
+	Config.CDROM_IOCTRL_Drive = (uint8_t)GetPrivateProfileInt((const char*)ini_title, "CDROM_CTRLDrv", 16, winx68k_ini);
+	GetPrivateProfileString((const char*)ini_title, "CDROM_Enable", "1", buf, CFGLEN, winx68k_ini);
 	Config.CDROM_Enable = solveBOOL(buf);
 
-	GetPrivateProfileString(ini_title, "SSTP_Enable", "0", buf, CFGLEN, winx68k_ini);
+	GetPrivateProfileString((const char*)ini_title, "SSTP_Enable", "0", buf, CFGLEN, winx68k_ini);
 	Config.SSTP_Enable = solveBOOL(buf);
-	Config.SSTP_Port = GetPrivateProfileInt(ini_title, "SSTP_Port", 11000, winx68k_ini);
+	Config.SSTP_Port = GetPrivateProfileInt((const char*)ini_title, "SSTP_Port", 11000, winx68k_ini);
 
-	GetPrivateProfileString(ini_title, "ToneMapping", "0", buf, CFGLEN, winx68k_ini);
+	GetPrivateProfileString((const char*)ini_title, "ToneMapping", "0", buf, CFGLEN, winx68k_ini);
 	Config.ToneMap = solveBOOL(buf);
-	GetPrivateProfileString(ini_title, "ToneMapFile", "", buf, MAX_PATH, winx68k_ini);
+	GetPrivateProfileString((const char*)ini_title, "ToneMapFile", "", buf, MAX_PATH, winx68k_ini);
 	if (buf[0] != 0)
-		strcpy(Config.ToneMapFile, buf);
+		strcpy((char *)Config.ToneMapFile, buf);
 	else
 		Config.ToneMapFile[0] = 0;
 
-	Config.MIDIDelay = GetPrivateProfileInt(ini_title, "MIDIDelay", Config.BufferSize*5, winx68k_ini);
-	Config.MIDIAutoDelay = GetPrivateProfileInt(ini_title, "MIDIAutoDelay", 1, winx68k_ini);
+	Config.MIDIDelay = GetPrivateProfileInt((const char*)ini_title, "MIDIDelay", Config.BufferSize*5, winx68k_ini);
+	Config.MIDIAutoDelay = GetPrivateProfileInt((const char*)ini_title, "MIDIAutoDelay", 1, winx68k_ini);
 
-	Config.VkeyScale = GetPrivateProfileInt(ini_title, "VkeyScale", 4, winx68k_ini);
+	Config.VkeyScale = GetPrivateProfileInt((const char*)ini_title, "VkeyScale", 4, winx68k_ini);
 
-	Config.VbtnSwap = GetPrivateProfileInt(ini_title, "VbtnSwap", 0, winx68k_ini);
+	Config.VbtnSwap = GetPrivateProfileInt((const char*)ini_title, "VbtnSwap", 0, winx68k_ini);
 
-	Config.JoyOrMouse = GetPrivateProfileInt(ini_title, "JoyOrMouse", 0, winx68k_ini);
+	Config.JoyOrMouse = GetPrivateProfileInt((const char*)ini_title, "JoyOrMouse", 0, winx68k_ini);
 
-	Config.HwJoyAxis[0] = GetPrivateProfileInt(ini_title, "HwJoyAxis0", 0, winx68k_ini);
+	Config.HwJoyAxis[0] = GetPrivateProfileInt((const char*)ini_title, "HwJoyAxis0", 0, winx68k_ini);
 
-	Config.HwJoyAxis[1] = GetPrivateProfileInt(ini_title, "HwJoyAxis1", 1, winx68k_ini);
+	Config.HwJoyAxis[1] = GetPrivateProfileInt((const char*)ini_title, "HwJoyAxis1", 1, winx68k_ini);
 
-	Config.HwJoyHat = GetPrivateProfileInt(ini_title, "HwJoyHat", 0, winx68k_ini);
+	Config.HwJoyAxisAtr[0] = GetPrivateProfileInt((const char*)ini_title, "HwJoyAxis0UP", 0, winx68k_ini);
+
+	Config.HwJoyAxisAtr[1] = GetPrivateProfileInt((const char*)ini_title, "HwJoyAxis1UP", 0, winx68k_ini);
+
+	Config.HwJoyHat = GetPrivateProfileInt((const char*)ini_title, "HwJoyHat", 0, winx68k_ini);
 
 	for (i = 0; i < 8; i++) {
 		sprintf(buf, "HwJoyBtn%d", i);
-		Config.HwJoyBtn[i] = GetPrivateProfileInt(ini_title, buf, i, winx68k_ini);
+		Config.HwJoyBtn[i] = GetPrivateProfileInt((const char*)ini_title, buf, i, winx68k_ini);
 	}
 
-	Config.NoWaitMode = GetPrivateProfileInt(ini_title, "NoWaitMode", 0, winx68k_ini);
+	Config.NoWaitMode = GetPrivateProfileInt((const char*)ini_title, "NoWaitMode", 0, winx68k_ini);
 
 	for (i=0; i<2; i++)
 	{
 		for (j=0; j<8; j++)
 		{
 			sprintf(buf, "Joy%dButton%d", i+1, j+1);
-			Config.JOY_BTN[i][j] = GetPrivateProfileInt(ini_title, buf, j, winx68k_ini);
+			Config.JOY_BTN[i][j] = GetPrivateProfileInt((const char*)ini_title, buf, j, winx68k_ini);
 		}
 	}
 
 	for (i = 0; i < 2; i++) {
 		sprintf(buf, "FDD%d", i);
-		GetPrivateProfileString(ini_title, buf, "", Config.FDDImage[i], MAX_PATH, winx68k_ini);
+		GetPrivateProfileString((const char*)ini_title, buf, "", (char *)Config.FDDImage[i], MAX_PATH, winx68k_ini);
 	}
 
 	for (i=0; i<16; i++)
 	{
 		sprintf(buf, "HDD%d", i);
-		GetPrivateProfileString(ini_title, buf, "", Config.HDImage[i], MAX_PATH, winx68k_ini);
+		GetPrivateProfileString((const char*)ini_title, buf, "", (char *)Config.HDImage[i], MAX_PATH, winx68k_ini);
+	}
+	for (i=0; i<8; i++)
+	{
+		sprintf(buf, "SCSIEXHDD%02d", i);
+		GetPrivateProfileString((const char*)ini_title, buf, "", (char *)Config.SCSIEXHDImage[i], MAX_PATH, winx68k_ini);
 	}
 
 #if 0
@@ -367,111 +386,125 @@ void LoadConfig(void)
 }
 
 
+extern BOOL WritePrivateProfileString(const char* , const char* , const char* , const char* );
+
 void SaveConfig(void)
 {
-	int	i, j;
+	int_fast16_t	i, j;
 	char	buf[CFGLEN], buf2[CFGLEN];
 	FILEH fp;
 
 	wsprintf(buf, "%d", Config.MenuLanguage);
 	WritePrivateProfileString((const char*)ini_title, "MenuLanguage", buf, winx68k_ini);
-	wsprintf(buf, "%d", winx);
-	WritePrivateProfileString(ini_title, "WinPosX", buf, winx68k_ini);
-	wsprintf(buf, "%d", winy);
-	WritePrivateProfileString(ini_title, "WinPosY", buf, winx68k_ini);
+	wsprintf(buf, "%d", Config.KeyboardType);
+	WritePrivateProfileString((const char*)ini_title, "KeyboardType", buf, winx68k_ini);
+	wsprintf(buf, "%d", Config.DisplayNo);
+	WritePrivateProfileString((const char*)ini_title, "DisplayNo", buf, winx68k_ini);
+	wsprintf(buf, "%d", Config.WinPosX);
+	WritePrivateProfileString((const char*)ini_title, "WinPosX", buf, winx68k_ini);
+	wsprintf(buf, "%d", Config.WinPosY);
+	WritePrivateProfileString((const char*)ini_title, "WinPosY", buf, winx68k_ini);
 	wsprintf(buf, "%d", Config.FrameRate);
-	WritePrivateProfileString(ini_title, "FrameRate", buf, winx68k_ini);
-	WritePrivateProfileString(ini_title, "StartDir", filepath, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "FrameRate", buf, winx68k_ini);
+	wsprintf(buf, "%d", Config.ram_size);
+	WritePrivateProfileString((const char*)ini_title, "RAM(MB)", buf, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "StartDir", filepath, winx68k_ini);
 
 	wsprintf(buf, "%d", Config.OPM_VOL);
-	WritePrivateProfileString(ini_title, "OPM_Volume", buf, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "OPM_Volume", buf, winx68k_ini);
 	wsprintf(buf, "%d", Config.PCM_VOL);
-	WritePrivateProfileString(ini_title, "PCM_Volume", buf, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "PCM_Volume", buf, winx68k_ini);
 	wsprintf(buf, "%d", Config.MCR_VOL);
-	WritePrivateProfileString(ini_title, "MCR_Volume", buf, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "MCR_Volume", buf, winx68k_ini);
 	wsprintf(buf, "%d", Config.SampleRate);
-	WritePrivateProfileString(ini_title, "SampleRate", buf, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "SampleRate", buf, winx68k_ini);
 	wsprintf(buf, "%d", Config.BufferSize);
-	WritePrivateProfileString(ini_title, "BufferSize", buf, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "BufferSize", buf, winx68k_ini);
 
 	wsprintf(buf, "%d", Config.MouseSpeed);
-	WritePrivateProfileString(ini_title, "MouseSpeed", buf, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "MouseSpeed", buf, winx68k_ini);
 
-	WritePrivateProfileString(ini_title, "FDDStatWin", makeBOOL((BYTE)Config.WindowFDDStat), winx68k_ini);
-	WritePrivateProfileString(ini_title, "FDDStatFullScr", makeBOOL((BYTE)Config.FullScrFDDStat), winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "FDDStatWin", makeBOOL((uint8_t)Config.WindowFDDStat), winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "FDDStatFullScr", makeBOOL((uint8_t)Config.FullScrFDDStat), winx68k_ini);
 
-	WritePrivateProfileString(ini_title, "DSAlert", makeBOOL((BYTE)Config.DSAlert), winx68k_ini);
-	WritePrivateProfileString(ini_title, "SoundLPF", makeBOOL((BYTE)Config.Sound_LPF), winx68k_ini);
-	WritePrivateProfileString(ini_title, "UseRomeo", makeBOOL((BYTE)Config.SoundROMEO), winx68k_ini);
-	WritePrivateProfileString(ini_title, "MIDI_SW", makeBOOL((BYTE)Config.MIDI_SW), winx68k_ini);
-	WritePrivateProfileString(ini_title, "MIDI_Reset", makeBOOL((BYTE)Config.MIDI_Reset), winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "DSAlert", makeBOOL((uint8_t)Config.DSAlert), winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "SoundLPF", makeBOOL((uint8_t)Config.Sound_LPF), winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "UseRomeo", makeBOOL((uint8_t)Config.SoundROMEO), winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "MIDI_SW", makeBOOL((uint8_t)Config.MIDI_SW), winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "MIDI_Reset", makeBOOL((uint8_t)Config.MIDI_Reset), winx68k_ini);
 	wsprintf(buf, "%d", Config.MIDI_Type);
-	WritePrivateProfileString(ini_title, "MIDI_Type", buf, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "MIDI_Type", buf, winx68k_ini);
 
-	WritePrivateProfileString(ini_title, "JoySwap", makeBOOL((BYTE)Config.JoySwap), winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "JoySwap", makeBOOL((uint8_t)Config.JoySwap), winx68k_ini);
 
-	WritePrivateProfileString(ini_title, "JoyKey", makeBOOL((BYTE)Config.JoyKey), winx68k_ini);
-	WritePrivateProfileString(ini_title, "JoyKeyReverse", makeBOOL((BYTE)Config.JoyKeyReverse), winx68k_ini);
-	WritePrivateProfileString(ini_title, "JoyKeyJoy2", makeBOOL((BYTE)Config.JoyKeyJoy2), winx68k_ini);
-	WritePrivateProfileString(ini_title, "SRAMBootWarning", makeBOOL((BYTE)Config.SRAMWarning), winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "JoyKey", makeBOOL((uint8_t)Config.JoyKey), winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "JoyKeyReverse", makeBOOL((uint8_t)Config.JoyKeyReverse), winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "JoyKeyJoy2", makeBOOL((uint8_t)Config.JoyKeyJoy2), winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "SRAMBootWarning", makeBOOL((uint8_t)Config.SRAMWarning), winx68k_ini);
 
-	WritePrivateProfileString(ini_title, "WinDrvLFN", makeBOOL((BYTE)Config.LongFileName), winx68k_ini);
-	WritePrivateProfileString(ini_title, "WinDrvFDD", makeBOOL((BYTE)Config.WinDrvFD), winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "WinDrvLFN", makeBOOL((uint8_t)Config.LongFileName), winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "WinDrvFDD", makeBOOL((uint8_t)Config.WinDrvFD), winx68k_ini);
 
 	wsprintf(buf, "%d", Config.WinStrech);
-	WritePrivateProfileString(ini_title, "WinStretch", buf, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "WinStretch", buf, winx68k_ini);
 
-	WritePrivateProfileString(ini_title, "DSMixing", makeBOOL((BYTE)Config.DSMixing), winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "DSMixing", makeBOOL((uint8_t)Config.DSMixing), winx68k_ini);
 
 	wsprintf(buf, "%d", Config.XVIMode);
-	WritePrivateProfileString(ini_title, "XVIMode", buf, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "XVIMode", buf, winx68k_ini);
 
-	WritePrivateProfileString(ini_title, "CDROM_ASPI", makeBOOL((BYTE)Config.CDROM_ASPI), winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "CDROM_ASPI", makeBOOL((uint8_t)Config.CDROM_ASPI), winx68k_ini);
 	wsprintf(buf, "%d", Config.CDROM_SCSIID);
-	WritePrivateProfileString(ini_title, "CDROM_SCSIID", buf, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "CDROM_SCSIID", buf, winx68k_ini);
 	wsprintf(buf, "%d", Config.CDROM_ASPI_Drive);
-	WritePrivateProfileString(ini_title, "CDROM_ASPIDrv", buf, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "CDROM_ASPIDrv", buf, winx68k_ini);
 	wsprintf(buf, "%d", Config.CDROM_IOCTRL_Drive);
-	WritePrivateProfileString(ini_title, "CDROM_CTRLDrv", buf, winx68k_ini);
-	WritePrivateProfileString(ini_title, "CDROM_Enable", makeBOOL((BYTE)Config.CDROM_Enable), winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "CDROM_CTRLDrv", buf, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "CDROM_Enable", makeBOOL((uint8_t)Config.CDROM_Enable), winx68k_ini);
 
-	WritePrivateProfileString(ini_title, "SSTP_Enable", makeBOOL((BYTE)Config.SSTP_Enable), winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "SSTP_Enable", makeBOOL((uint8_t)Config.SSTP_Enable), winx68k_ini);
 	wsprintf(buf, "%d", Config.SSTP_Port);
-	WritePrivateProfileString(ini_title, "SSTP_Port", buf, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "SSTP_Port", buf, winx68k_ini);
 
-	WritePrivateProfileString(ini_title, "ToneMapping", makeBOOL((BYTE)Config.ToneMap), winx68k_ini);
-	WritePrivateProfileString(ini_title, "ToneMapFile", Config.ToneMapFile, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "ToneMapping", makeBOOL((uint8_t)Config.ToneMap), winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "ToneMapFile", (char *)Config.ToneMapFile, winx68k_ini);
 
 	wsprintf(buf, "%d", Config.MIDIDelay);
-	WritePrivateProfileString(ini_title, "MIDIDelay", buf, winx68k_ini);
-	WritePrivateProfileString(ini_title, "MIDIAutoDelay", makeBOOL((BYTE)Config.MIDIAutoDelay), winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "MIDIDelay", buf, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "MIDIAutoDelay", makeBOOL((uint8_t)Config.MIDIAutoDelay), winx68k_ini);
 
 	wsprintf(buf, "%d", Config.VkeyScale);
-	WritePrivateProfileString(ini_title, "VkeyScale", buf, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "VkeyScale", buf, winx68k_ini);
 
 	wsprintf(buf, "%d", Config.VbtnSwap);
-	WritePrivateProfileString(ini_title, "VbtnSwap", buf, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "VbtnSwap", buf, winx68k_ini);
 
 	wsprintf(buf, "%d", Config.JoyOrMouse);
-	WritePrivateProfileString(ini_title, "JoyOrMouse", buf, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "JoyOrMouse", buf, winx68k_ini);
 
 	wsprintf(buf, "%d", Config.HwJoyAxis[0]);
-	WritePrivateProfileString(ini_title, "HwJoyAxis0", buf, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "HwJoyAxis0", buf, winx68k_ini);
 
 	wsprintf(buf, "%d", Config.HwJoyAxis[1]);
-	WritePrivateProfileString(ini_title, "HwJoyAxis1", buf, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "HwJoyAxis1", buf, winx68k_ini);
+
+	wsprintf(buf, "%d", Config.HwJoyAxisAtr[0]);
+	WritePrivateProfileString((const char*)ini_title, "HwJoyAxis0UP", buf, winx68k_ini);
+
+	wsprintf(buf, "%d", Config.HwJoyAxisAtr[1]);
+	WritePrivateProfileString((const char*)ini_title, "HwJoyAxis1UP", buf, winx68k_ini);
 
 	wsprintf(buf, "%d", Config.HwJoyHat);
-	WritePrivateProfileString(ini_title, "HwJoyHat", buf, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "HwJoyHat", buf, winx68k_ini);
 
 	for (i = 0; i < 8; i++) {
 		sprintf(buf, "HwJoyBtn%d", i);
 		sprintf(buf2, "%d", Config.HwJoyBtn[i]);
-		WritePrivateProfileString(ini_title, buf, buf2, winx68k_ini);
+		WritePrivateProfileString((const char*)ini_title, buf, buf2, winx68k_ini);
 	}
 
 	wsprintf(buf, "%d", Config.NoWaitMode);
-	WritePrivateProfileString(ini_title, "NoWaitMode", buf, winx68k_ini);
+	WritePrivateProfileString((const char*)ini_title, "NoWaitMode", buf, winx68k_ini);
 
 	for (i=0; i<2; i++)
 	{
@@ -479,21 +512,26 @@ void SaveConfig(void)
 		{
 			sprintf(buf, "Joy%dButton%d", i+1, j+1);
 			wsprintf(buf2, "%d", Config.JOY_BTN[i][j]);
-			WritePrivateProfileString(ini_title, buf, buf2, winx68k_ini);
+			WritePrivateProfileString((const char*)ini_title, buf, buf2, winx68k_ini);
 		}
 	}
 
 	for (i = 0; i < 2; i++)
 	{
-		printf("i: %d", i);
+		//printf("i: %d", i);
 		sprintf(buf, "FDD%d", i);
-		WritePrivateProfileString(ini_title, buf, Config.FDDImage[i], winx68k_ini);
+		WritePrivateProfileString((const char*)ini_title, buf, (char *)Config.FDDImage[i], winx68k_ini);
 	}
 
 	for (i=0; i<16; i++)
 	{
 		sprintf(buf, "HDD%d", i);
-		WritePrivateProfileString(ini_title, buf, Config.HDImage[i], winx68k_ini);
+		WritePrivateProfileString((const char*)ini_title, buf, (char *)Config.HDImage[i], winx68k_ini);
+	}
+	for (i=0; i<8; i++)
+	{
+		sprintf(buf, "SCSIEXHDD%02d", i);
+		WritePrivateProfileString((const char*)ini_title, buf, (char *)Config.SCSIEXHDImage[i], winx68k_ini);
 	}
 
 #if 0
@@ -514,13 +552,13 @@ void SaveConfig(void)
 #if 0
 typedef struct {
 	GtkWidget *fs;
-	int type;
+	int32_t type;
 	void *arg;
 } file_selection_t;
 
 static void file_selection_ok(GtkWidget *w, GtkFileSelection *gfs);
 static void file_selection_destroy(GtkWidget *w, GtkWidget **wp);
-static void file_selection(int type, char *title, char *defstr, void *arg);
+static void file_selection(int32_t type, char *title, char *defstr, void *arg);
 
 static Win68Conf ConfigProp;
 
@@ -667,7 +705,7 @@ static void vol_adj_value_changed(GtkAdjustment *adj, gpointer d);
 
 static const struct {
 	const char *str;
-	DWORD rate;
+	uint32_t rate;
 } sample_rate[] = {
 	{ "No Sound", 0     },
 	{ "11kHz",    11025 },
@@ -698,7 +736,7 @@ create_sound_note(void)
 	GtkWidget *frame;
 	GtkWidget *button[NELEMENTS(sample_rate)];
 	GSList *gslist;
-	int i;
+	int32_t i;
 
 	main_vbox = gtk_vbox_new(FALSE, 2);
 
@@ -766,7 +804,7 @@ create_sound_note(void)
 			gtk_adjustment_set_value(GTK_ADJUSTMENT(adjust),
 			    Config.BufferSize);
 		else {
-			int *p = (int *)(((char *)&Config) + sound_right_frame[i].offset);
+			int32_t *p = (int32_t *)(((char *)&Config) + sound_right_frame[i].offset);
 			gtk_adjustment_set_value(GTK_ADJUSTMENT(adjust), *p);
 		}
 	}
@@ -789,7 +827,7 @@ sample_rate_button_clicked(GtkButton *b, gpointer d)
 	
 	UNUSED(b);
 
-	ConfigProp.SampleRate = (DWORD)((long)d);
+	ConfigProp.SampleRate = (uint32_t)((uint16_t)d);
 }
 
 static void
@@ -804,14 +842,14 @@ adpcm_lpf_button_clicked(GtkButton *b, gpointer d)
 static void
 vol_adj_value_changed(GtkAdjustment *adj, gpointer d)
 {
-	int val = (int)(GTK_ADJUSTMENT(adj)->value);
-	int idx = (int)(long)d;
+	int32_t val = (int32_t)(GTK_ADJUSTMENT(adj)->value);
+	int32_t idx = (int32_t)d;
 	size_t offset = sound_right_frame[idx].offset;
 
 	if (idx == 0)
-		ConfigProp.BufferSize = (DWORD)val;
+		ConfigProp.BufferSize = (int32_t)val;
 	else {
-		int *p = (int *)(((char *)&ConfigProp) + offset);
+		int32_t *p = (int32_t *)(((char *)&ConfigProp) + offset);
 		*p = val;
 	}
 }
@@ -847,7 +885,7 @@ create_midi_note(void)
 	GtkWidget *hbox;
 	static midi_init_item_t mii;
 	GList *items;
-	int i;
+	int_fast16_t i;
 
 	vbox = gtk_vbox_new(FALSE, 4);
 
@@ -1002,7 +1040,7 @@ static void
 midi_init_entry_changed(GtkEditable *e, gpointer d)
 {
 	gchar *str;
-	int i;
+	int32_t i;
 
 	UNUSED(d);
 
@@ -1090,7 +1128,7 @@ mouse_speed_rate_value_changed(GtkAdjustment *adj, gpointer d)
 
 	UNUSED(d);
 
-	ConfigProp.MouseSpeed = (int)adj->value;
+	ConfigProp.MouseSpeed = (int32_t)adj->value;
 	if (ConfigProp.MouseSpeed < 1)
 		ConfigProp.MouseSpeed = 1;
 	if (ConfigProp.MouseSpeed > 20)
@@ -1108,7 +1146,7 @@ static void others_show_fdd_status_button_clicked(GtkButton *b, gpointer d);
 static void others_enable_virus_button_clicked(GtkButton *b, gpointer d);
 
 typedef struct {
-	int idx;
+	int32_t idx;
 	GtkWidget *entry;
 } sasi_hdd_t;
 
@@ -1130,7 +1168,7 @@ create_others_note(void)
 	GtkWidget *entry;
 	GtkWidget *button;
 	GList *items;
-	int i;
+	int_fast32_t i;
 
 	w = gtk_vbox_new(FALSE, 3);
 
@@ -1239,7 +1277,7 @@ others_sasi_hdd_index_entry_changed(GtkEditable *e, gpointer d)
 
 	str = gtk_editable_get_chars(GTK_EDITABLE(e), 0, -1);
 	if (str) {
-		unsigned long val;
+		int32_t val;
 
 		errno = 0;
 		val = strtoul(str, &ep, 10);
@@ -1249,7 +1287,7 @@ others_sasi_hdd_index_entry_changed(GtkEditable *e, gpointer d)
 		/* Out of range */
 		if (errno == ERANGE && val == ULONG_MAX)
 			val = 0;
-		sasi_hdd->idx = (int)val;
+		sasi_hdd->idx = (int32_t)val;
 
 		if (sasi_hdd->idx >= 0 && sasi_hdd->idx < 16) {
 			gtk_entry_set_text(GTK_ENTRY(sasi_hdd->entry),
@@ -1276,7 +1314,7 @@ others_sasi_hdd_remove_button_clicked(GtkButton *b, gpointer d)
 
 	UNUSED(b);
 
-	bzero(ConfigProp.HDImage[sasi_hdd->idx], sizeof(ConfigProp.HDImage));
+	memset(ConfigProp.HDImage[sasi_hdd->idx], 0, sizeof(ConfigProp.HDImage));
 	gtk_entry_set_text(GTK_ENTRY(sasi_hdd->entry), ConfigProp.HDImage[sasi_hdd->idx]);
 }
 
@@ -1350,13 +1388,13 @@ file_selection_ok(GtkWidget *w, GtkFileSelection *gfs)
 				sasi_hdd_t *sasi_hdd = (sasi_hdd_t *)fsp->arg;
 				char buf[0x1000];
 				FILEH *fh;
-				int i;
+				int32_t i;
 
 				fh = File_Create(p, FTYPE_NONE);
 				if (fh == INVALID_HANDLE_VALUE)
 					break;
 
-				bzero(buf, sizeof(buf));
+				memset(buf, 0, sizeof(buf));
 				for (i = 0; i < 0x2793 /* 40Mb/0x1000 */; ++i)
 					File_Write(fh, buf, 0x1000);
 				File_Close(fh);
@@ -1381,7 +1419,7 @@ file_selection_destroy(GtkWidget *w, GtkWidget **wp)
 }
 
 static void
-file_selection(int type, char *title, char *defstr, void *arg)
+file_selection(int32_t type, char *title, char *defstr, void *arg)
 {
 	GtkWidget *file_dialog;
 	file_selection_t *fsp;
@@ -1392,7 +1430,7 @@ file_selection(int type, char *title, char *defstr, void *arg)
 		    sizeof(*fsp));
 		return;
 	}
-	bzero(fsp, sizeof(*fsp));
+	memset(fsp, 0, sizeof(*fsp));
 
 	file_dialog = gtk_file_selection_new(title);
 	if (defstr) {

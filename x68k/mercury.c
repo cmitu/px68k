@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------------------
-//  MERCURY.C - §ﬁ°¡§≠§Â§Í°¡§Ê§À§√§»
+//  MERCURY.C - „Åæ„Äú„Åç„ÇÖ„Çä„Äú„ÇÜ„Å´„Å£„Å®
 // ---------------------------------------------------------------------------------------
 
 #include "common.h"
@@ -14,35 +14,35 @@
 #define MCRY_IRQ 4
 #define Mcry_BufSize		48000*2
 
-long	Mcry_WrPtr = 0;
-long	Mcry_RdPtr = 0;
-long	Mcry_SampleRate = 44100;
-long	Mcry_ClockRate = 44100;
-long	Mcry_Count = 0;
-BYTE	Mcry_Status = 0;
-BYTE	Mcry_LRTiming = 0;
-short	Mcry_OutDataL = 0;
-short	Mcry_OutDataR = 0;
-short	Mcry_BufL[Mcry_BufSize];
-short	Mcry_BufR[Mcry_BufSize];
-long	Mcry_PreCounter = 0;
+int32_t	Mcry_WrPtr = 0;
+int32_t	Mcry_RdPtr = 0;
+int32_t	Mcry_SampleRate = 44100;
+int32_t	Mcry_ClockRate = 44100;
+int32_t	Mcry_Count = 0;
+uint8_t	Mcry_Status = 0;
+uint8_t	Mcry_LRTiming = 0;
+int16_t	Mcry_OutDataL = 0;
+int16_t	Mcry_OutDataR = 0;
+int16_t	Mcry_BufL[Mcry_BufSize];
+int16_t	Mcry_BufR[Mcry_BufSize];
+int32_t	Mcry_PreCounter = 0;
 
-short	Mcry_OldR, Mcry_OldL;
-int	Mcry_DMABytes = 0;
+int16_t	Mcry_OldR, Mcry_OldL;
+int32_t	Mcry_DMABytes = 0;
 static double Mcry_VolumeShift = 65536;
-static int Mcry_SampleCnt = 0;
-static BYTE Mcry_Vector = 255;
+static int32_t Mcry_SampleCnt = 0;
+static uint8_t Mcry_Vector = 255;
 
-extern BYTE BusErrFlag;
-extern	m68k_regs regs;
+extern int32_t BusErrFlag;
+//extern	m68k_regs regs;
 
 
-DWORD FASTCALL Mcry_IntCB(BYTE irq)
+int32_t FASTCALL Mcry_IntCB(uint8_t irq)
 {
-	DWORD ret = 0xffffffff;
+	int32_t ret = -1;
 	IRQH_IRQCallBack(irq);
 	if ( irq==MCRY_IRQ ) {
-		ret = (DWORD)Mcry_Vector;
+		ret = (int32_t)Mcry_Vector;
 	}
 	return ret;
 }
@@ -53,21 +53,21 @@ void FASTCALL Mcry_Int(void)
 }
 
 
-static long Mcry_Clocks[8] = {
+static int32_t Mcry_Clocks[8] = {
 	22050, 16000, 22050, 24000
 };
 
 
-int Mcry_IsReady(void)
+int32_t Mcry_IsReady(void)
 {
 	return (Mcry_SampleCnt>0);
 }
 
 
 // -----------------------------------------------------------------------
-//   MPU∑–≤·•Ø•Ì•√•Øª˛¥÷ ¨§¿§±•«°º•ø§Ú•–•√•’•°§ÀŒØ§·§Î
+//   MPUÁµåÈÅé„ÇØ„É≠„ÉÉ„ÇØÊôÇÈñìÂàÜ„Å†„Åë„Éá„Éº„Çø„Çí„Éê„ÉÉ„Éï„Ç°„Å´Ê∫ú„ÇÅ„Çã
 // -----------------------------------------------------------------------
-void FASTCALL Mcry_PreUpdate(DWORD clock)
+void FASTCALL Mcry_PreUpdate(int32_t clock)
 {
 	Mcry_PreCounter += (Mcry_ClockRate*clock);
 	while(Mcry_PreCounter>=10000000L)
@@ -80,11 +80,11 @@ void FASTCALL Mcry_PreUpdate(DWORD clock)
 
 
 // -----------------------------------------------------------------------
-//   DSound§´§È§ŒÕ◊µ· ¨§¿§±•–•√•’•°§ÚÀ‰§·§Î
+//   DSound„Åã„Çâ„ÅÆË¶ÅÊ±ÇÂàÜ„Å†„Åë„Éê„ÉÉ„Éï„Ç°„ÇíÂüã„ÇÅ„Çã
 // -----------------------------------------------------------------------
-void FASTCALL Mcry_Update(signed short *buffer, DWORD length)
+void FASTCALL Mcry_Update(int16_t *buffer, int32_t length)
 {
-	int data;
+	int32_t data;
 
 	if (!length) return;
 
@@ -122,7 +122,7 @@ void FASTCALL Mcry_Update(signed short *buffer, DWORD length)
 
 
 // -----------------------------------------------------------------------
-//   1≤Û ¨° 1Word x 2ch°À§Œ•«°º•ø§Ú•–•√•’•°§ÀΩÒ§≠Ω–§∑
+//   1ÂõûÂàÜÔºà1Word x 2chÔºâ„ÅÆ„Éá„Éº„Çø„Çí„Éê„ÉÉ„Éï„Ç°„Å´Êõ∏„ÅçÂá∫„Åó
 // -----------------------------------------------------------------------
 INLINE void Mcry_WriteOne(void)
 {
@@ -142,13 +142,13 @@ INLINE void Mcry_WriteOne(void)
 // -----------------------------------------------------------------------
 //   I/O Write
 // -----------------------------------------------------------------------
-void FASTCALL Mcry_Write(DWORD adr, BYTE data)
+void FASTCALL Mcry_Write(int32_t adr, uint8_t data)
 {
 	if ((adr == 0xecc080)||(adr == 0xecc081)||(adr == 0xecc000)||(adr == 0xecc001))	// Data Port
 	{
 		if ( Mcry_SampleCnt<=0 ) return;
 		if ( Mcry_Status&2 ) {		// Stereo
-			if (Mcry_LRTiming)		// ±¶
+			if (Mcry_LRTiming)		// Âè≥
 			{
 				if (!(Mcry_Status&8)) data=0;	// R Mute
 				if (adr&1)			// Low Byte
@@ -159,10 +159,10 @@ void FASTCALL Mcry_Write(DWORD adr, BYTE data)
 				}
 				else				// High Byte
 				{
-					Mcry_OutDataR = (Mcry_OutDataR&0x00ff)|((WORD)data<<8);
+					Mcry_OutDataR = (Mcry_OutDataR&0x00ff)|((uint16_t)data<<8);
 				}
 			}
-			else				// ∫∏
+			else				// Â∑¶
 			{
 				if (!(Mcry_Status&4)) data=0;	// L Mute
 				if (adr&1)			// Low Byte
@@ -172,7 +172,7 @@ void FASTCALL Mcry_Write(DWORD adr, BYTE data)
 				}
 				else				// High Byte
 				{
-					Mcry_OutDataL = (Mcry_OutDataL&0x00ff)|((WORD)data<<8);
+					Mcry_OutDataL = (Mcry_OutDataL&0x00ff)|((uint16_t)data<<8);
 				}
 			}
 		} else {			// Mono
@@ -185,18 +185,13 @@ void FASTCALL Mcry_Write(DWORD adr, BYTE data)
 			}
 			else				// High Byte
 			{
-				Mcry_OutDataR = ((Mcry_Status&8)?((Mcry_OutDataR&0x00ff)|((WORD)data<<8)):0);
-				Mcry_OutDataL = ((Mcry_Status&4)?((Mcry_OutDataL&0x00ff)|((WORD)data<<8)):0);
+				Mcry_OutDataR = ((Mcry_Status&8)?((Mcry_OutDataR&0x00ff)|((uint16_t)data<<8)):0);
+				Mcry_OutDataL = ((Mcry_Status&4)?((Mcry_OutDataL&0x00ff)|((uint16_t)data<<8)):0);
 			}
 		}
 	}
 	else if ((adr == 0xecc091)||(adr == 0xecc011))
 	{
-/*{
-FILE* fp = fopen("_mercury.txt", "a");
-fprintf(fp, "StW $%08X $%02X\n", adr, data);
-fclose(fp);
-}*/
 		if (Mcry_Status != data)
 		{
 			Mcry_Status = data;
@@ -207,14 +202,9 @@ fclose(fp);
 	{
 		Mcry_Vector = data;
 	}
-	else if ( (adr>=0xecc0c0)&&(adr<=0xecc0c7)&&(adr&1) )	// À˛≥´»«§ﬁ°º§≠§Â§Í°º OPN
+	else if ( (adr>=0xecc0c0)&&(adr<=0xecc0c7)&&(adr&1) )	// Ê∫ÄÈñãÁâà„Åæ„Éº„Åç„ÇÖ„Çä„Éº OPN
 	{
-/*{
-FILE* fp = fopen("_mercury.txt", "a");
-fprintf(fp, "W $%08X $%02X\n", adr, data);
-fclose(fp);
-}*/
-		M288_Write((BYTE)((adr>>1)&3), data);
+		M288_Write((uint8_t)((adr>>1)&3), data);
 	}
 }
 
@@ -222,9 +212,9 @@ fclose(fp);
 // -----------------------------------------------------------------------
 //   I/O Read
 // -----------------------------------------------------------------------
-BYTE FASTCALL Mcry_Read(DWORD adr)
+uint8_t FASTCALL Mcry_Read(int32_t adr)
 {
-	BYTE ret = 0;
+	uint8_t ret = 0;
 	if ((adr == 0xecc080)||(adr == 0xecc081)||(adr == 0xecc000)||(adr == 0xecc001))
 	{
 	}
@@ -244,14 +234,9 @@ BYTE FASTCALL Mcry_Read(DWORD adr)
 	{
 		ret = Mcry_Vector;
 	}
-	else if ( (adr>=0xecc0c0)&&(adr<=0xecc0c7)&&(adr&1) )	// À˛≥´»«§ﬁ°º§≠§Â§Í°º OPN
+	else if ( (adr>=0xecc0c0)&&(adr<=0xecc0c7)&&(adr&1) )	// Ê∫ÄÈñãÁâà„Åæ„Éº„Åç„ÇÖ„Çä„Éº OPN
 	{
-		ret = M288_Read((BYTE)((adr>>1)&3));
-/*{
-FILE* fp = fopen("_mercury.txt", "a");
-fprintf(fp, "R $%08X $%02X\n", adr, ret);
-fclose(fp);
-}*/
+		ret = M288_Read((uint8_t)((adr>>1)&3));
 	}
 	else if ( adr>=0xecc100 )
 	{				// Bus Error?
@@ -263,7 +248,7 @@ fclose(fp);
 
 
 // -----------------------------------------------------------------------
-//   ∫∆¿∏•Ø•Ì•√•Ø¿ﬂƒÍ
+//   ÂÜçÁîü„ÇØ„É≠„ÉÉ„ÇØË®≠ÂÆö
 // -----------------------------------------------------------------------
 void Mcry_SetClock(void)
 {
@@ -277,9 +262,9 @@ void Mcry_SetClock(void)
 
 
 // -----------------------------------------------------------------------
-//   §‹§Í§Â°º§‡¿ﬂƒÍ
+//   „Åº„Çä„ÇÖ„Éº„ÇÄË®≠ÂÆö
 // -----------------------------------------------------------------------
-void Mcry_SetVolume(BYTE vol)
+void Mcry_SetVolume(uint8_t vol)
 {
 	if (vol>16) vol=16;
 //	if (vol<0) vol=0;
@@ -293,19 +278,19 @@ void Mcry_SetVolume(BYTE vol)
 
 
 // -----------------------------------------------------------------------
-//   ΩÈ¥¸≤Ω°¡
+//   ÂàùÊúüÂåñ„Äú
 // -----------------------------------------------------------------------
-void Mcry_Init(DWORD samplerate, const char* path)
+void Mcry_Init(int32_t samplerate, const char* path)
 {
-	ZeroMemory(Mcry_BufL, Mcry_BufSize*2);
-	ZeroMemory(Mcry_BufR, Mcry_BufSize*2);
+	memset(Mcry_BufL, 0, Mcry_BufSize*2);
+	memset(Mcry_BufR, 0, Mcry_BufSize*2);
 
 	Mcry_WrPtr = 0;
 	Mcry_RdPtr = 0;
 	Mcry_OutDataL = 0;
 	Mcry_OutDataR = 0;
 	Mcry_Status = 0;
-	Mcry_SampleRate = (long)samplerate;
+	Mcry_SampleRate = (int32_t)samplerate;
 	Mcry_LRTiming = 0;
 	Mcry_PreCounter = 0;
 

@@ -1,27 +1,28 @@
 // ---------------------------------------------------------------------------------------
-//  IRQH.C - IRQ Handler (²Í¶õ¤Î¥Ç¥Ð¥¤¥¹¤Ë¤ç)
+//  IRQH.C - IRQ Handler (æž¶ç©ºã®ãƒ‡ãƒã‚¤ã‚¹ã«ã‚‡)
 // ---------------------------------------------------------------------------------------
 
-#include "common.h"
+
 #include "../m68000/m68000.h"
 #include "irqh.h"
 
-	BYTE	IRQH_IRQ[8];
+
+	uint8_t	IRQH_IRQ[8];
 	void	*IRQH_CallBack[8];
 
 // -----------------------------------------------------------------------
-//   ½é´ü²½
+//   åˆæœŸåŒ–
 // -----------------------------------------------------------------------
 void IRQH_Init(void)
 {
-	ZeroMemory(IRQH_IRQ, 8);
+	memset(IRQH_IRQ, 0, 8);
 }
 
 
 // -----------------------------------------------------------------------
-//   ¥Ç¥Õ¥©¥ë¥È¤Î¥Ù¥¯¥¿¤òÊÖ¤¹¡Ê¤³¤ì¤¬µ¯¤³¤Ã¤¿¤éÊÑ¤À¤ª¡Ë
+//   ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®ãƒ™ã‚¯ã‚¿ã‚’è¿”ã™ï¼ˆã“ã‚ŒãŒèµ·ã“ã£ãŸã‚‰å¤‰ã ãŠï¼‰
 // -----------------------------------------------------------------------
-DWORD FASTCALL IRQH_DefaultVector(BYTE irq)
+int32_t FASTCALL IRQH_DefaultVector(uint8_t irq)
 {
 	IRQH_IRQCallBack(irq);
 	return -1;
@@ -29,13 +30,13 @@ DWORD FASTCALL IRQH_DefaultVector(BYTE irq)
 
 
 // -----------------------------------------------------------------------
-//   Â¾¤Î³ä¤ê¹þ¤ß¤Î¥Á¥§¥Ã¥¯
-//   ³Æ¥Ç¥Ð¥¤¥¹¤Î¥Ù¥¯¥¿¤òÊÖ¤¹¥ë¡¼¥Á¥ó¤«¤é¸Æ¤Ð¤ì¤Þ¤¹
+//   ä»–ã®å‰²ã‚Šè¾¼ã¿ã®ãƒã‚§ãƒƒã‚¯
+//   å„ãƒ‡ãƒã‚¤ã‚¹ã®ãƒ™ã‚¯ã‚¿ã‚’è¿”ã™ãƒ«ãƒ¼ãƒãƒ³ã‹ã‚‰å‘¼ã°ã‚Œã¾ã™
 // -----------------------------------------------------------------------
-void IRQH_IRQCallBack(BYTE irq)
+void IRQH_IRQCallBack(uint8_t irq)
 {
 #if 0
-	int i;
+	int32_t i;
 	IRQH_IRQ[irq] = 0;
 	C68k_Set_IRQ(&C68K, 0);
 	for (i=7; i>0; i--)
@@ -44,25 +45,36 @@ void IRQH_IRQCallBack(BYTE irq)
 		{
 			C68k_Set_IRQ_Callback(&C68K, IRQH_CallBack[i]);
 			C68k_Set_IRQ(&C68K, i); // xxx 
-			if ( C68K.ICount) {					// Â¿½Å³ä¤ê¹þ¤ß»þ¡ÊCARAT¡Ë
-				m68000_ICountBk += C68K.ICount;		// ¶¯À©Åª¤Ë³ä¤ê¹þ¤ß¥Á¥§¥Ã¥¯¤ò¤µ¤»¤ë
-				C68K.ICount = 0;				// ¶ìÆù¤Îºö ^^;
+			if ( C68K.ICount) {					// å¤šé‡å‰²ã‚Šè¾¼ã¿æ™‚ï¼ˆCARATï¼‰
+				m68000_ICountBk += C68K.ICount;		// å¼·åˆ¶çš„ã«å‰²ã‚Šè¾¼ã¿ãƒã‚§ãƒƒã‚¯ã‚’ã•ã›ã‚‹
+				C68K.ICount = 0;				// è‹¦è‚‰ã®ç­– ^^;
 			}
 			break;
 		}
 	}
 #endif
 	IRQH_IRQ[irq&7] = 0;
+int_fast16_t i;
+
+	C68k_Set_IRQ(&C68K, 0);
+
+	for (i=7; i>0; i--)
+	{
+	    if (IRQH_IRQ[i])
+	    {
+			C68k_Set_IRQ(&C68K, i);
+			return;
+	    }
+	}
 }
 
-
 // -----------------------------------------------------------------------
-//   ³ä¤ê¹þ¤ßÈ¯À¸
+//   å‰²ã‚Šè¾¼ã¿ç™ºç”Ÿ
 // -----------------------------------------------------------------------
-void IRQH_Int(BYTE irq, void* handler)
+void IRQH_Int(uint8_t irq, void* handler)
 {
 #if 0
-    int i;
+    int_fast16_t_t i;
 	IRQH_IRQ[irq] = 1;
 	if (handler==NULL)
 		IRQH_CallBack[irq] = &IRQH_DefaultVector;
@@ -74,16 +86,16 @@ void IRQH_Int(BYTE irq, void* handler)
 		{
                         C68k_Set_IRQ_Callback(&C68K, IRQH_CallBack[i]);
                         C68k_Set_IRQ(&C68K, i, HOLD_LINE); //xxx
-			if ( C68K.ICount ) {					// Â¿½Å³ä¤ê¹þ¤ß»þ¡ÊCARAT¡Ë
-				m68000_ICountBk += C68K.ICount;		// ¶¯À©Åª¤Ë³ä¤ê¹þ¤ß¥Á¥§¥Ã¥¯¤ò¤µ¤»¤ë
-				C68K.ICount = 0;				// ¶ìÆù¤Îºö ^^;
+			if ( C68K.ICount ) {					// å¤šé‡å‰²ã‚Šè¾¼ã¿æ™‚ï¼ˆCARATï¼‰
+				m68000_ICountBk += C68K.ICount;		// å¼·åˆ¶çš„ã«å‰²ã‚Šè¾¼ã¿ãƒã‚§ãƒƒã‚¯ã‚’ã•ã›ã‚‹
+				C68K.ICount = 0;				// è‹¦è‚‰ã®ç­– ^^;
 			}
 			return;
 		}
 	}
 #endif
 #if 1
-	int i;
+	int_fast16_t i;
 	IRQH_IRQ[irq&7] = 1;
 	if (handler==NULL)
 	    IRQH_CallBack[irq&7] = &IRQH_DefaultVector;
@@ -93,13 +105,13 @@ void IRQH_Int(BYTE irq, void* handler)
 	{
 	    if (IRQH_IRQ[i])
 	    {
-		C68k_Set_IRQ(&C68K, i);
-		return;
+	        C68k_Set_IRQ(&C68K, i);
+	        return;
 	    }
 	}
 #endif
 #if 0
-	int i;
+	int_fast16_t i;
 	IRQH_IRQ[irq&7] = 1;
 	if (handler==NULL)
 	    IRQH_CallBack[irq&7] = &IRQH_DefaultVector;
@@ -109,11 +121,11 @@ void IRQH_Int(BYTE irq, void* handler)
 #endif
 }
 
-s32 my_irqh_callback(s32 level)
+int32_t  my_irqh_callback(int32_t  level)
 {
 #if 0
-    int i;
-    int vect = -1;
+    int_fast16_t i;
+    int32_t vect = -1;
     for (i=7; i>0; i--)
     {
 	if (IRQH_IRQ[i])
@@ -126,19 +138,19 @@ s32 my_irqh_callback(s32 level)
     }
 #endif
 
-    int i;
+    int_fast16_t i;
     C68K_INT_CALLBACK *func = IRQH_CallBack[level&7];
-    int vect = (func)(level&7);
-    printf("irq vect = %x line = %d\n", vect, level);
+    int32_t vect = (func)(level&7);
+    //p6logd("irq vect = %x line = %d\n", vect, level);
 
     for (i=7; i>0; i--)
     {
-	if (IRQH_IRQ[i])
-	{
-	    C68k_Set_IRQ(&C68K, i);
-	    break;
-	}
+		if (IRQH_IRQ[i])
+		{
+	    	C68k_Set_IRQ(&C68K, i);
+			break;
+		}
     }
 
-    return (s32)vect;
+    return (int32_t)vect;
 }

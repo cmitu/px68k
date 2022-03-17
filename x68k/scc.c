@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------------------
-//  SCC.C - Z8530 SCC¡Ê¥Ş¥¦¥¹¤Î¤ß¡Ë
+//  SCC.C - Z8530 SCCï¼ˆãƒã‚¦ã‚¹ã®ã¿ï¼‰
 // ---------------------------------------------------------------------------------------
 
 #include "common.h"
@@ -8,39 +8,39 @@
 #include "irqh.h"
 #include "mouse.h"
 
-signed char MouseX = 0;
-signed char MouseY = 0;
-BYTE MouseSt = 0;
+uint8_t MouseX = 0;
+uint8_t MouseY = 0;
+uint8_t MouseSt = 0;
 
-BYTE SCC_RegsA[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-BYTE SCC_RegNumA = 0;
-BYTE SCC_RegSetA = 0;
-BYTE SCC_RegsB[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-BYTE SCC_RegNumB = 0;
-BYTE SCC_RegSetB = 0;
-BYTE SCC_Vector = 0;
-BYTE SCC_Dat[3] = {0, 0, 0};
-BYTE SCC_DatNum = 0;
+uint8_t SCC_RegsA[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+uint8_t SCC_RegNumA = 0;
+uint8_t SCC_RegSetA = 0;
+uint8_t SCC_RegsB[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+uint8_t SCC_RegNumB = 0;
+uint8_t SCC_RegSetB = 0;
+uint8_t SCC_Vector = 0;
+uint8_t SCC_Dat[3] = {0, 0, 0};
+uint8_t SCC_DatNum = 0;
 
 
 // -----------------------------------------------------------------------
-//   ¤ï¤ê¤³¤ß
+//   ã‚ã‚Šã“ã¿
 // -----------------------------------------------------------------------
-DWORD FASTCALL SCC_Int(BYTE irq)
+int32_t FASTCALL SCC_Int(uint8_t irq)
 {
-	DWORD ret = (DWORD)(-1);
+	int32_t ret = -1;
 	IRQH_IRQCallBack(irq);
 	if ( (irq==5)&&(!(SCC_RegsB[9]&2)) )
 	{
 		if (SCC_RegsB[9]&1)
 		{
 			if (SCC_RegsB[9]&0x10)
-				ret = ((DWORD)(SCC_Vector&0x8f)+0x20);
+				ret = ((int32_t)(SCC_Vector&0x8f)+0x20);
 			else
-				ret = ((DWORD)(SCC_Vector&0xf1)+4);
+				ret = ((int32_t)(SCC_Vector&0xf1)+4);
 		}
 		else
-			ret = ((DWORD)SCC_Vector);
+			ret = ((int32_t)SCC_Vector);
 	}
 
 	return ret;
@@ -48,7 +48,7 @@ DWORD FASTCALL SCC_Int(BYTE irq)
 
 
 // -----------------------------------------------------------------------
-//   ³ä¤ê¹ş¤ß¤Î¥Á¥§¥Ã¥¯
+//   å‰²ã‚Šè¾¼ã¿ã®ãƒã‚§ãƒƒã‚¯
 // -----------------------------------------------------------------------
 void SCC_IntCheck(void)
 {
@@ -64,7 +64,7 @@ void SCC_IntCheck(void)
 
 
 // -----------------------------------------------------------------------
-//   ½é´ü²½
+//   åˆæœŸåŒ–
 // -----------------------------------------------------------------------
 void SCC_Init(void)
 {
@@ -83,7 +83,7 @@ void SCC_Init(void)
 // -----------------------------------------------------------------------
 //   I/O Write
 // -----------------------------------------------------------------------
-void FASTCALL SCC_Write(DWORD adr, BYTE data)
+void FASTCALL SCC_Write(int32_t adr, uint8_t data)
 {
 	if (adr>=0xe98008) return;
 
@@ -93,8 +93,8 @@ void FASTCALL SCC_Write(DWORD adr, BYTE data)
 		{
 			if (SCC_RegNumB == 5)
 			{
-				if ( (!(SCC_RegsB[5]&2))&&(data&2)&&(SCC_RegsB[3]&1)&&(!SCC_DatNum) )	// ¥Ç¡¼¥¿¤¬Ìµ¤¤»ş¤À¤±¤Ë¤·¤ä¤¦¡Ê°Ç¤Î·ìÂ²¡Ë
-				{			// ¥Ş¥¦¥¹¥Ç¡¼¥¿À¸À®
+				if ( (!(SCC_RegsB[5]&2))&&(data&2)&&(SCC_RegsB[3]&1)&&(!SCC_DatNum) )	// ãƒ‡ãƒ¼ã‚¿ãŒç„¡ã„æ™‚ã ã‘ã«ã—ã‚„ã†ï¼ˆé—‡ã®è¡€æ—ï¼‰
+				{			// ãƒã‚¦ã‚¹ãƒ‡ãƒ¼ã‚¿ç”Ÿæˆ
 					Mouse_SetData();
 					SCC_DatNum = 3;
 					SCC_Dat[2] = MouseSt;
@@ -105,12 +105,6 @@ void FASTCALL SCC_Write(DWORD adr, BYTE data)
 			else if (SCC_RegNumB == 2) SCC_Vector = data;
 			SCC_RegSetB = 0;
 			SCC_RegsB[SCC_RegNumB] = data;
-/*{
-FILE *fp;
-fp=fopen("_scc.txt", "a");
-fprintf(fp, "SCC  Reg[%d] = $%02X  @ $%08X\n", SCC_RegNumB, data, regs.pc);
-fclose(fp);
-}*/
 			SCC_RegNumB = 0;
 		}
 		else
@@ -171,9 +165,9 @@ fclose(fp);
 // -----------------------------------------------------------------------
 //   I/O Read
 // -----------------------------------------------------------------------
-BYTE FASTCALL SCC_Read(DWORD adr)
+uint8_t FASTCALL SCC_Read(int32_t adr)
 {
-	BYTE ret=0;
+	uint8_t ret=0;
 
 	if (adr>=0xe98008) return ret;
 
@@ -197,7 +191,7 @@ BYTE FASTCALL SCC_Read(DWORD adr)
 		switch(SCC_RegNumA)
 		{
 		case 0:
-			ret = 4;			// Á÷¿®¥Ğ¥Ã¥Õ¥¡¶õ¡ÊXna¡Ë
+			ret = 4;			// é€ä¿¡ãƒãƒƒãƒ•ã‚¡ç©ºï¼ˆXnaï¼‰
 			break;
 		case 3:
 			ret = ((SCC_DatNum)?4:0);

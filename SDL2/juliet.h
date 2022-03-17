@@ -15,7 +15,7 @@ extern "C" {
 #define	juliet_YM2151W(r,d)
 
 #else
-
+/* 削除してOK?
 BOOL juliet_load(void);
 void juliet_unload(void);
 
@@ -33,7 +33,7 @@ void juliet_YMF288A(BYTE addr, BYTE data);
 void juliet_YMF288B(BYTE addr, BYTE data);
 void juliet_YMF288W(BYTE addr, BYTE data);
 BYTE juliet_YMF288R(BYTE addr);
-
+*/
 #endif
 
 #ifdef __cplusplus

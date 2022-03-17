@@ -8,7 +8,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-extern int rfd_sock;
+extern int32_t rfd_sock;
 #endif
 
 #define vline HOGEvline // workaround for redefinition of 'vline'
@@ -25,41 +25,40 @@ extern int rfd_sock;
 #define _TOSTR(s) TOSTR(s)
 #define PX68KVERSTR _TOSTR(PX68K_VERSION)
 
-extern	BYTE*	FONT;
 
-extern	WORD	VLINE_TOTAL;
-extern	DWORD	VLINE;
-extern	DWORD	vline;
+extern	uint8_t*	FONT;
+
+extern	int32_t		HLINE_TOTAL;
+extern	int32_t		VLINE_TOTAL;
+extern	int32_t		VLINE;
+extern	int32_t		vline;
 
 extern	char	winx68k_dir[MAX_PATH];
 extern	char	winx68k_ini[MAX_PATH];
-extern	int	BIOS030Flag;
-extern	BYTE	FrameChanged;
+extern	int32_t	BIOS030Flag;
+extern	uint8_t	FrameChanged;
 
-extern const BYTE PrgTitle[];
+extern	int32_t	m68000_ICountBk;
+extern	int32_t	ICount;
+
+extern const char PrgTitle[];
 
 #if defined(ANDROID) || TARGET_OS_IPHONE
-extern int realdisp_w, realdisp_h;
+extern int32_t realdisp_w, realdisp_h;
 #endif
 
-int WinX68k_Reset(void);
+int32_t WinX68k_Reset(void);
+void WinDraw_InitWindowSize(void);
 
 #ifndef	winx68k_gtkwarpper_h
 #define	winx68k_gtkwarpper_h
 
+#ifdef _WIN32
+#include <direct.h>
+#else
 #include <unistd.h>
-#include <signal.h>
-
-#if 0
-#include <gdk/gdk.h>
-#include <gtk/gtk.h>
-
-extern GtkWidget *window;
-extern GtkWidget *main_vbox;
-extern GtkWidget *menubar;
-extern GtkWidget *drawarea;
-extern GdkPixmap *splash_pixmap;
 #endif
+#include <signal.h>
 
 BOOL is_installed_idle_process(void);
 void install_idle_process(void);

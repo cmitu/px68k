@@ -1,49 +1,17 @@
 #ifndef _winx68k_m68000
 #define _winx68k_m68000
 
-#include "common.h"
-
-extern	void	Exception(int nr, DWORD oldpc);
-extern	int	m68000_ICount;
-extern	int	m68000_ICountBk;
-extern	int	ICount;
-extern	void	M68KRUN(void);
-extern	void	M68KRESET(void);
-
-typedef struct
+// MAME互換のレジスタ番号 (一部未対応)
+enum
 {
-	DWORD d[8];
-	DWORD a[8];
+	/* NOTE: M68K_SP fetches the current SP, be it USP, ISP, or MSP */
+	M68K_PC=1, M68K_SP, M68K_ISP, M68K_USP, M68K_MSP, M68K_SR, M68K_VBR,
+	M68K_SFC, M68K_DFC, M68K_CACR, M68K_CAAR, M68K_PREF_ADDR, M68K_PREF_DATA,
+	M68K_D0, M68K_D1, M68K_D2, M68K_D3, M68K_D4, M68K_D5, M68K_D6, M68K_D7,
+	M68K_A0, M68K_A1, M68K_A2, M68K_A3, M68K_A4, M68K_A5, M68K_A6, M68K_A7
+};
 
-	DWORD isp;
-
-	DWORD sr_high;
-	DWORD ccr;
-	DWORD x_carry;
-
-	DWORD pc;
-	DWORD IRQ_level;
-
-	DWORD sr;
-
-	void *irq_callback;
-
-	DWORD ppc;
-	DWORD (*reset_callback)(void);
-
-	DWORD sfc;
-	DWORD dfc;
-	DWORD usp;
-	DWORD vbr;
-
-	DWORD bank;
-
-	DWORD memmin;
-	DWORD memmax;
-
-	DWORD cputype;
-} m68k_regs;
-
-extern m68k_regs regs;
+//extern	int32_t	m68000_ICountBk;
+//extern	int32_t	ICount;
 
 #endif //_winx68k_m68000__

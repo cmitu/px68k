@@ -37,9 +37,9 @@
 /* You will have to implement these functions */
 
 /* read memory */
-int m68k_read_memory_32 (int address);
-int m68k_read_memory_16 (int address);
-int m68k_read_memory_8  (int address);
+int32_t m68k_read_memory_32 (int32_t address);
+int32_t m68k_read_memory_16 (int32_t address);
+int32_t m68k_read_memory_8  (int32_t address);
 
 
 
@@ -50,10 +50,10 @@ int m68k_read_memory_8  (int address);
 /* Disassemble 1 instructionat pc.  Stores disassembly in str_buff and returns
  * the size of the instruction in bytes.
  */
-int m68k_disassemble(char* str_buff, int pc);
+int32_t m68k_disassemble(char* str_buff, int32_t pc);
 
 /* Disassemble 1 instruction at pc.  Return disassembly as string pointer */
-char* m68k_disassemble_quick(int pc);
+char* m68k_disassemble_quick(int32_t pc);
 
 
 /* ======================================================================== */

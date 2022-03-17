@@ -1,19 +1,19 @@
 // ---------------------------------------------------------------------------------------
 //  MIDI.C - MIDI Board (CZ-6BM1) emulator
-//                           Powered by ¤×¤Ë¤å¤µ¤ó¡Á
+//                           Powered by ã·ã«ã‚…ã•ã‚“ã€œ
 // ---------------------------------------------------------------------------------------
 
-// 4/18 Ì¤ÌÀ: ¥¨¥¯¥¹¥¯¥ë¡¼¥·¥ô¤¬¤¦¤Ş¤¯ÄÌ¤é¤Ê¤¤¤Î¤ò½¤Àµ
-// 4/18 Ä«¡¡: ¥ì¥Ê¥à¤ÇÌÄ¤é¤Ê¤«¤Ã¤¿¤Î¤ò½¤Àµ
-// 4/18 Ãë¡¡: ¥¨¥¯¥¹¥¯¥ë¡¼¥·¥ôÁ÷¿®´°Î»¤ò´°Á´¤ËÂÔ¤Ä»ö¤Ç¥É¥é¥­¥å¥é¤ª¤Ã¤±¡¼
+// 4/18 æœªæ˜: ã‚¨ã‚¯ã‚¹ã‚¯ãƒ«ãƒ¼ã‚·ãƒ´ãŒã†ã¾ãé€šã‚‰ãªã„ã®ã‚’ä¿®æ­£
+// 4/18 æœã€€: ãƒ¬ãƒŠãƒ ã§é³´ã‚‰ãªã‹ã£ãŸã®ã‚’ä¿®æ­£
+// 4/18 æ˜¼ã€€: ã‚¨ã‚¯ã‚¹ã‚¯ãƒ«ãƒ¼ã‚·ãƒ´é€ä¿¡å®Œäº†ã‚’å®Œå…¨ã«å¾…ã¤äº‹ã§ãƒ‰ãƒ©ã‚­ãƒ¥ãƒ©ãŠã£ã‘ãƒ¼
 
-// ToDo: ¡¦¥¨¥¯¥¹¥¯¥ë¡¼¥·¥ôÁ÷¿®Ãæ(Îã¤¨¤Ğ¥É¥é¥­¥å¥é¤Î²»¿§ÀßÄêÃæ)¤Ë
-//         Î®ÀĞ¤Ë1MHz¤Ş¤ÇÍî¤Á¹ş¤à¤Î¤Ï¡Ä
-//         MIDI¤Î¾õÂÖ¤òÊÖ¤¹¥İ¡¼¥È¤ò¶µ¤¨¤Æ¤â¤é¤¦¤³¤È¡Á
-//       ¡¦MT-32¤Ç¤Î¥é¥ó¥Ë¥ó¥°¥¹¥Æ¡¼¥¿¥¹¤Î»ÅÍÍ¤ò¥Á¥§¥Ã¥¯
-//       ¡¦½ªÎ»»ş¤Î²»¸»¤Î¥ê¥»¥Ã¥È
-//       ¡¦IPL¥ê¥»¥Ã¥È»ş¤Ï¼Âµ¡¤Ç¤â¥ê¥»¥Ã¥È¤µ¤ì¤Ê¤¤È¦¤À¤¬¡¢
-//         ¤³¤³¤éÊÕ¤Ï¹¥¤ß¤Ê¤Î¤Ç config¤ÇÀßÄê¤Ç¤­¤Æ¤â¤¤¤¤¤«¤â
+// ToDo: ãƒ»ã‚¨ã‚¯ã‚¹ã‚¯ãƒ«ãƒ¼ã‚·ãƒ´é€ä¿¡ä¸­(ä¾‹ãˆã°ãƒ‰ãƒ©ã‚­ãƒ¥ãƒ©ã®éŸ³è‰²è¨­å®šä¸­)ã«
+//         æµçŸ³ã«1MHzã¾ã§è½ã¡è¾¼ã‚€ã®ã¯â€¦
+//         MIDIã®çŠ¶æ…‹ã‚’è¿”ã™ãƒãƒ¼ãƒˆã‚’æ•™ãˆã¦ã‚‚ã‚‰ã†ã“ã¨ã€œ
+//       ãƒ»MT-32ã§ã®ãƒ©ãƒ³ãƒ‹ãƒ³ã‚°ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ã®ä»•æ§˜ã‚’ãƒã‚§ãƒƒã‚¯
+//       ãƒ»çµ‚äº†æ™‚ã®éŸ³æºã®ãƒªã‚»ãƒƒãƒˆ
+//       ãƒ»IPLãƒªã‚»ãƒƒãƒˆæ™‚ã¯å®Ÿæ©Ÿã§ã‚‚ãƒªã‚»ãƒƒãƒˆã•ã‚Œãªã„ç­ˆã ãŒã€
+//         ã“ã“ã‚‰è¾ºã¯å¥½ã¿ãªã®ã§ configã§è¨­å®šã§ãã¦ã‚‚ã„ã„ã‹ã‚‚
 
 
 #include "common.h"
@@ -21,17 +21,17 @@
 #include "winx68k.h"
 #include "fileio.h"
 #include "mmsystem.h"
-#include "memory.h"
+#include "x68kmemory.h"
 #include "irqh.h"
 #include "midi.h"
 #include "m68000.h"
 
-#define MIDIBUFFERS 1024			// 1024¤ÏÎ®ÀĞ¤Ë±Û¤¨¤Ê¤¤¤Ç¤·¤ç¤¦^_^;
-#define MIDIBUFTIMER 3200			// 10MHz / (31.25K / 10bit) = 3200 ¤¬Àµ²ò¤Ë¤Ê¤ê¤Ş¤¹... 
+#define MIDIBUFFERS 1024			// 1024ã¯æµçŸ³ã«è¶Šãˆãªã„ã§ã—ã‚‡ã†^_^;
+#define MIDIBUFTIMER 3200			// 10MHz / (31.25K / 10bit) = 3200 ãŒæ­£è§£ã«ãªã‚Šã¾ã™... 
 #define MIDIFIFOSIZE 256
-#define MIDIDELAYBUF 4096			// 31250/10 = 3125 byts (1sÊ¬) ¤¢¤ì¤Ğ¤ª¤Ã¤±¡©
+#define MIDIDELAYBUF 4096			// 31250/10 = 3125 byts (1såˆ†) ã‚ã‚Œã°ãŠã£ã‘ï¼Ÿ
 
-enum {						// ³Æµ¡¼ï¥ê¥»¥Ã¥ÈÍÑ¤Ë°ì±ş¡£
+enum {						// å„æ©Ÿç¨®ãƒªã‚»ãƒƒãƒˆç”¨ã«ä¸€å¿œã€‚
 	MIDI_NOTUSED,
 	MIDI_DEFAULT,
 	MIDI_MT32,
@@ -41,7 +41,7 @@ enum {						// ³Æµ¡¼ï¥ê¥»¥Ã¥ÈÍÑ¤Ë°ì±ş¡£
 	MIDI_CM500,
 	MIDI_SC55,
 	MIDI_SC88,
-	MIDI_LA,				// °ÕÌ£¤â¤Ê¤¯ÄÉ²Ã¤·¤Æ¤ß¤¿¤ê
+	MIDI_LA,				// æ„å‘³ã‚‚ãªãè¿½åŠ ã—ã¦ã¿ãŸã‚Š
 	MIDI_GM,
 	MIDI_GS,
 	MIDI_XG,
@@ -49,45 +49,45 @@ enum {						// ³Æµ¡¼ï¥ê¥»¥Ã¥ÈÍÑ¤Ë°ì±ş¡£
 
 HMIDIOUT	hOut = 0;
 MIDIHDR		hHdr;
-int		MIDI_CTRL;
-int		MIDI_POS;
-int		MIDI_SYSCOUNT;
-BYTE		MIDI_LAST;
-BYTE		MIDI_BUF[MIDIBUFFERS];
-BYTE		MIDI_EXCVBUF[MIDIBUFFERS];
-BYTE		MIDI_EXCVWAIT;
+int32_t		MIDI_CTRL;
+int32_t		MIDI_POS;
+int32_t		MIDI_SYSCOUNT;
+uint8_t		MIDI_LAST;
+uint8_t		MIDI_BUF[MIDIBUFFERS];
+uint8_t		MIDI_EXCVBUF[MIDIBUFFERS];
+uint8_t		MIDI_EXCVWAIT;
 
-BYTE		MIDI_RegHigh = 0;				// X68KÍÑ
-BYTE		MIDI_Playing = 0;				// ¥Ş¥¹¥¿¥¹¥¤¥Ã¥Á
-BYTE		MIDI_Vector = 0;
-BYTE		MIDI_IntEnable = 0;
-BYTE		MIDI_IntVect = 0;
-BYTE		MIDI_IntFlag = 0;
-DWORD		MIDI_Buffered = 0;
-long		MIDI_BufTimer = 3333;
-BYTE		MIDI_R05 = 0;
-DWORD		MIDI_GTimerMax = 0;
-DWORD		MIDI_MTimerMax = 0;
-long		MIDI_GTimerVal = 0;
-long		MIDI_MTimerVal = 0;
-BYTE		MIDI_TxFull = 0;
-BYTE		MIDI_MODULE = MIDI_NOTUSED;
+uint8_t		MIDI_RegHigh = 0;				// X68Kç”¨
+uint8_t		MIDI_Playing = 0;				// ãƒã‚¹ã‚¿ã‚¹ã‚¤ãƒƒãƒ
+uint8_t		MIDI_Vector = 0;
+uint8_t		MIDI_IntEnable = 0;
+uint8_t		MIDI_IntVect = 0;
+uint8_t		MIDI_IntFlag = 0;
+uint32_t	MIDI_Buffered = 0;
+int32_t		MIDI_BufTimer = 3333;
+uint8_t		MIDI_R05 = 0;
+uint32_t	MIDI_GTimerMax = 0;
+uint32_t	MIDI_MTimerMax = 0;
+int32_t		MIDI_GTimerVal = 0;
+int32_t		MIDI_MTimerVal = 0;
+uint8_t		MIDI_TxFull = 0;
+uint8_t		MIDI_MODULE = MIDI_NOTUSED;
 
-static BYTE MIDI_ResetType[5] = {		// Config.MIDI_Type ¤Ë¹ç¤ï¤»¤Æ¡Ä
+static uint8_t MIDI_ResetType[5] = {		// Config.MIDI_Type ã«åˆã‚ã›ã¦â€¦
 	MIDI_LA, MIDI_GM, MIDI_GS, MIDI_XG
 };
 
 typedef struct {
-	DWORD time;
-	BYTE msg;
+	uint32_t time;
+	uint8_t msg;
 } DELAYBUFITEM;
 
 static DELAYBUFITEM DelayBuf[MIDIDELAYBUF];
-static int DBufPtrW = 0;
-static int DBufPtrR = 0;
+static int32_t DBufPtrW = 0;
+static int32_t DBufPtrR = 0;
 
 // ------------------------------------------------------------------
-// ¤Í¤³¤ß¤Â6¡¢MIMPI¥È¡¼¥ó¥Ş¥Ã¥×ÂĞ±ş´Ø·¸
+// ã­ã“ã¿ã¢6ã€MIMPIãƒˆãƒ¼ãƒ³ãƒãƒƒãƒ—å¯¾å¿œé–¢ä¿‚
 // ------------------------------------------------------------------
 
 enum {
@@ -97,19 +97,19 @@ enum {
 	MIMPI_RHYTHM,
 };
 
-static	BYTE		LOADED_TONEMAP = 0;
-static	BYTE		ENABLE_TONEMAP = 0;
-static	BYTE		TONE_CH[16];
-static	BYTE		TONEBANK[3][128];
-static	BYTE		TONEMAP[3][128];
+static	uint8_t		LOADED_TONEMAP = 0;
+static	uint8_t		ENABLE_TONEMAP = 0;
+static	uint8_t		TONE_CH[16];
+static	uint8_t		TONEBANK[3][128];
+static	uint8_t		TONEMAP[3][128];
 
 // ------------------------------------------------------------------
 
 
-static BYTE EXCV_MTRESET[] = { 0xfe, 0xfe, 0xfe};
-static BYTE EXCV_GMRESET[] = { 0xf0, 0x7e, 0x7f, 0x09, 0x01, 0xf7};
-static BYTE EXCV_GSRESET[] = { 0xf0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7f, 0x00, 0x41, 0xf7};
-static BYTE EXCV_XGRESET[] = { 0xf0, 0x43, 0x10, 0x4C, 0x00, 0x00, 0x7E, 0x00, 0xf7};
+static uint8_t EXCV_MTRESET[] = { 0xfe, 0xfe, 0xfe};
+static uint8_t EXCV_GMRESET[] = { 0xf0, 0x7e, 0x7f, 0x09, 0x01, 0xf7};
+static uint8_t EXCV_GSRESET[] = { 0xf0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7f, 0x00, 0x41, 0xf7};
+static uint8_t EXCV_XGRESET[] = { 0xf0, 0x43, 0x10, 0x4C, 0x00, 0x00, 0x7E, 0x00, 0xf7};
 
 #define	MIDICTRL_READY		0
 #define	MIDICTRL_2BYTES		1
@@ -131,22 +131,22 @@ static BYTE EXCV_XGRESET[] = { 0xf0, 0x43, 0x10, 0x4C, 0x00, 0x00, 0x7E, 0x00, 0
 #define	MIDI_ACTIVESENSE	0xfe
 #define	MIDI_SYSTEMRESET	0xff
 
-#define MIDIOUTS(a,b,c) (((DWORD)c << 16) | ((DWORD)b << 8) | (DWORD)a)
+#define MIDIOUTS(a,b,c) (((uint32_t)c << 16) | ((uint32_t)b << 8) | (uint32_t)a)
 
 // -----------------------------------------------------------------------
-//   ³ä¤ê¹ş¤ß
+//   å‰²ã‚Šè¾¼ã¿
 // -----------------------------------------------------------------------
-DWORD FASTCALL MIDI_Int(BYTE irq)
+int32_t FASTCALL MIDI_Int(uint8_t irq)
 {
-	DWORD ret;
+	int32_t ret;
 	IRQH_IRQCallBack(irq);
 	if ( irq==4 )
 	{
-		ret = (DWORD)(MIDI_Vector|MIDI_IntVect);
+		ret = (int32_t)(MIDI_Vector|MIDI_IntVect);
 	}
 	else
 	{
-		ret = (DWORD)(-1);
+		ret = -1;
 	}
 
 	return ret;
@@ -154,11 +154,11 @@ DWORD FASTCALL MIDI_Int(BYTE irq)
 
 
 // -----------------------------------------------------------------------
-//   ¤¿¤¤¤Ş¤ò¿Ê¤á¤ë
+//   ãŸã„ã¾ã‚’é€²ã‚ã‚‹
 // -----------------------------------------------------------------------
-void FASTCALL MIDI_Timer(DWORD clk)
+void FASTCALL MIDI_Timer(int32_t clk)
 {
-	if ( !Config.MIDI_SW ) return;	// MIDI OFF»ş¤Ïµ¢¤ë
+	if ( !Config.MIDI_SW ) return;	// MIDI OFFæ™‚ã¯å¸°ã‚‹
 
 	MIDI_BufTimer -= clk;
 	if (MIDI_BufTimer<0)
@@ -167,7 +167,7 @@ void FASTCALL MIDI_Timer(DWORD clk)
 		if (MIDI_Buffered)
 		{
 			MIDI_Buffered--;
-			if ( (MIDI_Buffered<MIDIFIFOSIZE)&&(MIDI_IntEnable&0x40) )		// Tx FIFO Empty Interrupt¡Ê¥¨¥È¥×¥ê¡Ë
+			if ( (MIDI_Buffered<MIDIFIFOSIZE)&&(MIDI_IntEnable&0x40) )		// Tx FIFO Empty Interruptï¼ˆã‚¨ãƒˆãƒ—ãƒªï¼‰
 			{
 				MIDI_IntFlag |= 0x40;
 				MIDI_IntVect = 0x0c;
@@ -179,7 +179,7 @@ void FASTCALL MIDI_Timer(DWORD clk)
 	if (MIDI_MTimerMax)
 	{
 		 MIDI_MTimerVal -= clk;
-		if (MIDI_MTimerVal<0)		// ¤ß¤Â¤¿¤¤¤Ş¡¼³ä¤ê¹ş¤ß¡ÊËâË¡ÂçºîÀï¡Ë
+		if (MIDI_MTimerVal<0)		// ã¿ã¢ãŸã„ã¾ãƒ¼å‰²ã‚Šè¾¼ã¿ï¼ˆé­”æ³•å¤§ä½œæˆ¦ï¼‰
 		{
 			while (MIDI_MTimerVal<0) MIDI_MTimerVal += MIDI_MTimerMax*80;
 			if ( (!(MIDI_R05&0x80))&&(MIDI_IntEnable&0x02) )
@@ -194,7 +194,7 @@ void FASTCALL MIDI_Timer(DWORD clk)
 	if (MIDI_GTimerMax)
 	{
 		MIDI_GTimerVal -= clk;
-		if (MIDI_GTimerVal<0)		// ¤¸¤§¤Í¤é¤ë¤¿¤¤¤Ş¡¼³ä¤ê¹ş¤ß¡ÊRCD.X¡Ë
+		if (MIDI_GTimerVal<0)		// ã˜ã‡ã­ã‚‰ã‚‹ãŸã„ã¾ãƒ¼å‰²ã‚Šè¾¼ã¿ï¼ˆRCD.Xï¼‰
 		{
 			while (MIDI_GTimerVal<0) MIDI_GTimerVal += MIDI_GTimerMax*80;
 			if ( MIDI_IntEnable&0x80 )
@@ -209,7 +209,7 @@ void FASTCALL MIDI_Timer(DWORD clk)
 
 
 // -----------------------------------------------------------------------
-//   MIDI¥â¥¸¥å¡¼¥ë¤ÎÀßÄê
+//   MIDIãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®è¨­å®š
 // -----------------------------------------------------------------------
 void MIDI_SetModule(void)
 {
@@ -221,13 +221,13 @@ void MIDI_SetModule(void)
 
 
 // -----------------------------------------------------------------------
-//   ¤¨¤¯¤¹¤¯¤ë¡¼¤·¤Ö ¤´¡¼
+//   ãˆãã™ãã‚‹ãƒ¼ã—ã¶ ã”ãƒ¼
 // -----------------------------------------------------------------------
-void MIDI_Sendexclusive(BYTE *excv, int length)
+void MIDI_Sendexclusive(uint8_t *excv, int32_t length)
 {
-	// ¥¨¥¯¥¹¥¯¥ë¡¼¥·¥ô¤òÁ÷¤ê¤Ş¤¹
+	// ã‚¨ã‚¯ã‚¹ã‚¯ãƒ«ãƒ¼ã‚·ãƒ´ã‚’é€ã‚Šã¾ã™
 	CopyMemory(MIDI_EXCVBUF, excv, length);
-	hHdr.lpData = MIDI_EXCVBUF;
+	hHdr.lpData = (char*)MIDI_EXCVBUF;
 	hHdr.dwFlags = 0;
 	hHdr.dwBufferLength = length;
 	midiOutPrepareHeader(hOut, &hHdr, sizeof(MIDIHDR));
@@ -237,11 +237,11 @@ void MIDI_Sendexclusive(BYTE *excv, int length)
 
 
 // -----------------------------------------------------------------------
-//   ¤¨¤¯¤¹¤¯¤ë¡¼¤·¤Ö¤òÁ÷¤ê½ª¤¨¤ë¤Ş¤ÇÂÔ¤Ä¤ª
+//   ãˆãã™ãã‚‹ãƒ¼ã—ã¶ã‚’é€ã‚Šçµ‚ãˆã‚‹ã¾ã§å¾…ã¤ãŠ
 // -----------------------------------------------------------------------
 void MIDI_Waitlastexclusiveout(void) {
 
-	// ¥¨¥¯¥¹¥¯¥ë¡¼¥·¥ôÁ÷¿®´°Î»¤Ş¤ÇÂÔ¤Á¤Ş¤·¤ç¤¦¡Á
+	// ã‚¨ã‚¯ã‚¹ã‚¯ãƒ«ãƒ¼ã‚·ãƒ´é€ä¿¡å®Œäº†ã¾ã§å¾…ã¡ã¾ã—ã‚‡ã†ã€œ
 	if (MIDI_EXCVWAIT) {
 		while(midiOutUnprepareHeader(hOut, &hHdr, sizeof(MIDIHDR))
 						== MIDIERR_STILLPLAYING);
@@ -251,11 +251,11 @@ void MIDI_Waitlastexclusiveout(void) {
 
 
 // -----------------------------------------------------------------------
-//   ¤ê¤»¤Ã¤È¡Á
+//   ã‚Šã›ã£ã¨ã€œ
 // -----------------------------------------------------------------------
 void MIDI_Reset(void) {
 
-	DWORD msg;
+	uint32_t msg;
 
 	memset(DelayBuf, 0, sizeof(DelayBuf));
 	DBufPtrW = DBufPtrR = 0;
@@ -268,8 +268,8 @@ void MIDI_Reset(void) {
 			case MIDI_CM32L:
 			case MIDI_CM64:
 			case MIDI_LA:
-				// ¤Á¤ç¤Ã¤ÈÍğË½¤«¤Ê¤¡¡Ä
-				// °ì±ş SC·Ï¤Ç¤âÄÌ¤ëÈ¦¤Ç¤¹¤±¤É¡Ä
+				// ã¡ã‚‡ã£ã¨ä¹±æš´ã‹ãªãâ€¦
+				// ä¸€å¿œ SCç³»ã§ã‚‚é€šã‚‹ç­ˆã§ã™ã‘ã©â€¦
 				MIDI_Waitlastexclusiveout();
 				MIDI_Sendexclusive(EXCV_MTRESET, sizeof(EXCV_MTRESET));
 				break;
@@ -297,7 +297,7 @@ void MIDI_Reset(void) {
 
 
 // -----------------------------------------------------------------------
-//   ¤·¤ç¤­¤«¡Á
+//   ã—ã‚‡ãã‹ã€œ
 // -----------------------------------------------------------------------
 void MIDI_Init(void) {
 
@@ -328,7 +328,7 @@ void MIDI_Init(void) {
 
 
 // -----------------------------------------------------------------------
-//   Å±¼ı¡Á
+//   æ’¤åã€œ
 // -----------------------------------------------------------------------
 void MIDI_Cleanup(void) {
 
@@ -343,26 +343,26 @@ void MIDI_Cleanup(void) {
 
 
 // -----------------------------------------------------------------------
-//   ¥á¥Ã¥»¡¼¥¸È½ÊÌ
+//   ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸åˆ¤åˆ¥
 // -----------------------------------------------------------------------
-void MIDI_Message(BYTE mes) {
+void MIDI_Message(uint8_t mes) {
 
 	if (!hOut) {
 		return;
 	}
 
-	switch(mes) {								// ¤³¤³¤ÎÂĞ±ş¤Ï¤ª¹¥¤ß¤Ç
+	switch(mes) {								// ã“ã“ã®å¯¾å¿œã¯ãŠå¥½ã¿ã§
 		case MIDI_TIMING:
 		case MIDI_START:
 		case MIDI_CONTINUE:
 		case MIDI_STOP:
 		case MIDI_ACTIVESENSE:
 			return;
-		case MIDI_SYSTEMRESET:					// °ì±ş¥¤¥ê¡¼¥¬¥ë¡Á
+		case MIDI_SYSTEMRESET:					// ä¸€å¿œã‚¤ãƒªãƒ¼ã‚¬ãƒ«ã€œ
 			return;
 	}
 
-	if (MIDI_CTRL == MIDICTRL_READY) {			// ½é²ó¸ÂÄê
+	if (MIDI_CTRL == MIDICTRL_READY) {			// åˆå›é™å®š
 		if (mes & 0x80) {
 			// status
 			MIDI_POS = 0;
@@ -376,7 +376,7 @@ void MIDI_Message(BYTE mes) {
 				case 0xa0:
 				case 0xb0:
 				case 0xe0:
-					MIDI_LAST = mes;			// ¤³¤ÎÊı¤¬¼ºÇÔ¤·¤Ê¤¤¤Ê¤ê¡Ä
+					MIDI_LAST = mes;			// ã“ã®æ–¹ãŒå¤±æ•—ã—ãªã„ãªã‚Šâ€¦
 					MIDI_CTRL = MIDICTRL_3BYTES;
 					break;
 				default:
@@ -405,7 +405,7 @@ void MIDI_Message(BYTE mes) {
 					break;
 			}
 		}
-		else {						// Key-on¤Î¤ß¤Êµ¤¤¬¤·¤¿¤ó¤À¤±¤ÉËº¤ì¤¿¡Ä
+		else {						// Key-onã®ã¿ãªæ°—ãŒã—ãŸã‚“ã ã‘ã©å¿˜ã‚ŒãŸâ€¦
 			// running status
 			MIDI_BUF[0] = MIDI_LAST;
 			MIDI_POS = 1;
@@ -413,7 +413,7 @@ void MIDI_Message(BYTE mes) {
 		}
 	}
 	else if ( (mes&0x80) && ((MIDI_CTRL!=MIDICTRL_EXCLUSIVE)||(mes!=MIDI_EOX)) )
-	{			// ¥á¥Ã¥»¡¼¥¸¤Î¥Ç¡¼¥¿Éô¤Ë¥³¥ó¥È¥í¡¼¥ë¥Ğ¥¤¥È¤¬½Ğ¤¿»ş¡Ä¡ÊGENOCIDE2¡Ë
+	{			// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã®ãƒ‡ãƒ¼ã‚¿éƒ¨ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ãƒã‚¤ãƒˆãŒå‡ºãŸæ™‚â€¦ï¼ˆGENOCIDE2ï¼‰
 		// status
 		MIDI_POS = 0;
 		switch(mes & 0xf0) {
@@ -426,7 +426,7 @@ void MIDI_Message(BYTE mes) {
 			case 0xa0:
 			case 0xb0:
 			case 0xe0:
-				MIDI_LAST = mes;			// ¤³¤ÎÊı¤¬¼ºÇÔ¤·¤Ê¤¤¤Ê¤ê¡Ä
+				MIDI_LAST = mes;			// ã“ã®æ–¹ãŒå¤±æ•—ã—ãªã„ãªã‚Šâ€¦
 				MIDI_CTRL = MIDICTRL_3BYTES;
 				break;
 			default:
@@ -486,14 +486,14 @@ void MIDI_Message(BYTE mes) {
 				MIDI_Sendexclusive(MIDI_BUF, MIDI_POS);
 				MIDI_CTRL = MIDICTRL_READY;
 			}
-			else if (MIDI_POS >= MIDIBUFFERS) {		// ¤ª¡¼¤Ğ¡¼¤Õ¤í¡¼
+			else if (MIDI_POS >= MIDIBUFFERS) {		// ãŠãƒ¼ã°ãƒ¼ãµã‚ãƒ¼
 				MIDI_CTRL = MIDICTRL_READY;
 			}
 			break;
 		case MIDICTRL_TIMECODE:
 			if (MIDI_POS >= 2) {
 				if ((mes == 0x7e) || (mes == 0x7f)) {
-					// exclusive¤ÈÆ±¤¸¤Ç¤¤¤¤È¦¡Ä
+					// exclusiveã¨åŒã˜ã§ã„ã„ç­ˆâ€¦
 					MIDI_CTRL = MIDICTRL_EXCLUSIVE;
 				}
 				else {
@@ -513,12 +513,12 @@ void MIDI_Message(BYTE mes) {
 // -----------------------------------------------------------------------
 //   I/O Read
 // -----------------------------------------------------------------------
-BYTE FASTCALL MIDI_Read(DWORD adr)
+uint8_t FASTCALL MIDI_Read(int32_t adr)
 {
-	BYTE ret = 0;
+	uint8_t ret = 0;
 
-	if ( (adr<0xeafa01)||(adr>=0xeafa10)||(!Config.MIDI_SW) )	// ÊÑ¤Ê¥¢¥É¥ì¥¹¤«¡¢
-	{								// MIDI OFF»ş¤Ë¤Ï¥Ğ¥¹¥¨¥é¡¼¤Ë¤¹¤ë
+	if ( (adr<0xeafa01)||(adr>=0xeafa10)||(!Config.MIDI_SW) )	// å¤‰ãªã‚¢ãƒ‰ãƒ¬ã‚¹ã‹ã€
+	{								// MIDI OFFæ™‚ã«ã¯ãƒã‚¹ã‚¨ãƒ©ãƒ¼ã«ã™ã‚‹
 		BusErrFlag = 1;
 		return 0;
 	}
@@ -648,9 +648,9 @@ BYTE FASTCALL MIDI_Read(DWORD adr)
 }
 
 
-static void AddDelayBuf(BYTE msg)
+static void AddDelayBuf(uint8_t msg)
 {
-	int newptr = (DBufPtrW+1)%MIDIDELAYBUF;
+	int32_t newptr = (DBufPtrW+1)%MIDIDELAYBUF;
 	if ( newptr!=DBufPtrR ) {
 		DelayBuf[DBufPtrW].time = timeGetTime();
 		DelayBuf[DBufPtrW].msg  = msg;
@@ -659,9 +659,9 @@ static void AddDelayBuf(BYTE msg)
 }
 
 
-void MIDI_DelayOut(unsigned int delay)
+void MIDI_DelayOut(uint32_t delay)
 {
-	unsigned int t = timeGetTime();
+	uint32_t t = timeGetTime();
 	while ( DBufPtrW!=DBufPtrR ) {
 		if ( (t-DelayBuf[DBufPtrR].time)>=delay ) {
 			MIDI_Message(DelayBuf[DBufPtrR].msg);
@@ -675,10 +675,10 @@ void MIDI_DelayOut(unsigned int delay)
 // -----------------------------------------------------------------------
 //   I/O Write
 // -----------------------------------------------------------------------
-void FASTCALL MIDI_Write(DWORD adr, BYTE data)
+void FASTCALL MIDI_Write(int32_t adr, uint8_t data)
 {
-	if ( (adr<0xeafa01)||(adr>=0xeafa10)||(!Config.MIDI_SW) )	// ÊÑ¤Ê¥¢¥É¥ì¥¹¤«¡¢
-	{								// MIDI OFF»ş¤Ë¤Ï¥Ğ¥¹¥¨¥é¡¼¤Ë¤¹¤ë
+	if ( (adr<0xeafa01)||(adr>=0xeafa10)||(!Config.MIDI_SW) )	// å¤‰ãªã‚¢ãƒ‰ãƒ¬ã‚¹ã‹ã€
+	{								// MIDI OFFæ™‚ã«ã¯ãƒã‚¹ã‚¨ãƒ©ãƒ¼ã«ã™ã‚‹
 		BusErrFlag = 1;
 		return;
 	}
@@ -716,7 +716,7 @@ void FASTCALL MIDI_Write(DWORD adr, BYTE data)
 		case 7:
 			break;
 		case 8:
-			MIDI_GTimerMax = (MIDI_GTimerMax&0xff00)|(DWORD)data;
+			MIDI_GTimerMax = (MIDI_GTimerMax&0xff00)|(uint32_t)data;
 			break;
 		case 9:
 			break;
@@ -743,7 +743,7 @@ void FASTCALL MIDI_Write(DWORD adr, BYTE data)
 		case 7:
 			break;
 		case 8:
-			MIDI_GTimerMax = (MIDI_GTimerMax&0xff)|(((DWORD)(data&0x3f))*256);
+			MIDI_GTimerMax = (MIDI_GTimerMax&0xff)|(((uint32_t)(data&0x3f))*256);
 			if (data&0x80)
 				MIDI_GTimerVal = MIDI_GTimerMax*80;
 			break;
@@ -776,7 +776,7 @@ void FASTCALL MIDI_Write(DWORD adr, BYTE data)
 		case 7:
 			break;
 		case 8:
-			MIDI_MTimerMax = (MIDI_MTimerMax&0xff00)|(DWORD)data;
+			MIDI_MTimerMax = (MIDI_MTimerMax&0xff00)|(uint32_t)data;
 			break;
 		case 9:
 			break;
@@ -802,7 +802,7 @@ void FASTCALL MIDI_Write(DWORD adr, BYTE data)
 		case 7:
 			break;
 		case 8:
-			MIDI_MTimerMax = (MIDI_MTimerMax&0xff)|(((DWORD)(data&0x3f))*256);
+			MIDI_MTimerMax = (MIDI_MTimerMax&0xff)|(((uint32_t)(data&0x3f))*256);
 			if (data&0x80)
 				MIDI_MTimerVal = MIDI_MTimerMax*80;
 			break;
@@ -815,12 +815,12 @@ void FASTCALL MIDI_Write(DWORD adr, BYTE data)
 
 
 // -----------------------------------------------------------------------
-// MIMPI¥È¡¼¥ó¥Õ¥¡¥¤¥ëÆÉ¤ß¹ş¤ß¡Ê¤Í¤³¤ß¤Â6¡Ë
+// MIMPIãƒˆãƒ¼ãƒ³ãƒ•ã‚¡ã‚¤ãƒ«èª­ã¿è¾¼ã¿ï¼ˆã­ã“ã¿ã¢6ï¼‰
 // -----------------------------------------------------------------------
 
-static int exstrcmp(char *str, char *cmp) {
+static int32_t exstrcmp(char *str, char *cmp) {
 
-	BYTE	c;
+	char	c;
 
 	while(*cmp) {
 		c = *str++;
@@ -836,7 +836,7 @@ static int exstrcmp(char *str, char *cmp) {
 
 static void cutdelimita(char **buf) {
 
-	BYTE	c;
+	char	c;
 
 	for(;;) {
 		c = **buf;
@@ -850,11 +850,11 @@ static void cutdelimita(char **buf) {
 	}
 }
 
-static int getvalue(char **buf, int cutspace) {
+static int32_t getvalue(char **buf, int32_t cutspace) {
 
-	int		ret = 0;
-	int	valhit = 0;
-	BYTE	c;
+	int32_t		ret = 0;
+	int32_t		valhit = 0;
+	char		c;
 
 	if (cutspace) {
 		cutdelimita(buf);
@@ -878,21 +878,21 @@ static int getvalue(char **buf, int cutspace) {
 	return(ret);
 }
 
-static int file_readline(FILEH fh, char *buf, int len) {
+static int32_t file_readline(FILEH fh, char *buf, int32_t len) {
 
-	DWORD	pos;
-	DWORD	readsize;
-	DWORD	i;
+	int32_t		pos;
+	int32_t		readsize;
+	int32_t		i;
 
 	if (len < 2) {
 		return(-1);
 	}
 	pos = File_Seek(fh, 0, FSEEK_CUR);
-	if (pos == (DWORD)-1) {
+	if (pos == -1) {
 		return(-1);
 	}
 	readsize = File_Read(fh, buf, len-1);
-	if (readsize == (DWORD)-1) {
+	if (readsize == -1) {
 		return(-1);
 	}
 	if (!readsize) {
@@ -964,15 +964,15 @@ static void mimpidefline_analaize(char *buf) {
 	}
 }
 
-int MIDI_SetMimpiMap(char *filename) {
+int32_t MIDI_SetMimpiMap(char *filename) {
 
-	BYTE		b;
+	uint8_t		b;
 	FILEH		fh;
 	char		buf[128];
 
 	LOADED_TONEMAP = 0;
-	ZeroMemory(TONE_CH, sizeof(TONE_CH));
-	ZeroMemory(TONEBANK[0], sizeof(TONEBANK));
+	memset(TONE_CH,     0, sizeof(TONE_CH));
+	memset(TONEBANK[0], 0, sizeof(TONEBANK));
 	for (b=0; b<128; b++) {
 		TONEMAP[0][b] = b;
 		TONEMAP[1][b] = b;
@@ -998,7 +998,7 @@ int MIDI_SetMimpiMap(char *filename) {
 	return(TRUE);
 }
 
-int MIDI_EnableMimpiDef(int enable) {
+int32_t MIDI_EnableMimpiDef(int32_t enable) {
 
 	ENABLE_TONEMAP = 0;
 	if ((enable) && (LOADED_TONEMAP)) {

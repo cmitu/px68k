@@ -7,22 +7,23 @@
 #include "sysport.h"
 #include "palette.h"
 
-BYTE	SysPort[7];
+uint8_t	SysPort[7];
 
 // -----------------------------------------------------------------------
-//   ½é´ü²½
+//   åˆæœŸåŒ–
 // -----------------------------------------------------------------------
 void SysPort_Init(void)
 {
-	int i;
-	for (i=0; i<7; i++) SysPort[i]=0;
+
+	for (int_fast16_t i=0; i<7; i++) SysPort[i]=0;
+
 }
 
 
 // -----------------------------------------------------------------------
-//   ¤é¤¤¤È
+//   ã‚‰ã„ã¨
 // -----------------------------------------------------------------------
-void FASTCALL SysPort_Write(DWORD adr, BYTE data)
+void FASTCALL SysPort_Write(int32_t adr, uint8_t data)
 {
 	switch(adr)
 	{
@@ -53,11 +54,11 @@ void FASTCALL SysPort_Write(DWORD adr, BYTE data)
 
 
 // -----------------------------------------------------------------------
-//   ¤ê¡¼¤É
+//   ã‚Šãƒ¼ã©
 // -----------------------------------------------------------------------
-BYTE FASTCALL SysPort_Read(DWORD adr)
+uint8_t FASTCALL SysPort_Read(int32_t adr)
 {
-	BYTE ret=0xff;
+	uint8_t ret=0xff;
 
 	switch(adr)
 	{
@@ -73,7 +74,7 @@ BYTE FASTCALL SysPort_Read(DWORD adr)
 	case 0xe8e007:
 		ret = SysPort[4];
 		break;
-	case 0xe8e00b:		// 10MHz:0xff¡¢16MHz:0xfe¡¢030(25MHz):0xdc¤ò¤½¤ì¤¾¤ìÊÖ¤¹¤é¤·¤¤
+	case 0xe8e00b:		// 10MHz:0xffã€16MHz:0xfeã€030(25MHz):0xdcã‚’ãã‚Œãã‚Œè¿”ã™ã‚‰ã—ã„
 		switch(Config.XVIMode)
 		{
 		case 1:			// XVI or RedZone

@@ -1,12 +1,12 @@
 // -----------------------------------------------------------------------
-//   55.6fps•≠°º•◊Õ—§ø§§§ﬁ°º
+//   55.6fps„Ç≠„Éº„ÉóÁî®„Åü„ÅÑ„Åæ„Éº
 // -----------------------------------------------------------------------
 #include "common.h"
 #include "crtc.h"
 #include "mfp.h"
 
-DWORD	timercnt = 0;
-DWORD	tick = 0;
+uint32_t	timercnt = 0;
+uint32_t	tick = 0;
 
 void Timer_Init(void)
 {
@@ -18,11 +18,11 @@ void Timer_Reset(void)
 	tick = timeGetTime();
 }
 
-WORD Timer_GetCount(void)
+uint16_t Timer_GetCount(void)
 {
-	DWORD ticknow = timeGetTime();
-	DWORD dif = ticknow-tick;
-	DWORD TIMEBASE = ((CRTC_Regs[0x29]&0x10)?VSYNC_HIGH:VSYNC_NORM);
+	uint32_t ticknow = timeGetTime();
+	uint32_t dif = ticknow-tick;
+	uint32_t TIMEBASE = ((CRTC_Regs[0x29]&0x10)?VSYNC_HIGH:VSYNC_NORM);
 
 	timercnt += dif*10000;
 	tick = ticknow;

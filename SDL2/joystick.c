@@ -1,15 +1,15 @@
 // JOYSTICK.C - joystick support for WinX68k
 
+#ifdef PSP
+#include <pspctrl.h>
+#endif
+
 #include "common.h"
 #include "prop.h"
 #include "joystick.h"
 #include "winui.h"
 #include "keyboard.h"
-#ifdef PSP
-#include <pspctrl.h>
-#else
-#include <SDL2/SDL.h>
-#endif
+
 #if defined(ANDROID) || TARGET_OS_IPHONE || defined(PSP)
 #include "mouse.h"
 #endif
@@ -20,30 +20,30 @@
 
 char joyname[2][MAX_PATH];
 char joybtnname[2][MAX_BUTTON][MAX_PATH];
-BYTE joybtnnum[2] = {0, 0};
+uint8_t joybtnnum[2] = {0, 0};
 
-BYTE joy[2];
-BYTE JoyKeyState;
-BYTE JoyKeyState0;
-BYTE JoyKeyState1;
-BYTE JoyState0[2];
-BYTE JoyState1[2];
+uint8_t joy[2];
+uint8_t JoyKeyState;
+uint8_t JoyKeyState0;
+uint8_t JoyKeyState1;
+uint8_t JoyState0[2];
+uint8_t JoyState1[2];
 
 // This stores whether the buttons were down. This avoids key repeats.
-BYTE JoyDownState0;
-BYTE MouseDownState0;
+uint8_t JoyDownState0;
+uint8_t MouseDownState0;
 
 // This stores whether the buttons were up. This avoids key repeats.
-BYTE JoyUpState0;
-BYTE MouseUpState0;
+uint8_t JoyUpState0;
+uint8_t MouseUpState0;
 
 #ifdef PSP
-DWORD JoyDownStatePSP;
-BYTE JoyAnaPadX;
-BYTE JoyAnaPadY;
+uint32_t JoyDownStatePSP;
+uint8_t JoyAnaPadX;
+uint8_t JoyAnaPadY;
 static void mouse_update_psp(SceCtrlData psppad);
 #endif
-BYTE JoyPortData[2];
+uint8_t JoyPortData[2];
 
 #if defined(ANDROID) || TARGET_OS_IPHONE
 
@@ -60,7 +60,7 @@ typedef struct _vbtn_rect {
 } VBTN_RECT;
 
 VBTN_RECT vbtn_rect[VBTN_MAX];
-BYTE vbtn_state[VBTN_MAX];
+uint8_t vbtn_state[VBTN_MAX];
 SDL_TouchID touchId = -1;
 
 #define SET_VBTN(id, bx, by, s)					\
@@ -96,7 +96,7 @@ VBTN_POINTS scaled_vbtn_points[sizeof(vbtn_points)/sizeof(VBTN_POINTS)];
 
 VBTN_POINTS *Joystick_get_btn_points(float scale)
 {
-	int i;
+	int_fast16_t i;
 
 	for (i = 0; i < 4; i++) {
 		scaled_vbtn_points[i].x
@@ -130,7 +130,7 @@ VBTN_POINTS *Joystick_get_btn_points(float scale)
 
 void Joystick_Vbtn_Update(float scale)
 {
-	int i;
+	int_fast16_t i;
 	VBTN_POINTS *p;
 
 	p = Joystick_get_btn_points(scale);
@@ -143,7 +143,7 @@ void Joystick_Vbtn_Update(float scale)
 	}
 }
 
-BYTE Joystick_get_vbtn_state(WORD n)
+uint8_t Joystick_get_vbtn_state(uint16_t n)
 {
 	return vbtn_state[n];
 }
@@ -157,7 +157,7 @@ SDL_Joystick *sdl_joy;
 void Joystick_Init(void)
 {
 #ifndef PSP
-	int i, nr_joys, nr_axes, nr_btns, nr_hats;
+	int32_t i, nr_joys, nr_axes, nr_btns, nr_hats;
 #endif
 
 	joy[0] = 1;  // active only one
@@ -183,6 +183,7 @@ void Joystick_Init(void)
 
 	nr_joys = SDL_NumJoysticks();
 	p6logd("joy num %d\n", nr_joys);
+	if (nr_joys == 0){return;}
 	for (i = 0; i < nr_joys; i++) {
 		sdl_joy = SDL_JoystickOpen(i);
 		if (sdl_joy) {
@@ -224,10 +225,10 @@ void Joystick_Cleanup(void)
 #endif
 }
 
-BYTE FASTCALL Joystick_Read(BYTE num)
+uint8_t FASTCALL Joystick_Read(uint8_t num)
 {
-	BYTE joynum = num;
-	BYTE ret0 = 0xff, ret1 = 0xff, ret;
+	uint8_t joynum = num;
+	uint8_t ret0 = 0xff, ret1 = 0xff, ret;
 
 	if (Config.JoySwap) joynum ^= 1;
 	if (joy[num]) {
@@ -249,24 +250,24 @@ BYTE FASTCALL Joystick_Read(BYTE num)
 }
 
 
-void FASTCALL Joystick_Write(BYTE num, BYTE data)
+void FASTCALL Joystick_Write(uint8_t num, uint8_t data)
 {
 	if ( (num==0)||(num==1) ) JoyPortData[num] = data;
 }
 
 #ifdef PSP
-void FASTCALL Joystick_Update(int is_menu)
+void FASTCALL Joystick_Update(int32_t is_menu)
 #else
-void FASTCALL Joystick_Update(int is_menu, SDL_Keycode key)
+void FASTCALL Joystick_Update(int32_t is_menu, SDL_Keycode key)
 #endif
 {
-	BYTE ret0 = 0xff, ret1 = 0xff;
-	BYTE mret0 = 0xff, mret1 = 0xff;
-	int num = 0; //xxx only joy1
-	static BYTE pre_ret0 = 0xff, pre_mret0 = 0xff;
+	uint8_t ret0 = 0xff, ret1 = 0xff;
+	uint8_t mret0 = 0xff, mret1 = 0xff;
+	int32_t num = 0; //xxx only joy1
+	static uint8_t pre_ret0 = 0xff, pre_mret0 = 0xff;
 #if defined(PSP)
-	static DWORD button_down = 0;
-	DWORD button_changing;
+	static uint32_t button_down = 0;
+	uint32_t button_changing;
 
 	SceCtrlData psppad;
 	sceCtrlPeekBufferPositive(&psppad, 1);
@@ -319,13 +320,13 @@ void FASTCALL Joystick_Update(int is_menu, SDL_Keycode key)
 	JoyAnaPadY = psppad.Ly;
 
 #else //defined(PSP)
-	signed int x, y;
-	UINT8 hat;
+	int32_t x, y;
+	uint8_t hat;
 #if defined(ANDROID) || TARGET_OS_IPHONE
 	SDL_Finger *finger;
 	SDL_FingerID fid;
 	float fx, fy;
-	int i, j;
+	uint_fast16_t, j;
 	float scale, asb_x, asb_y; // play x, play y of a button
 
 	// all active buttons are set to off
@@ -410,6 +411,9 @@ skip_vpad:
 		SDL_JoystickUpdate();
 		x = SDL_JoystickGetAxis(sdl_joy, Config.HwJoyAxis[0]);
 		y = SDL_JoystickGetAxis(sdl_joy, Config.HwJoyAxis[1]);
+
+		if(Config.HwJoyAxisAtr[0] != 0 ) x*=(-1);/* invert */
+		if(Config.HwJoyAxisAtr[1] != 0 ) y*=(-1);/* invert */
 
 		if (x < -JOYAXISPLAY) {
 			ret0 ^= JOY_LEFT;
@@ -533,7 +537,7 @@ skip_vpad:
 #endif
 }
 
-BYTE get_joy_downstate(void)
+uint8_t get_joy_downstate(void)
 {
 	return JoyDownState0;
 }
@@ -541,7 +545,7 @@ void reset_joy_downstate(void)
 {
 	JoyDownState0 = 0xff;
 }
-BYTE get_joy_upstate(void)
+uint8_t get_joy_upstate(void)
 {
 	return JoyUpState0;
 }
@@ -551,11 +555,11 @@ void reset_joy_upstate(void)
 }
 
 #ifdef PSP
-DWORD Joystick_get_downstate_psp(DWORD ctrl_bit)
+uint32_t Joystick_get_downstate_psp(uint32_t ctrl_bit)
 {
 	return (JoyDownStatePSP & ctrl_bit);
 }	  
-void Joystick_reset_downstate_psp(DWORD ctrl_bit)
+void Joystick_reset_downstate_psp(uint32_t ctrl_bit)
 {
 	JoyDownStatePSP ^= ctrl_bit;
 }	  
@@ -565,7 +569,7 @@ void Joystatic_reset_anapad_psp(void)
 	JoyAnaPadX = JoyAnaPadY = 128;
 }
 
-void _get_anapad_sub(BYTE av, int *v, int max)
+void _get_anapad_sub(uint8_t av, int32_t *v, int32_t max)
 {
 	// accelerate accroding to an angle of the stick
 	if (av > 255 / 2 + 32) {
@@ -602,7 +606,7 @@ void Joystick_mv_anapad_psp(void)
 }
 static void mouse_update_psp(SceCtrlData psppad)
 {
-	int x = 128, y = 128; // origin is 128
+	int32_t x = 128, y = 128; // origin is 128
 
 	_get_anapad_sub(JoyAnaPadX, &x, 255);
 	_get_anapad_sub(JoyAnaPadY, &y, 255);

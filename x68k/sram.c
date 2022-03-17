@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------------------
-//  SRAM.C - SRAM (16kb) ÎÎ°è
+//  SRAM.C - SRAM (16kb) Area
 // ---------------------------------------------------------------------------------------
 
 #include	"common.h"
@@ -7,33 +7,32 @@
 #include	"prop.h"
 #include	"winx68k.h"
 #include	"sysport.h"
-#include	"memory.h"
+#include	"x68kmemory.h"
 #include	"sram.h"
 
-	BYTE	SRAM[0x4000];
-	BYTE	SRAMFILE[] = "sram.dat";
+	uint8_t	SRAM[0x4000];
+	char	SRAMFILE[] = "sram.dat";
 
 
 // -----------------------------------------------------------------------
-//   Ìò¤ËÎ©¤¿¤Ê¤¤¤¦¤£¤ë¤¹¥Á¥§¥Ã¥¯
+//   å½¹ã«ç«‹ãŸãªã„ã†ãƒã‚‹ã™ãƒã‚§ãƒƒã‚¯
 // -----------------------------------------------------------------------
 void SRAM_VirusCheck(void)
 {
-	//int i, ret;
 
-	if (!Config.SRAMWarning) return;				// WarningÈ¯À¸¥â¡¼¥É¤Ç¤Ê¤±¤ì¤Ğµ¢¤ë
+	if (!Config.SRAMWarning) return;				// Warningç™ºç”Ÿãƒ¢ãƒ¼ãƒ‰ã§ãªã‘ã‚Œã°å¸°ã‚‹
 
 	if ( (cpu_readmem24_dword(0xed3f60)==0x60000002)
-	   &&(cpu_readmem24_dword(0xed0010)==0x00ed3f60) )		// ÆÃÄê¤¦¤£¤ë¤¹¤Ë¤·¤«¸ú¤«¤Ê¤¤¤è¡Á
+	   &&(cpu_readmem24_dword(0xed0010)==0x00ed3f60) )		// ç‰¹å®šã†ãƒã‚‹ã™ã«ã—ã‹åŠ¹ã‹ãªã„ã‚ˆxAï½·
 	{
 #if 0 /* XXX */
-		ret = MessageBox(hWndMain,
-			"¤³¤ÎSRAM¥Ç¡¼¥¿¤Ï¥¦¥£¥ë¥¹¤Ë´¶À÷¤·¤Æ¤¤¤ë²ÄÇ½À­¤¬¤¢¤ê¤Ş¤¹¡£\n³ºÅö¸Ä½ê¤Î¥¯¥ê¡¼¥ó¥¢¥Ã¥×¤ò¹Ô¤¤¤Ş¤¹¤«¡©",
-			"¤±¤í¤Ô¡¼¤«¤é¤Î·Ù¹ğ", MB_ICONWARNING | MB_YESNO);
+		int ret = MessageBox(hWndMain,
+			"ã“ã®SRAMãƒ‡ãƒ¼ã‚¿ã¯ã‚¦ã‚£ãƒ«ã‚¹ã«æ„ŸæŸ“ã—ã¦ã„ã‚‹å¯èƒ½æ€§ãŒã‚ã‚Šã¾ã™ã€‚\nè©²å½“å€‹æ‰€ã®ã‚¯ãƒªãƒ¼ãƒ³ã‚¢ãƒƒãƒ—ã‚’è¡Œã„ã¾ã™ã‹ï¼Ÿ",
+			"ã‘ã‚ã´ãƒ¼ã‹ã‚‰ã®è­¦å‘Š", MB_ICONWARNING | MB_YESNO);
 		if (ret == IDYES)
 		{
-			for (i=0x3c00; i<0x4000; i++)
-				SRAM[i] = 0;
+			for (int_fast16_t i=0x3c00; i<0x4000; i++)
+				SRAM[i] = 0xFF;
 			SRAM[0x11] = 0x00;
 			SRAM[0x10] = 0xed;
 			SRAM[0x13] = 0x01;
@@ -42,28 +41,29 @@ void SRAM_VirusCheck(void)
 		}
 #endif /* XXX */
 		SRAM_Cleanup();
-		SRAM_Init();			// Virus¥¯¥ê¡¼¥ó¥¢¥Ã¥×¸å¤Î¥Ç¡¼¥¿¤ò½ñ¤­¹ş¤ó¤Ç¤ª¤¯
+		SRAM_Init();			// Virusã‚¯ãƒªãƒ¼ãƒ³ã‚¢ãƒƒãƒ—å¾Œã®ãƒ‡ãƒ¼ã‚¿ã‚’æ›¸ãè¾¼ã‚“ã§ãŠã
 	}
 }
 
 
 // -----------------------------------------------------------------------
-//   ½é´ü²½
+//   åˆæœŸåŒ–(Init S-RAM)
 // -----------------------------------------------------------------------
 void SRAM_Init(void)
 {
-	int i;
-	BYTE tmp;
+	int_fast32_t i;
+	uint8_t tmp;
 	FILEH fp;
 
 	for (i=0; i<0x4000; i++)
-		SRAM[i] = 0;
+		SRAM[i] = 0xFF;
 
-	fp = File_OpenCurDir(SRAMFILE);
+	fp = File_OpenCurDir((char *)SRAMFILE);
 	if (fp)
 	{
 		File_Read(fp, SRAM, 0x4000);
 		File_Close(fp);
+		/*for little endian guys!*/
 		for (i=0; i<0x4000; i+=2)
 		{
 			tmp = SRAM[i];
@@ -75,24 +75,23 @@ void SRAM_Init(void)
 
 
 // -----------------------------------------------------------------------
-//   Å±¼ı¡Á
+//   æ’¤å(Clear S-RAM)
 // -----------------------------------------------------------------------
 void SRAM_Cleanup(void)
 {
-	int i;
-	BYTE tmp;
+	uint8_t tmp;
 	FILEH fp;
 
-	for (i=0; i<0x4000; i+=2)
+	for (int_fast32_t i=0; i<0x4000; i+=2)
 	{
 		tmp = SRAM[i];
 		SRAM[i] = SRAM[i+1];
 		SRAM[i+1] = tmp;
 	}
 
-	fp = File_OpenCurDir(SRAMFILE);
+	fp = File_OpenCurDir((char *)SRAMFILE);
 	if (!fp)
-		fp = File_CreateCurDir(SRAMFILE, FTYPE_SRAM);
+		fp = File_CreateCurDir((char *)SRAMFILE, FTYPE_SRAM);
 	if (fp)
 	{
 		File_Write(fp, SRAM, 0x4000);
@@ -102,9 +101,9 @@ void SRAM_Cleanup(void)
 
 
 // -----------------------------------------------------------------------
-//   ¤ê¡¼¤É
+//   ã‚Šãƒ¼ã©(Read S-RAM)
 // -----------------------------------------------------------------------
-BYTE FASTCALL SRAM_Read(DWORD adr)
+uint8_t FASTCALL SRAM_Read(int32_t adr)
 {
 	adr &= 0xffff;
 	adr ^= 1;
@@ -116,25 +115,24 @@ BYTE FASTCALL SRAM_Read(DWORD adr)
 
 
 // -----------------------------------------------------------------------
-//   ¤é¤¤¤È
+//   ã‚‰ã„ã¨(Write S-RAM)
 // -----------------------------------------------------------------------
-void FASTCALL SRAM_Write(DWORD adr, BYTE data)
+void FASTCALL SRAM_Write(int32_t adr, uint8_t data)
 {
-	//int ret;
 
 	if ( (SysPort[5]==0x31)&&(adr<0xed4000) )
 	{
-		if ((adr==0xed0018)&&(data==0xb0))	// SRAMµ¯Æ°¤Ø¤ÎÀÚ¤êÂØ¤¨¡Ê´ÊÃ±¤Ê¥¦¥£¥ë¥¹ÂĞºö¡Ë
+		if ((adr==0xed0018)&&(data==0xb0))	// SRAMèµ·å‹•ã¸ã®åˆ‡ã‚Šæ›¿ãˆï¼ˆç°¡å˜ãªã‚¦ã‚£ãƒ«ã‚¹å¯¾ç­–ï¼‰
 		{
-			if (Config.SRAMWarning)		// WarningÈ¯À¸¥â¡¼¥É¡Ê¥Ç¥Õ¥©¥ë¥È¡Ë
+			if (Config.SRAMWarning)		// Warningç™ºç”Ÿãƒ¢ãƒ¼ãƒ‰ï¼ˆãƒ‡ãƒ•ã‚©ãƒ«ãƒˆï¼‰
 			{
 #if 0 /* XXX */
-				ret = MessageBox(hWndMain,
-					"SRAM¥Ö¡¼¥È¤ËÀÚ¤êÂØ¤¨¤è¤¦¤È¤·¤Æ¤¤¤Ş¤¹¡£\n¥¦¥£¥ë¥¹¤Î´í¸±¤¬¤Ê¤¤»ö¤ò³ÎÇ§¤·¤Æ¤¯¤À¤µ¤¤¡£\nSRAM¥Ö¡¼¥È¤ËÀÚ¤êÂØ¤¨¡¢·ÑÂ³¤·¤Ş¤¹¤«¡©",
-					"¤±¤í¤Ô¡¼¤«¤é¤Î·Ù¹ğ", MB_ICONWARNING | MB_YESNO);
+				int ret = MessageBox(hWndMain,
+					"SRAMãƒ–ãƒ¼ãƒˆã«åˆ‡ã‚Šæ›¿ãˆã‚ˆã†ã¨ã—ã¦ã„ã¾ã™ã€‚\nã‚¦ã‚£ãƒ«ã‚¹ã®å±é™ºãŒãªã„äº‹ã‚’ç¢ºèªã—ã¦ãã ã•ã„ã€‚\nSRAMãƒ–ãƒ¼ãƒˆã«åˆ‡ã‚Šæ›¿ãˆã€ç¶™ç¶šã—ã¾ã™ã‹ï¼Ÿ",
+					"ã‘ã‚ã´ãƒ¼ã‹ã‚‰ã®è­¦å‘Š", MB_ICONWARNING | MB_YESNO);
 				if (ret != IDYES)
 				{
-					data = 0;	// STD¥Ö¡¼¥È¤Ë¤¹¤ë
+					data = 0;	// STDãƒ–ãƒ¼ãƒˆã«ã™ã‚‹
 				}
 #endif /* XXX */
 			}

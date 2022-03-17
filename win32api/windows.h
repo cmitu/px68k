@@ -3,6 +3,7 @@
 
 #include <sys/param.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -11,6 +12,7 @@
 #include <errno.h>
 #include <assert.h>
 
+/*
 typedef	signed char	CHAR;
 typedef signed short	SHORT;
 typedef	signed int	INT;
@@ -21,36 +23,47 @@ typedef	unsigned short	USHORT;
 typedef	unsigned int	UINT;
 typedef	unsigned long	ULONG;
 
+#ifdef HAVE_C68k
+#include "../m68000/c68k/core.h"
+typedef	u8	BYTE;
+typedef	u16	WORD;
+typedef	u32	DWORD;
+#else
 typedef	unsigned char	BYTE;
 typedef	unsigned short	WORD;
 typedef	unsigned int	DWORD;
-
+#endif
+*/
 typedef	int		BOOL;
-typedef	WORD		WPARAM;
-typedef	DWORD		LPARAM;
-typedef	LONG		LRESULT;
+//typedef	WORD		WPARAM;
+//typedef	DWORD		LPARAM;
+//typedef	LONG		LRESULT;
 
-typedef	void		VOID;
-typedef	void		*PVOID;
-typedef	void		*LPVOID;
-typedef	const void	*PCVOID;
-typedef	long		*PLONG;
-typedef	BYTE		*LPBYTE;
-typedef	WORD		*LPWORD;
-typedef	DWORD		*PDWORD;
-typedef	DWORD		*LPDWORD;
-typedef char		*LPSTR;
-typedef const char	*LPCSTR;
+//typedef	void		VOID;
+//typedef	void		*PVOID;
+//typedef	void		*LPVOID;
+//typedef	const void	*PCVOID;
+//typedef	long		*PLONG;
+//typedef	BYTE		*LPBYTE;
+//typedef	WORD		*LPWORD;
+//typedef	DWORD		*PDWORD;
+//typedef	DWORD		*LPDWORD;
+//typedef char		*LPSTR;
+//typedef const char	*LPCSTR;
 
 typedef	void *		LPSECURITY_ATTRIBUTES;
 typedef	void *		LPOVERLAPPED;
 
-typedef	int		HWND;
+// typedef	int		HWND;
 typedef void *		HANDLE;
 typedef	HANDLE		HLOCAL;
 typedef	HANDLE		HGLOBAL;
 
 typedef	void *		DRAWITEMSTRUCT;
+
+#ifndef FASTCALL
+#define FASTCALL
+#endif
 
 #ifndef	TRUE
 #define	TRUE	1
@@ -64,10 +77,6 @@ typedef	void *		DRAWITEMSTRUCT;
 #define	MAX_PATH	MAXPATHLEN
 #endif
 
-#ifndef	max
-#define	max(a,b)	(((a) > (b)) ? (a) : (b))
-#endif
-
 #ifndef	AVE
 #define	AVE(a, b)	(((a)+(b))/2)
 #endif
@@ -75,15 +84,22 @@ typedef	void *		DRAWITEMSTRUCT;
 /*
  * DUMMY DEFINITION
  */
-#define	WINAPI
+// #define	WINAPI
 #define	CALLBACK
+
+#ifdef __GNUC__
+#ifndef UNUSED
+#define UNUSED __attribute ((unused))
+#endif
+#else
 #define	UNUSED(v)	((void)(v))
+#endif
 
 #ifndef	INLINE
 #define	INLINE	static inline
 #endif
 
-#define	RGB(r,g,b)	((DWORD)((BYTE)(r))|((WORD)((BYTE)(g)))|((DWORD)((BYTE)(b))))
+#define	RGB(r,g,b)	((uint32_t)((uint8_t)(r))|((uint16_t)((uint8_t)(g)))|((uint32_t)((uint8_t)(b))))
 
 #define	MB_APPLMODAL		0
 
@@ -137,38 +153,38 @@ typedef	void *		DRAWITEMSTRUCT;
 #define	wsprintf		sprintf
 #define	ZeroMemory(d,n)		memset(d,0,n)
 #define	CopyMemory(d,s,n)	memcpy(d,s,n)
-#define	timeGetTime()		GetTickCount()
+#define	timeGetTime()		FAKE_GetTickCount()
 
 /*
  * WIN32 structure
  */
 typedef struct {
-	WORD	bfType;
-	DWORD	bfSize;
-	WORD	bfReserved1;
-	WORD	bfReserved2;
-	DWORD	bfOffBits;
+	uint16_t	bfType;
+	uint32_t	bfSize;
+	uint16_t	bfReserved1;
+	uint16_t	bfReserved2;
+	uint32_t	bfOffBits;
 } __attribute__ ((packed)) BITMAPFILEHEADER;
 
 typedef struct {
-	DWORD	biSize;
-	LONG	biWidth;
-	LONG	biHeight;
-	WORD	biPlanes;
-	WORD	biBitCount;
-	DWORD	biCompression;
-	DWORD	biSizeImage;
-	LONG	biXPelsPerMeter;
-	LONG	biYPelsPerMeter;
-	DWORD	biClrUsed;
-	DWORD	biClrImportant;
+	uint32_t	biSize;
+//	int32_t	biWidth;
+//	int32_t	biHeight;
+	uint16_t	biPlanes;
+	uint16_t	biBitCount;
+	uint32_t	biCompression;
+	uint32_t	biSizeImage;
+//	int32_t	biXPelsPerMeter;
+//	int32_t	biYPelsPerMeter;
+	uint32_t	biClrUsed;
+	uint32_t	biClrImportant;
 } __attribute__ ((packed)) BITMAPINFOHEADER;
 
 typedef struct {
-	BYTE	rgbBlue;
-	BYTE	rgbGreen;
-	BYTE	rgbRed;
-	BYTE	rgbReserved;
+	uint8_t	rgbBlue;
+	uint8_t	rgbGreen;
+	uint8_t	rgbRed;
+	uint8_t	rgbReserved;
 } __attribute__ ((packed)) RGBQUAD;
 
 typedef struct {
@@ -177,15 +193,15 @@ typedef struct {
 } __attribute__ ((packed)) BITMAPINFO;
 
 typedef struct {
-	DWORD	top;
-	DWORD	left;
-	DWORD	bottom;
-	DWORD	right;
+	uint32_t	top;
+	uint32_t	left;
+	uint32_t	bottom;
+	uint32_t	right;
 } RECT;
 
 typedef struct {
-	WORD	x;
-	WORD	y;
+	uint16_t	x;
+	uint16_t	y;
 } POINT;
 
 /*
@@ -194,12 +210,11 @@ typedef struct {
 #ifdef __cplusplus
 extern "C" {
 #endif
-int	WINAPI MessageBox(HWND, LPCSTR, LPCSTR, UINT);
-void	WINAPI PostQuitMessage(int);
-BOOL	WINAPI WritePrivateProfileString(LPCSTR, LPCSTR, LPCSTR, LPCSTR);
+int32_t	MessageBox(int32_t, const char*, const char*, uint32_t);
+void	PostQuitMessage(int32_t);
 
-DWORD	WINAPI GetLastError(void);
-BOOL	WINAPI SetEndOfFile(HANDLE hFile);
+uint32_t	FAKE_GetLastError(void);
+BOOL	SetEndOfFile(void *hFile);
 #ifdef __cplusplus
 };
 #endif

@@ -43,8 +43,8 @@ endif
 
 include version.txt
 
-CC	 = gcc
-CXX	 = c++
+CC	 = gcc -std=c11
+CXX	 = c++ -std=c++11
 CXXLINK	 = $(CXX)
 RM	 = rm -f
 TAGS	 = etags
@@ -52,8 +52,8 @@ DEPEND	 = gccmakedep
 DEPEND_DEFINES =
 
 # for debug
-# CDEBUGFLAGS += -g -O0 -fno-strict-aliasing
-CDEBUGFLAGS += -Os  -fstrict-aliasing
+CDEBUGFLAGS += -g -O0 -fno-strict-aliasing
+# CDEBUGFLAGS += -Os  -fstrict-aliasing
 
 #
 # disable sound

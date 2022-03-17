@@ -10,33 +10,33 @@
 
 // ---------------------------------------------------------------------------
 //	class PSG
-//	PSG ���ɤ����������������벻����˥å�
+//	PSG に良く似た音を生成する音源ユニット
 //	
 //	interface:
 //	bool SetClock(uint clock, uint rate)
-//		����������Υ��饹����Ѥ������ˤ��ʤ餺�Ƥ�Ǥ������ȡ�
-//		PSG �Υ����å��� PCM �졼�Ȥ����ꤹ��
+//		初期化．このクラスを使用する前にかならず呼んでおくこと．
+//		PSG のクロックや PCM レートを設定する
 //
-//		clock:	PSG ��ư����å�
-//		rate:	�������� PCM �Υ졼��
-//		retval	���������������� true
+//		clock:	PSG の動作クロック
+//		rate:	生成する PCM のレート
+//		retval	初期化に成功すれば true
 //
 //	void Mix(Sample* dest, int nsamples)
-//		PCM �� nsamples ʬ�������� dest �ǻϤޤ�����˲ä���(�û�����)
-//		�����ޤǲû��ʤΤǡ��ǽ������򥼥����ꥢ����ɬ�פ�����
+//		PCM を nsamples 分合成し， dest で始まる配列に加える(加算する)
+//		あくまで加算なので，最初に配列をゼロクリアする必要がある
 //	
 //	void Reset()
-//		�ꥻ�åȤ���
+//		リセットする
 //
 //	void SetReg(uint reg, uint8 data)
-//		�쥸���� reg �� data ��񤭹���
+//		レジスタ reg に data を書き込む
 //	
 //	uint GetReg(uint reg)
-//		�쥸���� reg �����Ƥ��ɤ߽Ф�
+//		レジスタ reg の内容を読み出す
 //	
 //	void SetVolume(int db)
-//		�Ʋ����β��̤�Ĵ�᤹��
-//		ñ�̤��� 1/2 dB
+//		各音源の音量を調節する
+//		単位は約 1/2 dB
 //
 class PSG
 {
@@ -45,48 +45,48 @@ public:
 	
 	enum
 	{
-		noisetablesize = 1 << 11,	// ����������̤򸺤餷�����ʤ鸺�餷��
+		noisetablesize = 1 << 11,	// ←メモリ使用量を減らしたいなら減らして
 		toneshift = 24,
 		envshift = 22,
 		noiseshift = 14,
-		oversampling = 2,		// �� �������®�٤�ͥ��ʤ鸺�餹�Ȥ�������
+		oversampling = 2,		// ← 音質より速度が優先なら減らすといいかも
 	};
 
 public:
 	PSG();
 	~PSG();
 
-	void Mix(Sample* dest, int nsamples);
-	void SetClock(int clock, int rate);
+	void Mix(Sample* dest, int32_t nsamples);
+	void SetClock(int32_t clock, int32_t rate);
 	
-	void SetVolume(int vol);
-	void SetChannelMask(int c);
+	void SetVolume(int32_t vol);
+	void SetChannelMask(int32_t c);
 	
 	void Reset();
-	void SetReg(uint regnum, uint8 data);
-	uint GetReg(uint regnum) { return reg[regnum & 0x0f]; }
+	void SetReg(uint32_t regnum, uint8_t data);
+	uint32_t GetReg(uint32_t regnum) { return reg[regnum & 0x0f]; }
 
 protected:
 	void MakeNoiseTable();
 	void MakeEnvelopTable();
-	static void StoreSample(Sample& dest, int32 data);
+	static void StoreSample(Sample& dest, int32_t data);
 	
-	uint8 reg[16];
+	uint8_t reg[16];
 
-	const uint* envelop;
-	uint olevel[3];
-	uint32 scount[3], speriod[3];
-	uint32 ecount, eperiod;
-	uint32 ncount, nperiod;
-	uint32 tperiodbase;
-	uint32 eperiodbase;
-	uint32 nperiodbase;
-	int volume;
-	int mask;
+	const uint32_t* envelop;
+	uint32_t olevel[3];
+	uint32_t scount[3], speriod[3];
+	uint32_t ecount, eperiod;
+	uint32_t ncount, nperiod;
+	uint32_t tperiodbase;
+	uint32_t eperiodbase;
+	uint32_t nperiodbase;
+	int32_t volume;
+	int32_t mask;
 
-	static uint enveloptable[16][64];
-	static uint noisetable[noisetablesize];
-	static int EmitTable[32];
+	static uint32_t enveloptable[16][64];
+	static uint32_t noisetable[noisetablesize];
+	static int32_t EmitTable[32];
 };
 
 #endif // PSG_H

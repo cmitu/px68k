@@ -4,9 +4,9 @@
 #include "common.h"
 
 void SASI_Init(void);
-BYTE FASTCALL SASI_Read(DWORD adr);
-void FASTCALL SASI_Write(DWORD adr, BYTE data);
-int SASI_IsReady(void);
+uint8_t FASTCALL SASI_Read(int32_t adr);
+void FASTCALL SASI_Write(int32_t adr, uint8_t data);
+int32_t SASI_IsReady(void);
 
 extern char SASI_Name[16][MAX_PATH];
 

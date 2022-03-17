@@ -43,46 +43,46 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-							// DOSIO:¥ÿøÙ§ŒΩ‡»˜
+							// DOSIO:Èñ¢Êï∞„ÅÆÊ∫ñÂÇô
 void dosio_init(void);
 void dosio_term(void);
-							// •’•°•§•Î¡‡∫Ó
-FILEH file_open(LPSTR filename);
-FILEH file_create(LPSTR filename, int ftype);
-DWORD file_seek(FILEH handle, long pointer, short mode);
-DWORD file_lread(FILEH handle, void *data, DWORD length);
-DWORD file_lwrite(FILEH handle, void *data, DWORD length);
-WORD file_read(FILEH handle, void *data, WORD length);
-WORD file_write(FILEH handle, void *data, WORD length);
-DWORD file_zeroclr(FILEH handle, DWORD length);
-WORD file_lineread(FILEH handle, void *data, WORD length);
-short file_close(FILEH handle);
-short file_attr(LPSTR filename);
-							// •´•Ï•Û•»•’•°•§•Î¡‡∫Ó
-void file_setcd(LPSTR exename);
-LPSTR file_getcd(LPSTR filename);
-FILEH file_open_c(LPSTR filename);
-FILEH file_create_c(LPSTR filename, int ftype);
-short file_attr_c(LPSTR filename);
+							// „Éï„Ç°„Ç§„É´Êìç‰Ωú
+FILEH file_open(char* filename);
+FILEH file_create(char* filename, int32_t ftype);
+uint32_t file_seek(FILEH handle, long pointer, short mode);
+uint32_t file_lread(FILEH handle, void *data, uint32_t length);
+uint32_t file_lwrite(FILEH handle, void *data, uint32_t length);
+uint16_t file_read(FILEH handle, void *data, uint16_t length);
+uint16_t file_write(FILEH handle, void *data, uint16_t length);
+int32_t file_zeroclr(FILEH handle, uint32_t length);
+uint16_t file_lineread(FILEH handle, void *data, uint16_t length);
+int16_t file_close(FILEH handle);
+int16_t file_attr(char* filename);
+							// „Ç´„É¨„É≥„Éà„Éï„Ç°„Ç§„É´Êìç‰Ωú
+void file_setcd(char* exename);
+char* file_getcd(char* filename);
+FILEH file_open_c(char* filename);
+FILEH file_create_c(char* filename, int32_t ftype);
+short file_attr_c(char* filename);
 
-int file_getftype(LPSTR filename);
+int32_t file_getftype(char* filename);
 
-							// ∆¸ª˛§ŒºË∆¿
-void dosdateset(BYTE *dat);
-void dostimeset(BYTE *dat);
+							// Êó•ÊôÇ„ÅÆÂèñÂæó
+void dosdateset(uint8_t *dat);
+void dostimeset(uint8_t *dat);
 
 
-LPSTR getFileName(LPSTR filename);
-void cutFileName(LPSTR filename);
-LPSTR getExtName(LPSTR filename);
-void cutExtName(LPSTR filename);
-void plusyen(LPSTR str, int len);
-void cutyen(LPSTR str);
+char* getFileName(char* filename);
+void cutFileName(char* filename);
+char* getExtName(char* filename);
+void cutExtName(char* filename);
+void plusyen(char* str, int32_t len);
+void cutyen(char* str);
 
-int kanji1st(LPSTR str, int pos);
-int ex_a2i(LPSTR str, int min, int max);
+int32_t kanji1st(char* str, int32_t pos);
+int32_t ex_a2i(char* str, int32_t min, int32_t max);
 
-void fname_mix(LPSTR str, LPSTR mix, int size);
+void fname_mix(char* str, char* mix, int32_t size);
 
 /*	$NetBSD: direntry.h,v 1.14 1997/11/17 15:36:32 ws Exp $	*/
 
@@ -157,8 +157,11 @@ void fname_mix(LPSTR str, LPSTR mix, int size);
 #define DD_YEAR_MASK		0xFE00	/* year - 1980 */
 #define DD_YEAR_SHIFT		9
 
-void unix2dostime(time_t t, unsigned short *ddp, unsigned short *dtp, unsigned char *dhp);
-void dos2unixtime(u_int dd, u_int dt, u_int dh, time_t *tp);
+#ifdef _WIN32
+typedef unsigned int u_int;
+#endif
+void unix2dostime(time_t t, uint16_t *ddp, uint16_t *dtp, uint8_t *dhp);
+void dos2unixtime(uint32_t dd, uint32_t dt, uint32_t dh, time_t *tp);
 
 #ifdef __cplusplus
 };

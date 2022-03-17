@@ -23,7 +23,12 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <SDL2/SDL.h>
+#ifndef SDL1
+#include "SDL2/SDL.h"
+#else
+#include "SDL/SDL.h"
+#endif
+
 #include "common.h"
 #include "joystick.h"
 #include "prop.h"
@@ -31,21 +36,21 @@
 #include "mfp.h"
 #include "windraw.h"
 
-BYTE	KeyBufWP;
-BYTE	KeyBufRP;
-BYTE	KeyBuf[KeyBufSize];
-BYTE	KeyEnable = 1;
-BYTE	KeyIntFlag = 0;
+uint8_t	KeyBufWP;
+uint8_t	KeyBufRP;
+uint8_t	KeyBuf[KeyBufSize];
+uint8_t	KeyEnable = 1;
+uint8_t	KeyIntFlag = 0;
 
 struct keyboard_key kbd_key[] = {
 #include "keytbl.inc"
 };
 
-extern BYTE traceflag;
+extern uint8_t traceflag;
 
 #if defined(PSP) || defined(ANDROID) || TARGET_OS_IPHONE
-// •≠°º•‹°º•…§Œ∫¬…∏
-int kbd_x = 800, kbd_y = 0, kbd_w = 766, kbd_h = 218;
+// „Ç≠„Éº„Éú„Éº„Éâ„ÅÆÂ∫ßÊ®ô
+int32_t kbd_x = 800, kbd_y = 0, kbd_w = 766, kbd_h = 218;
 #endif
 
 void
@@ -54,14 +59,14 @@ Keyboard_Init(void)
 
 	KeyBufWP = 0;
 	KeyBufRP = 0;
-	ZeroMemory(KeyBuf, KeyBufSize);
+	memset(KeyBuf, 0, KeyBufSize);
 	KeyEnable = 1;
 	KeyIntFlag = 0;
 #ifdef PSP
-	// ¡¥§∆§Œ•µ•§•∫§Ú»æ ¨§À§π§Î
-	int i = 0;
+	// ÂÖ®„Å¶„ÅÆ„Çµ„Ç§„Ç∫„ÇíÂçäÂàÜ„Å´„Åô„Çã
+	int32_t i = 0;
 
-	kbd_x = kbd_y = 0; // PSP§œΩÈ¥¸∞Ã√÷0
+	kbd_x = kbd_y = 0; // PSP„ÅØÂàùÊúü‰ΩçÁΩÆ0
 	kbd_w /= 2, kbd_h /= 2;
 
 	while (kbd_key[i].x != -1) {
@@ -75,14 +80,14 @@ Keyboard_Init(void)
 }
 
 // ----------------------------------
-//	§∆°º§÷§ÎŒ‡
+//	„Å¶„Éº„Å∂„ÇãÈ°û
 // ----------------------------------
 
 #define	NC	0
 #define KEYTABLE_MAX 512
 
 
-BYTE KeyTable[KEYTABLE_MAX] = {
+uint8_t KeyTable[KEYTABLE_MAX] = {
 	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x00
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	  BS, TAB,    ,    ,    , RET,    ,    		; 0x08
@@ -123,8 +128,8 @@ BYTE KeyTable[KEYTABLE_MAX] = {
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    ,   		; 0x98
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    ,    		; 0xa0
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,   ¬•,    ,    		; 0xa0(JIS Keyboard)
+		  NC,  NC,  NC,  NC,  NC,0x0e,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    ,   		; 0xa8
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    ,    		; 0xb0
@@ -154,7 +159,7 @@ BYTE KeyTable[KEYTABLE_MAX] = {
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	  BS, TAB,  LF, CLR,    , RET,    ,   		; 0x08
 		0x0f,0x10,0x1d,  NC,  NC,0x1d,  NC,  NC,
-	//	    ,  ¢¨,  ¢≠,  ¢™,  ¢´,SYSQ,    ,  		; 0x10
+	//	    ,  ‚Üë,  ‚Üì,  ‚Üí,  ‚Üê,SYSQ,    ,  		; 0x10
 		  NC,0x3c,0x3e,0x3d,0x3b,  NC,  NC,  NC,
 	//	    ,    ,    , ESC,    ,    ,    ,   		; 0x18
 		  NC,  NC,0x63,0x01,  NC,  NC,  NC,  NC,
@@ -170,7 +175,7 @@ BYTE KeyTable[KEYTABLE_MAX] = {
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    ,   		; 0x48
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	HOME,  ¢´,  ¢¨,  ¢™,  ¢≠,RLDN,RLUP, END		; 0x50
+	//	HOME,  ‚Üê,  ‚Üë,  ‚Üí,  ‚Üì,RLDN,RLUP, END		; 0x50
 		0x36,0x3b,0x3c,0x3d,0x3e,0x39,0x38,0x3a,
 	//	    ,    ,    ,    ,    ,    ,    ,   		; 0x58
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
@@ -186,9 +191,9 @@ BYTE KeyTable[KEYTABLE_MAX] = {
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,<TAB,    ,    ,    ,<ENT,    ,  		; 0x88
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,<HOM,<¢´>,<¢¨>		; 0x90
+	//	    ,    ,    ,    ,    ,<HOM,<‚Üê>,<‚Üë>		; 0x90
 		  NC,  NC,  NC,  NC,  NC,0x36,0x3b,0x3c,
-	//	<¢™>,<¢≠>,<RDN,<RUP,<END,    ,<INS,<DEL		; 0x98
+	//	<‚Üí>,<‚Üì>,<RDN,<RUP,<END,    ,<INS,<DEL		; 0x98
 		0x3d,0x3e,0x39,0x38,0x3a,  NC,0x5e,0x37,
 	//	    ,    ,    ,    ,    ,    ,    ,    		; 0xa0
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
@@ -216,7 +221,7 @@ BYTE KeyTable[KEYTABLE_MAX] = {
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,0x37
 };
 
-BYTE KeyTableMaster[KEYTABLE_MAX] = {
+uint8_t KeyTableMaster[KEYTABLE_MAX] = {
 	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x00
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x08
@@ -304,7 +309,7 @@ BYTE KeyTableMaster[KEYTABLE_MAX] = {
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    ,   		; 0x48
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	HOME,  ¢´,  ¢¨,  ¢™,  ¢≠,RLDN,RLUP, END		; 0x50
+	//	HOME,  ‚Üê,  ‚Üë,  ‚Üí,  ‚Üì,RLDN,RLUP, END		; 0x50
 		0x36,  NC,  NC,  NC,  NC,0x39,0x38,0x3a,
 	//	    ,    ,    ,    ,    ,    ,    ,   		; 0x58
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
@@ -320,9 +325,9 @@ BYTE KeyTableMaster[KEYTABLE_MAX] = {
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,<TAB,    ,    ,    ,<ENT,    ,  		; 0x88
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,<HOM,<¢´>,<¢¨>		; 0x90
+	//	    ,    ,    ,    ,    ,<HOM,<‚Üê>,<‚Üë>		; 0x90
 		  NC,  NC,  NC,  NC,  NC,0x36,  NC,  NC,
-	//	<¢™>,<¢≠>,<RDN,<RUP,<END,    ,<INS,<DEL		; 0x98
+	//	<‚Üí>,<‚Üì>,<RDN,<RUP,<END,    ,<INS,<DEL		; 0x98
 		  NC,  NC,0x39,0x38,0x3a,  NC,0x5e,0x37,
 	//	    ,    ,    ,    ,    ,    ,    ,    		; 0xa0
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
@@ -355,35 +360,100 @@ BYTE KeyTableMaster[KEYTABLE_MAX] = {
 #define P6K_UP 1
 #define P6K_DOWN 2
 
-void send_keycode(BYTE code, int flag)
+void send_keycode(uint8_t code, int32_t flag)
 {
-	BYTE newwp;
+	uint8_t newwp;
 
 	if (code != NC) {
 		newwp = ((KeyBufWP + 1) & (KeyBufSize - 1));
 		if (newwp != KeyBufRP) {
 			KeyBuf[KeyBufWP] = code | ((flag == P6K_UP)? 0x80 : 0);
-			p6logd("KeyBuf: %x\n", KeyBuf[KeyBufWP]);
+			//p6logd("KeyBufWP:%d KeyBuf[]:%x\n", KeyBufWP,KeyBuf[KeyBufWP]);
 			KeyBufWP = newwp;
-			p6logd("KeyBufWP: %d\n", KeyBufWP);
+			//p6logd("KeyBufWP: %d\n", KeyBufWP);
 		}
 	}
 }
 
-static BYTE get_x68k_keycode(DWORD wp)
+static int32_t shiftdown = 0;
+
+static int32_t get_x68k_keycode(uint32_t wp)
 {
+
+	if(Config.KeyboardType==1){/* US-Keyboard */
+	 switch (wp) {
+	 case SDLK_2:/*2*/
+		  if(shiftdown==1){	/*Shift*/
+		  send_keycode(0x70, P6K_UP);
+		  return 0x1b;			/*@*/
+		  }
+		break;
+	 case SDLK_6:/*6*/
+		  if(shiftdown==1){	/*Shift*/
+		  send_keycode(0x70, P6K_UP);
+		  return 0x0d;			/*^*/
+		  }
+		break;
+	 case SDLK_7:/*7*/
+		  if(shiftdown==1)	return 0x07;		/*&*/
+		break;
+	 case SDLK_8:/*8*/
+		  if(shiftdown==1)	return 0x28;		/* * */
+		break;
+	 case SDLK_9:/*9*/
+		  if(shiftdown==1)	return 0x09;		/*(*/
+		break;
+	 case SDLK_0:/*0*/
+		  if(shiftdown==1)	 return 0x0a;		/*)*/
+		break;
+	 case SDLK_MINUS:/*-*/
+		  if(shiftdown==1)	 return 0x34;		/*_*/
+		break;
+	 case SDLK_CARET:/*^*/
+		  if(shiftdown==1)	 return 0x27;		/*+*/
+		  else{
+			send_keycode(0x70, P6K_DOWN);
+			return 0x0c;						/*=*/
+		  }
+		break;
+	 case SDLK_AT:/*@*/
+			return 0x1c;						/*[*/
+		break;
+	 case SDLK_LEFTBRACKET:/*[*/
+			return 0x29;						/*]*/
+		break;
+	 case SDLK_RIGHTBRACKET:/*[*/
+			return 0x0e;						/*|*/
+		break;
+	 case SDLK_SEMICOLON:/*;*/
+		  if(shiftdown==1){
+			send_keycode(0x70, P6K_UP);
+			return 0x28;						/*:*/
+		  }
+		break;
+	 case SDLK_COLON:/*'*/
+		  if(shiftdown==1)	 return 0x03;		/*"*/
+		  else{
+			send_keycode(0x70, P6K_DOWN);
+			return 0x08;						/*'*/
+		  }
+		break;
+	 }
+	}
+
+
 	if (wp < KEYTABLE_MAX) {
 		return KeyTable[wp];
 	}
 
 	switch (wp) {
-	case SDLK_UP:
+	case SDLK_UP:/*‚Üë*/
 		return 0x3c;
-	case SDLK_DOWN:
+	case SDLK_DOWN:/*‚Üì*/
 		return 0x3e;
-	case SDLK_LEFT:
+	case SDLK_LEFT:/*‚Üê*/
 		return 0x3b;
-	case SDLK_RIGHT:
+	case SDLK_RIGHT:/*‚Üí*/
 		return 0x3d;
 #ifndef PSP
 #if !SDL_VERSION_ATLEAST(2, 0, 0)
@@ -399,25 +469,25 @@ static BYTE get_x68k_keycode(DWORD wp)
 #define SDLK_KP_9 SDLK_KP9
 #define SDLK_NUMLOCKCLEAR SDLK_NUMLOCK
 #endif
-	case SDLK_KP_0:
+	case SDLK_KP_0:/*10key-0*/
 		return 0x4f;
-	case SDLK_KP_1:
+	case SDLK_KP_1:/*     -1*/
 		return 0x4b;
-	case SDLK_KP_2:
+	case SDLK_KP_2:/*     -2*/
 		return 0x4c;
-	case SDLK_KP_3:
+	case SDLK_KP_3:/*     -3*/
 		return 0x4d;
-	case SDLK_KP_4:
+	case SDLK_KP_4:/*     -4*/
 		return 0x47;
-	case SDLK_KP_5:
+	case SDLK_KP_5:/*     -5*/
 		return 0x48;
-	case SDLK_KP_6:
+	case SDLK_KP_6:/*     -6*/
 		return 0x49;
-	case SDLK_KP_7:
+	case SDLK_KP_7:/*     -7*/
 		return 0x43;
-	case SDLK_KP_8:
+	case SDLK_KP_8:/*     -8*/
 		return 0x44;
-	case SDLK_KP_9:
+	case SDLK_KP_9:/*     -9*/
 		return 0x45;
 	case SDLK_NUMLOCKCLEAR:
 		return 0x3f;
@@ -448,21 +518,21 @@ static BYTE get_x68k_keycode(DWORD wp)
 	case SDLK_LCTRL:
 	case SDLK_RCTRL:
 		return 0x71;
-	case SDLK_KP_DIVIDE:
+	case SDLK_KP_DIVIDE:/*     -/*/
 		return 0x40;
-	case SDLK_KP_MULTIPLY:
+	case SDLK_KP_MULTIPLY:/*     -X*/
 		return 0x41;
-	case SDLK_KP_MINUS:
+	case SDLK_KP_MINUS:/*     --*/
 		return 0x42;
-	case SDLK_KP_PLUS:
+	case SDLK_KP_PLUS:/*     -+*/
 		return 0x46;
-	case SDLK_KP_ENTER:
+	case SDLK_KP_ENTER:/*     -Enter*/
 		return 0x4e;
-	case SDLK_INSERT:
+	case SDLK_INSERT:/*     -ins*/
 		return 0x5e;
-	case SDLK_HOME:
+	case SDLK_HOME:/*     -home*/
 		return 0x36;
-	case SDLK_END:
+	case SDLK_END:/*     -End*/
 		return 0x3a;
 	case SDLK_PAGEUP:
 		return 0x38;
@@ -474,14 +544,14 @@ static BYTE get_x68k_keycode(DWORD wp)
 }
 
 // ----------------------------------
-//	WM_KEYDOWN°¡
+//	WM_KEYDOWN„Äú
 // ----------------------------------
 void
-Keyboard_KeyDown(DWORD wp)
+Keyboard_KeyDown(uint32_t wp)
 {
 
-	BYTE code;
-	BYTE newwp;
+	uint8_t code;
+	uint8_t newwp;
 #if 0
 	if (wp & ~0xff) {
 		if (wp == GDK_VoidSymbol)
@@ -497,10 +567,11 @@ Keyboard_KeyDown(DWORD wp)
 	if (code < 0) {
 		return;
 	}
+	if(code == 0x70){ shiftdown = 1; }
 
-	printf("Keyboard_KeyDown: ");
-	printf("wp=0x%x, code=0x%x\n", wp, code);
-	printf("SDLK_UP: 0x%x", SDLK_UP);
+	//printf("Keyboard_KeyDown: ");
+	//printf("wp=0x%x, code=0x%x\n", wp, code);
+	//printf("SDLK_UP: 0x%x\n", SDLK_UP);
 
 #if 0
 	if (code != NC) {
@@ -508,7 +579,7 @@ Keyboard_KeyDown(DWORD wp)
 		if (newwp != KeyBufRP) {
 			KeyBuf[KeyBufWP] = code;
 			KeyBufWP = newwp;
-			printf("KeyBufWP: %d\n", KeyBufWP);
+			//printf("KeyBufWP: %d\n", KeyBufWP);
 		}
 	}
 #else
@@ -561,10 +632,10 @@ Keyboard_KeyDown(DWORD wp)
 //	WM_KEYUP
 // ----------------------------------
 void
-Keyboard_KeyUp(DWORD wp)
+Keyboard_KeyUp(uint32_t wp)
 {
-	BYTE code;
-	BYTE newwp;
+	int32_t  code;
+	uint8_t newwp;
 #if 0
 	if (wp & ~0xff) {
 		if (wp == GDK_VoidSymbol)
@@ -580,6 +651,8 @@ Keyboard_KeyUp(DWORD wp)
 	if (code < 0) {
 		return;
 	}
+	if(code == 0x70){ shiftdown = 0; }
+
 #if 0
 	if (code != NC) {
 		newwp = ((KeyBufWP + 1) & (KeyBufSize - 1));
@@ -592,7 +665,7 @@ Keyboard_KeyUp(DWORD wp)
 	send_keycode(code, P6K_UP);
 #endif
 
-	printf("JoyKeyState: 0x%x\n", JoyKeyState);
+	//printf("JoyKeyState: 0x%x\n", JoyKeyState);
 
 	switch(wp) {
 	case SDLK_UP:
@@ -630,14 +703,14 @@ Keyboard_KeyUp(DWORD wp)
 
 // ----------------------------------
 //	Key Check
-//	1•’•Ï°º•‡√Ê§À4≤Û° 2400bps/10bit/60fps§»§π§Ï§–°¢§¿§¨°À∏∆§–§Ï§∆°¢MFP§À•«°º•ø§Ú¡˜§Î
+//	1„Éï„É¨„Éº„É†‰∏≠„Å´4ÂõûÔºà2400bps/10bit/60fps„Å®„Åô„Çå„Å∞„ÄÅ„Å†„ÅåÔºâÂëº„Å∞„Çå„Å¶„ÄÅMFP„Å´„Éá„Éº„Çø„ÇíÈÄÅ„Çã
 // ----------------------------------
 
 void
 Keyboard_Int(void)
 {
 	if (KeyBufRP != KeyBufWP) {
-		printf("KeyBufRP:%d, KeyBufWP:%d\n", KeyBufRP, KeyBufWP);
+		//p6logd("KeyBufRP:%d, KeyBufWP:%d\n", KeyBufRP, KeyBufWP);
 		if (!KeyIntFlag) {
 			LastKey = KeyBuf[KeyBufRP];
 			KeyBufRP = ((KeyBufRP+1)&(KeyBufSize-1));
@@ -649,19 +722,19 @@ Keyboard_Int(void)
 	}
 }
 
-/********** •Ω•’•»•¶•ß•¢•≠°º•‹°º•… **********/
+/********** „ÇΩ„Éï„Éà„Ç¶„Çß„Ç¢„Ç≠„Éº„Éú„Éº„Éâ **********/
 
 #if defined(PSP) || defined(USE_OGLES11)
 
-// ¡™¬Ú§∑§∆§§§Î•≠°º§Œ∫¬…∏ (ΩÈ¥¸√Õ'Q')
-int  kbd_kx = 1, kbd_ky = 2;
+// ÈÅ∏Êäû„Åó„Å¶„ÅÑ„Çã„Ç≠„Éº„ÅÆÂ∫ßÊ®ô (ÂàùÊúüÂÄ§'Q')
+int32_t  kbd_kx = 1, kbd_ky = 2;
 
 #define KEYXMAX 32767
-int Keyboard_get_key_ptr(int x, int y)
+int32_t Keyboard_get_key_ptr(int32_t x, int32_t y)
 {
-	int i, j;
-	int p = 0;
-	int tx, ty; // tmp x, tmp y
+	int32_t i, j;
+	int32_t p = 0;
+	int32_t tx, ty; // tmp x, tmp y
 
 	tx = KEYXMAX;
 	ty = 0;
@@ -683,10 +756,10 @@ int Keyboard_get_key_ptr(int x, int y)
 	return i + x;
 }
 
-static void set_ptr_to_kxy(int p)
+static void set_ptr_to_kxy(int32_t p)
 {
-	int kx = 0, ky = 0;
-	int i;
+	int32_t kx = 0, ky = 0;
+	int32_t i;
 
 	for (i = 0; i < p; i++) {
 		if (kbd_key[i].x > kbd_key[i + 1].x) {
@@ -700,11 +773,11 @@ static void set_ptr_to_kxy(int p)
 	kbd_kx = kx, kbd_ky = ky;
 }
 
-static void set_near_key(int p, int tx)
+static void set_near_key(int32_t p, int32_t tx)
 {
 	while (kbd_key[p].x < kbd_key[p + 1].x) {
 		if (kbd_key[p].x >= tx) {
-			// x∫¬…∏§Œ∞Ï»÷∂·§§•≠°º§À∞‹∆∞§π§Î
+			// xÂ∫ßÊ®ô„ÅÆ‰∏ÄÁï™Ëøë„ÅÑ„Ç≠„Éº„Å´ÁßªÂãï„Åô„Çã
 			if (abs(kbd_key[p].x - tx)
 			    > abs(tx - kbd_key[p - 1].x)) {
 				p--;
@@ -718,14 +791,14 @@ static void set_near_key(int p, int tx)
 
 static void key_up(void)
 {
-	int p;
-	int c = 2;
-	int tx; // tmp x
+	int32_t p;
+	int32_t c = 2;
+	int32_t tx; // tmp x
 
 	p = Keyboard_get_key_ptr(kbd_kx, kbd_ky);
 	tx = kbd_key[p].x;
 
-	// æÂ§Œπ‘§Œ¿Ë∆¨§Ú√µ§π
+	// ‰∏ä„ÅÆË°å„ÅÆÂÖàÈ†≠„ÇíÊé¢„Åô
 	while (p > 0) {
 		if (kbd_key[p - 1].x > kbd_key[p].x) {
 			c--;
@@ -746,13 +819,13 @@ static void key_up(void)
 
 static void key_down(void)
 {
-	int p;
-	int tx; // tmp x
+	int32_t p;
+	int32_t tx; // tmp x
 
 	p = Keyboard_get_key_ptr(kbd_kx, kbd_ky);
 	tx = kbd_key[p].x;
 
-	// ≤º§Œπ‘§Œ¿Ë∆¨§Ú√µ§π
+	// ‰∏ã„ÅÆË°å„ÅÆÂÖàÈ†≠„ÇíÊé¢„Åô
 	while (kbd_key[p].x != -1) {
 		if (kbd_key[p + 1].x < kbd_key[p].x) {
 			p++;
@@ -765,10 +838,10 @@ static void key_down(void)
 }
 
 
-// dx §» dy §œ§…§¡§È§´∞Ï ˝§œ 0 §»§π§Î°£ dx: -1/0/+1 dy: -1/0/+1
-static void mv_key(int dx, int dy)
+// dx „Å® dy „ÅØ„Å©„Å°„Çâ„Åã‰∏ÄÊñπ„ÅØ 0 „Å®„Åô„Çã„ÄÇ dx: -1/0/+1 dy: -1/0/+1
+static void mv_key(int32_t dx, int32_t dy)
 {
-	int p;
+	int32_t p;
 
 	if ((kbd_ky == 0 && dy == -1) || (kbd_ky == 5 && dy == +1)) {
 		return;
@@ -785,16 +858,16 @@ static void mv_key(int dx, int dy)
 
 	WinDraw_reverse_key(kbd_kx, kbd_ky);
 
-	// »Ù§–§∑¿Ë§Œ»˘ƒ¥¿∞§¨…¨Õ◊§ §‚§Œ§ø§¡
-	// •´°º•Ω•Î•≠°ºº˛§Í§œÃÃ≈›§ §Œ§«»˘ƒ¥¿∞§ §∑
+	// È£õ„Å∞„ÅóÂÖà„ÅÆÂæÆË™øÊï¥„ÅåÂøÖË¶Å„Å™„ÇÇ„ÅÆ„Åü„Å°
+	// „Ç´„Éº„ÇΩ„É´„Ç≠„ÉºÂë®„Çä„ÅØÈù¢ÂÄí„Å™„ÅÆ„ÅßÂæÆË™øÊï¥„Å™„Åó
 	if (kbd_kx == 12 && kbd_ky == 3 && dx == +1) {
-		// ] §Œ±¶§»§ §Í§œ RET §À»Ù§–§π
+		// ] „ÅÆÂè≥„Å®„Å™„Çä„ÅØ RET „Å´È£õ„Å∞„Åô
 		kbd_kx = 14, kbd_ky = 2;
 	} else if (kbd_kx == 12 && kbd_ky == 5 && dx == +1) {
-		// •∆•Û•≠°º§Œ . §Œ±¶§»§ §Í§œ ENT §À»Ù§–§π
+		// „ÉÜ„É≥„Ç≠„Éº„ÅÆ . „ÅÆÂè≥„Å®„Å™„Çä„ÅØ ENT „Å´È£õ„Å∞„Åô
 		kbd_kx = 19, kbd_ky = 4;
 	} else {
-		// »˘ƒ¥¿∞§Œ…¨Õ◊§ §∑
+		// ÂæÆË™øÊï¥„ÅÆÂøÖË¶Å„Å™„Åó
 		kbd_kx += dx;
 	}
 
@@ -805,13 +878,13 @@ static void mv_key(int dx, int dy)
 		key_down();
 	}
 
-	// RET§Œ∫∏¬¶§Œ•¿•ﬂ°º•≠°º§œRET§À∞‹∆∞§π§Î
+	// RET„ÅÆÂ∑¶ÂÅ¥„ÅÆ„ÉÄ„Éü„Éº„Ç≠„Éº„ÅØRET„Å´ÁßªÂãï„Åô„Çã
 	if (kbd_kx == 13 && kbd_ky == 2) {
 		if (dx == 0) {
-			// æÂ≤º§´§È•¿•ﬂ°º•≠°º§Àπ‘§√§øæÏπÁ
+			// ‰∏ä‰∏ã„Åã„Çâ„ÉÄ„Éü„Éº„Ç≠„Éº„Å´Ë°å„Å£„ÅüÂ†¥Âêà
 			kbd_kx = 14;
 		} else {
-			// ∫∏±¶§´§È•¿•ﬂ°º•≠°º§Àπ‘§√§øæÏπÁ
+			// Â∑¶Âè≥„Åã„Çâ„ÉÄ„Éü„Éº„Ç≠„Éº„Å´Ë°å„Å£„ÅüÂ†¥Âêà
 			kbd_kx += dx;
 		}
 	}
@@ -819,10 +892,10 @@ static void mv_key(int dx, int dy)
 	WinDraw_reverse_key(kbd_kx, kbd_ky);
 }
 
-static void send_key(int flag)
+static void send_key(int32_t flag)
 {
 
-	BYTE code;
+	uint8_t code;
 
 	code = kbd_key[Keyboard_get_key_ptr(kbd_kx, kbd_ky)].c;
 	//p6logd("sendkey: %d", code);
@@ -833,7 +906,7 @@ static void send_key(int flag)
 void Keyboard_skbd(void)
 {
 	static kx = 1, ky = 2;
-	BYTE joy;
+	uint8_t joy;
 
 	joy = get_joy_downstate();
 	reset_joy_downstate();
@@ -854,7 +927,7 @@ void Keyboard_skbd(void)
 		send_key(P6K_DOWN);
 	}
 	if (!(joy & JOY_TRG2)) {
-		// BS•≠°º§Úkey down
+		// BS„Ç≠„Éº„Çíkey down
 		send_keycode(0xf, P6K_DOWN);
 	}
 
@@ -864,13 +937,13 @@ void Keyboard_skbd(void)
 		send_key(P6K_UP);
 	}
 	if (joy & JOY_TRG2) {
-		// BS•≠°º§Úkey up
+		// BS„Ç≠„Éº„Çíkey up
 		send_keycode(0xf, P6K_UP);
 	}
 
 }
 
-int skbd_mode = FALSE;
+int32_t skbd_mode = FALSE;
 
 void Keyboard_ToggleSkbd(void)
 {
@@ -879,7 +952,7 @@ void Keyboard_ToggleSkbd(void)
 
 #endif //defined(PSP) || defined(USE_OGLES11)
 
-int Keyboard_IsSwKeyboard(void)
+int32_t Keyboard_IsSwKeyboard(void)
 {
 #if defined(PSP)
 	return skbd_mode;

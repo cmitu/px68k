@@ -12,12 +12,12 @@
 using namespace FM;
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Þ¡¼À©¸æ
+//	ã‚¿ã‚¤ãƒžãƒ¼åˆ¶å¾¡
 //
-void Timer::SetTimerControl(uint data)
+void Timer::SetTimerControl(uint32_t data)
 {
-	uint tmp = regtc ^ data;
-	regtc = uint8(data);
+	uint32_t tmp = regtc ^ data;
+	regtc = uint8_t(data);
 	
 	if (data & 0x10) 
 		ResetStatus(1);
@@ -33,30 +33,30 @@ void Timer::SetTimerControl(uint data)
 #if 1
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Þ¡¼A ¼þ´üÀßÄê
+//	ã‚¿ã‚¤ãƒžãƒ¼A å‘¨æœŸè¨­å®š
 //
-void Timer::SetTimerA(uint addr, uint data)
+void Timer::SetTimerA(int32_t addr, uint32_t data)
 {
-	uint tmp;
-	regta[addr & 1] = uint8(data);
+	uint32_t tmp;
+	regta[addr & 1] = uint8_t(data);
 	tmp = (regta[0] << 2) + (regta[1] & 3);
 	timera = (1024-tmp) * timer_step;
 //	LOG2("Timer A = %d   %d us\n", tmp, timera >> 16);
 }
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Þ¡¼B ¼þ´üÀßÄê
+//	ã‚¿ã‚¤ãƒžãƒ¼B å‘¨æœŸè¨­å®š
 //
-void Timer::SetTimerB(uint data)
+void Timer::SetTimerB(uint32_t data)
 {
 	timerb = (256-data) * timer_step;
 //	LOG2("Timer B = %d   %d us\n", data, timerb >> 12);
 }
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Þ¡¼»þ´Ö½èÍý
+//	ã‚¿ã‚¤ãƒžãƒ¼æ™‚é–“å‡¦ç†
 //
-bool Timer::Count(int32 us)
+bool Timer::Count(int32_t us)
 {
 	bool event = false;
 
@@ -92,50 +92,50 @@ bool Timer::Count(int32 us)
 }
 
 // ---------------------------------------------------------------------------
-//	¼¡¤Ë¥¿¥¤¥Þ¡¼¤¬È¯À¸¤¹¤ë¤Þ¤Ç¤Î»þ´Ö¤òµá¤á¤ë
+//	æ¬¡ã«ã‚¿ã‚¤ãƒžãƒ¼ãŒç™ºç”Ÿã™ã‚‹ã¾ã§ã®æ™‚é–“ã‚’æ±‚ã‚ã‚‹
 //
-int32 Timer::GetNextEvent()
+int32_t Timer::GetNextEvent()
 {
-	uint32 ta = ((timera_count + 0xffff) >> 16) - 1;
-	uint32 tb = ((timerb_count + 0xfff) >> 12) - 1;
+	uint32_t ta = ((timera_count + 0xffff) >> 16) - 1;
+	uint32_t tb = ((timerb_count + 0xfff) >> 12) - 1;
 	return (ta < tb ? ta : tb) + 1;
 }
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Þ¡¼´ð½àÃÍÀßÄê
+//	ã‚¿ã‚¤ãƒžãƒ¼åŸºæº–å€¤è¨­å®š
 //
-void Timer::SetTimerBase(uint clock)
+void Timer::SetTimerBase(uint32_t clock)
 {
-	timer_step = int32(1000000. * 65536 / clock);
+	timer_step = int32_t(1000000. * 65536 / clock);
 }
 
 #else
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Þ¡¼A ¼þ´üÀßÄê
+//	ã‚¿ã‚¤ãƒžãƒ¼A å‘¨æœŸè¨­å®š
 //
-void Timer::SetTimerA(uint addr, uint data)
+void Timer::SetTimerA(int32_t addr, uint32_t data)
 {
-	regta[addr & 1] = uint8(data);
+	regta[addr & 1] = uint8_t(data);
 	timera = (1024 - ((regta[0] << 2) + (regta[1] & 3))) << 16;
 }
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Þ¡¼B ¼þ´üÀßÄê
+//	ã‚¿ã‚¤ãƒžãƒ¼B å‘¨æœŸè¨­å®š
 //
-void Timer::SetTimerB(uint data)
+void Timer::SetTimerB(uint32_t data)
 {
 	timerb = (256-data) << (16 + 4);
 }
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Þ¡¼»þ´Ö½èÍý
+//	ã‚¿ã‚¤ãƒžãƒ¼æ™‚é–“å‡¦ç†
 //
-bool Timer::Count(int32 us)
+bool Timer::Count(int32_t us)
 {
 	bool event = false;
 
-	int tick = us * timer_step;
+	int32_t tick = us * timer_step;
 
 	if (timera_count)
 	{
@@ -169,21 +169,21 @@ bool Timer::Count(int32 us)
 }
 
 // ---------------------------------------------------------------------------
-//	¼¡¤Ë¥¿¥¤¥Þ¡¼¤¬È¯À¸¤¹¤ë¤Þ¤Ç¤Î»þ´Ö¤òµá¤á¤ë
+//	æ¬¡ã«ã‚¿ã‚¤ãƒžãƒ¼ãŒç™ºç”Ÿã™ã‚‹ã¾ã§ã®æ™‚é–“ã‚’æ±‚ã‚ã‚‹
 //
-int32 Timer::GetNextEvent()
+int32_t Timer::GetNextEvent()
 {
-	uint32 ta = timera_count - 1;
-	uint32 tb = timerb_count - 1;
-	uint32 t = (ta < tb ? ta : tb) + 1;
+	uint32_t ta = timera_count - 1;
+	uint32_t tb = timerb_count - 1;
+	uint32_t t = (ta < tb ? ta : tb) + 1;
 
 	return (t+timer_step-1) / timer_step;
 }
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Þ¡¼´ð½àÃÍÀßÄê
+//	ã‚¿ã‚¤ãƒžãƒ¼åŸºæº–å€¤è¨­å®š
 //
-void Timer::SetTimerBase(uint clock)
+void Timer::SetTimerBase(uint32_t clock)
 {
 	timer_step = clock * 1024 / 15625;
 }

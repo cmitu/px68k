@@ -69,7 +69,10 @@ enum {
 	HTYPE_CONSOLE,
 	HTYPE_KEY,
 };
-
+#ifdef _WIN32
+typedef unsigned int u_int;
+#define bzero(s,d) memset(s,0,d)
+#endif
 struct internal_handle {
 	void	*p;
 	u_int	flags;
@@ -108,8 +111,8 @@ struct internal_file {
 #endif	/* DEBUG */
 
 
-DWORD WINAPI
-GetTickCount(void)
+uint32_t
+FAKE_GetTickCount(void)
 {
 	struct timeval tv;
 
@@ -117,14 +120,14 @@ GetTickCount(void)
 	return tv.tv_usec / 1000 + tv.tv_sec * 1000;
 }
 
-BOOL WINAPI
-ReadFile(HANDLE h, PVOID buf, DWORD len, PDWORD lp, LPOVERLAPPED lpov)
+BOOL
+ReadFile(void *h, void* buf, uint32_t len, uint32_t* lp, LPOVERLAPPED lpov)
 {
 	struct internal_file *fp;
 
 	(void)lpov;
 
-	if (h == (HANDLE)INVALID_HANDLE_VALUE)
+	if (h == (void*)INVALID_HANDLE_VALUE)
 		return FALSE;
 
 	fp = LocalLock(h);
@@ -135,14 +138,14 @@ ReadFile(HANDLE h, PVOID buf, DWORD len, PDWORD lp, LPOVERLAPPED lpov)
 	return TRUE;
 }
 
-BOOL WINAPI
-WriteFile(HANDLE h, PCVOID buf, DWORD len, PDWORD lp, LPOVERLAPPED lpov)
+BOOL
+WriteFile(void *h, const void* buf, uint32_t len, uint32_t* lp, LPOVERLAPPED lpov)
 {
 	struct internal_file *fp;
 
 	(void)lpov;
 
-	if (h == (HANDLE)INVALID_HANDLE_VALUE)
+	if (h == (void *)INVALID_HANDLE_VALUE)
 		return FALSE;
 
 	fp = LocalLock(h);
@@ -153,20 +156,22 @@ WriteFile(HANDLE h, PCVOID buf, DWORD len, PDWORD lp, LPOVERLAPPED lpov)
 	return TRUE;
 }
 
-HANDLE WINAPI
-CreateFile(LPCSTR filename, DWORD rdwr, DWORD share,
+void *
+CreateFile(const char* filename, uint32_t rdwr, uint32_t share,
 	    LPSECURITY_ATTRIBUTES sap,
-	    DWORD crmode, DWORD flags, HANDLE template)
+	    uint32_t crmode, uint32_t flags, void *template)
 {
 	struct internal_file *fp;
-	HANDLE h;
-	int fd, fmode = 0;
+	void *h;
+	int32_t fd, fmode = 0;
 
 	(void)share;
 	(void)sap;
 	(void)flags;
 	(void)template;
-
+#ifdef _WIN32
+ 	fmode |=O_BINARY;
+#endif
 	switch (rdwr & (GENERIC_READ|GENERIC_WRITE)) {
 	case GENERIC_READ:
 		fmode |= O_RDONLY;
@@ -188,7 +193,7 @@ CreateFile(LPCSTR filename, DWORD rdwr, DWORD share,
 	}
 	fd = open(filename, fmode, 0644);
 	if (fd < 0)
-		return (HANDLE)INVALID_HANDLE_VALUE;
+		return (void *)INVALID_HANDLE_VALUE;
 
 	h = LocalAlloc(0, sizeof(struct internal_file));
 	sethandletype(h, HTYPE_FILE);
@@ -198,24 +203,24 @@ CreateFile(LPCSTR filename, DWORD rdwr, DWORD share,
 	return h;
 }
 
-DWORD WINAPI
-SetFilePointer(HANDLE h, LONG pos, PLONG newposh, DWORD whence)
+uint32_t
+SetFilePointer(void *h, int32_t pos, int32_t* newposh, uint32_t whence)
 {
 	struct internal_file *fp;
 	off_t newpos;
-	int fd;
+	int32_t fd;
 
 	(void)newposh;
 
 	fp = LocalLock(h);
 	fd = fp->fd;
 	LocalUnlock(h);
-	newpos = lseek(fd, pos, whence);
+	newpos = lseek(fd, (int)pos, whence);
 	return newpos;
 }
 
-BOOL WINAPI
-CloseHandle(HANDLE h)
+BOOL
+FAKE_CloseHandle(void *h)
 {
 	switch (handletype(h)) {
 	case HTYPE_FILE:
@@ -230,15 +235,15 @@ CloseHandle(HANDLE h)
 	default:
 		return FALSE;
 	}
-	LocalFree(h);
+	LocalFreeX(h);
 	return TRUE;
 }
 
-DWORD WINAPI
-GetFileAttributes(LPCSTR path)
+int32_t
+GetFileAttributes(const char* path)
 {
 	struct stat sb;
-	DWORD attr = FILE_ATTRIBUTE_NORMAL;
+	int32_t attr = FILE_ATTRIBUTE_NORMAL;
 
 	if (stat(path, &sb) == 0) {
 		if (S_ISDIR(sb.st_mode))
@@ -251,36 +256,36 @@ GetFileAttributes(LPCSTR path)
 	return -1;
 }
 
-HLOCAL WINAPI
-LocalAlloc(UINT flags, UINT bytes)
+HLOCAL
+LocalAlloc(uint32_t flags, uint32_t bytes)
 {
 
 	return GlobalAlloc(flags, bytes);
 }
 
-HLOCAL WINAPI
-LocalFree(HLOCAL h)
+HLOCAL
+LocalFreeX(HLOCAL h)
 {
 
 	return GlobalFree(h);
 }
 
-PVOID WINAPI
+void*
 LocalLock(HLOCAL h)
 {
 
 	return GlobalLock(h);
 }
 
-BOOL WINAPI
+BOOL
 LocalUnlock(HLOCAL h)
 {
 
 	return GlobalUnlock(h);
 }
 
-HGLOBAL WINAPI
-GlobalAlloc(UINT flags, DWORD bytes)
+HGLOBAL
+GlobalAlloc(uint32_t flags, uint32_t bytes)
 {
 	struct internal_handle *p;
 
@@ -297,7 +302,7 @@ GlobalAlloc(UINT flags, DWORD bytes)
 	return 0;
 }
 
-HGLOBAL WINAPI
+HGLOBAL
 GlobalFree(HGLOBAL h)
 {
 	struct internal_handle *ih = h;
@@ -317,14 +322,14 @@ GlobalFree(HGLOBAL h)
 	return h;
 }
 
-HGLOBAL WINAPI
-GlobalHandle(PCVOID p)
+HGLOBAL
+GlobalHandle(const void* p)
 {
 
 	return (HGLOBAL)(p - sizeof(struct internal_handle));
 }
 
-LPVOID WINAPI
+void*
 GlobalLock(HGLOBAL h)
 {
 	struct internal_handle *ih = h;
@@ -336,7 +341,7 @@ GlobalLock(HGLOBAL h)
 	return ih->p;
 }
 
-BOOL WINAPI
+BOOL
 GlobalUnlock(HGLOBAL h)
 {
 	struct internal_handle *ih = h;
@@ -353,9 +358,9 @@ GlobalUnlock(HGLOBAL h)
 	return FALSE;
 }
 
-DWORD WINAPI
-GetPrivateProfileString(LPCSTR sect, LPCSTR key, LPCSTR defvalue,
-			 LPSTR buf, DWORD len, LPCSTR inifile)
+uint32_t
+GetPrivateProfileString(const char* sect, const char* key, const char* defvalue,
+			 char* buf, uint32_t len, const char* inifile)
 {
 	char lbuf[256];
 	FILE *fp;
@@ -368,7 +373,7 @@ GetPrivateProfileString(LPCSTR sect, LPCSTR key, LPCSTR defvalue,
 	 || inifile == NULL)
 		return 0;
 
-	bzero(buf, len);
+	memset(buf, 0, len);
 
 	fp = fopen(inifile, "r");
 	if (fp == NULL)
@@ -409,8 +414,8 @@ nofile:
 	return strlen(buf);
 }
 
-UINT WINAPI
-GetPrivateProfileInt(LPCSTR sect, LPCSTR key, INT defvalue, LPCSTR inifile)
+uint32_t
+GetPrivateProfileInt(const char* sect, const char* key, int32_t defvalue, const char* inifile)
 {
 	char lbuf[256];
 	FILE *fp;
@@ -424,24 +429,24 @@ GetPrivateProfileInt(LPCSTR sect, LPCSTR key, INT defvalue, LPCSTR inifile)
 	if (fp == NULL)
 		goto nofile;
 	while (!feof(fp)) {
-		fgets(lbuf, sizeof(lbuf), fp);
+		fgets((char *)lbuf, sizeof(lbuf), fp);
 		/* XXX should be case insensitive */
 		if (lbuf[0] == '['
-		    && !strncasecmp(sect, &lbuf[1], strlen(sect))
+		    && !strncasecmp(sect, (char *)&lbuf[1], strlen(sect))
 		    && lbuf[strlen(sect) + 1] == ']')
 			break;
 	}
 	if (feof(fp))
 		goto notfound;
 	while (!feof(fp)) {
-		fgets(lbuf, sizeof(lbuf), fp);
-		if (lbuf[0] == '[' && strchr(lbuf, ']'))
+		fgets((char *)lbuf, sizeof(lbuf), fp);
+		if (lbuf[0] == '[' && strchr((char *)lbuf, ']'))
 			goto notfound;
 		/* XXX should be case insensitive */
-		if (!strncasecmp(key, lbuf, strlen(key))
-		    && lbuf[strlen(key)] == '=') {
-			int value;
-			sscanf(&lbuf[strlen(key) + 1], "%d", &value);
+		if (!strncasecmp(key, (char *)lbuf, strlen(key))
+		    && (char)lbuf[strlen(key)] == (char)'=') {
+			int32_t value;
+			sscanf((char *)&lbuf[strlen(key) + 1], "%d", &value);
 			fclose(fp);
 			return value;
 		}

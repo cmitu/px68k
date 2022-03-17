@@ -35,8 +35,8 @@
 
 #include "dosio.h"
 
-static char	curpath[MAX_PATH+32] = "";
-static LPSTR	curfilep = curpath;
+static char		curpath[MAX_PATH+32] = "";
+static char*	curfilep = curpath;
 
 void
 dosio_init(void)
@@ -52,9 +52,9 @@ dosio_term(void)
 	/* Nothing to do. */
 }
 
-/* ¥Õ¥¡¥¤¥ëÁàºî */
+/* ãƒ•ã‚¡ã‚¤ãƒ«æ“ä½œ */
 FILEH
-file_open(LPSTR filename)
+file_open(char* filename)
 {
 	FILEH	ret;
 
@@ -70,7 +70,7 @@ file_open(LPSTR filename)
 }
 
 FILEH
-file_create(LPSTR filename, int ftype)
+file_create(char* filename, int32_t ftype)
 {
 	FILEH	ret;
 
@@ -83,57 +83,57 @@ file_create(LPSTR filename, int ftype)
 	return ret;
 }
 
-DWORD
+uint32_t
 file_seek(FILEH handle, long pointer, short mode)
 {
 
 	return SetFilePointer(handle, pointer, 0, mode);
 }
 
-DWORD
-file_lread(FILEH handle, void *data, DWORD length)
+uint32_t
+file_lread(FILEH handle, void *data, uint32_t length)
 {
-	DWORD	readsize;
+	uint32_t	readsize;
 
 	if (ReadFile(handle, data, length, &readsize, NULL) == 0)
 		return 0;
 	return readsize;
 }
 
-DWORD
-file_lwrite(FILEH handle, void *data, DWORD length)
+uint32_t
+file_lwrite(FILEH handle, void *data, uint32_t length)
 {
-	DWORD	writesize;
+	uint32_t	writesize;
 
 	if (WriteFile(handle, data, length, &writesize, NULL) == 0)
 		return 0;
 	return writesize;
 }
 
-WORD
-file_read(FILEH handle, void *data, WORD length)
+uint16_t
+file_read(FILEH handle, void *data, uint16_t length)
 {
-	DWORD	readsize;
+	uint32_t	readsize;
 
 	if (ReadFile(handle, data, length, &readsize, NULL) == 0)
 		return 0;
-	return (WORD)readsize;
+	return (uint16_t)readsize;
 }
 
-DWORD
-file_zeroclr(FILEH handle, DWORD length)
+int32_t
+file_zeroclr(FILEH handle, uint32_t length)
 {
 	char	buf[256];
-	DWORD	size;
-	DWORD	wsize;
-	DWORD	ret = 0;
+	uint32_t	size;
+	uint32_t	wsize;
+	uint32_t	ret = 0;
 
 	memset(buf, 0, sizeof(buf));
 	while (length > 0) {
 		wsize = (length >= sizeof(buf)) ? sizeof(buf) : length;
 
 		size = file_lwrite(handle, buf, wsize);
-		if (size == (DWORD)-1)
+		if (size == 0)
 			return -1;
 
 		ret += size;
@@ -145,28 +145,28 @@ file_zeroclr(FILEH handle, DWORD length)
 }
 
 
-WORD
-file_write(FILEH handle, void *data, WORD length)
+uint16_t
+file_write(FILEH handle, void *data, uint16_t length)
 {
-	DWORD	writesize;
+	uint32_t	writesize;
 
 	if (WriteFile(handle, data, length, &writesize, NULL) == 0)
 		return 0;
-	return (WORD)writesize;
+	return (uint16_t)writesize;
 }
 
-WORD
-file_lineread(FILEH handle, void *data, WORD length)
+uint16_t
+file_lineread(FILEH handle, void *data, uint16_t length)
 {
-	LPSTR	p = (LPSTR)data;
-	DWORD	readsize;
-	DWORD	pos;
-	WORD	ret = 0;
+	char*	p = (char*)data;
+	uint32_t	readsize;
+	uint32_t	pos;
+	uint16_t	ret = 0;
 
-	if ((length == 0) || ((pos = file_seek(handle, 0, 1)) == (DWORD)-1))
+	if ((length == 0) || ((pos = file_seek(handle, 0, 1)) == -1))
 		return 0;
 
-	ZeroMemory(data, length);
+	memset(data, 0, length);
 	if (ReadFile(handle, data, length-1, &readsize, NULL) == 0)
 		return 0;
 
@@ -185,25 +185,25 @@ file_lineread(FILEH handle, void *data, WORD length)
 	return ret;
 }
 
-short
+int16_t
 file_close(FILEH handle)
 {
 
-	CloseHandle(handle);
+	FAKE_CloseHandle(handle);
 	return 0;
 }
 
-short
-file_attr(LPSTR filename)
+int16_t
+file_attr(char* filename)
 {
 
-	return (short)GetFileAttributes(filename);
+	return (int16_t)GetFileAttributes(filename);
 }
 
 
-							// ¥«¥ì¥ó¥È¥Õ¥¡¥¤¥ëÁàºî
+							// ã‚«ãƒ¬ãƒ³ãƒˆãƒ•ã‚¡ã‚¤ãƒ«æ“ä½œ
 void
-file_setcd(LPSTR exename)
+file_setcd(char* exename)
 {
 
 	strncpy(curpath, exename, sizeof(curpath));
@@ -212,40 +212,40 @@ file_setcd(LPSTR exename)
 	*curfilep = '\0';
 }
 
-LPSTR
-file_getcd(LPSTR filename)
+char*
+file_getcd(char* filename)
 {
 
-	strncpy(curfilep, filename, curfilep - curpath);
+	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
 	return curpath;
 }
 
 FILEH
-file_open_c(LPSTR filename)
+file_open_c(char* filename)
 {
 
-	strncpy(curfilep, filename, curfilep - curpath);
+	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
 	return file_open(curpath);
 }
 
 FILEH
-file_create_c(LPSTR filename, int ftype)
+file_create_c(char* filename, int32_t ftype)
 {
 
-	strncpy(curfilep, filename, curfilep - curpath);
+	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
 	return file_create(curpath, ftype);
 }
 
-short
-file_attr_c(LPSTR filename)
+int16_t
+file_attr_c(char* filename)
 {
 
-	strncpy(curfilep, filename, curfilep - curpath);
+	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
 	return file_attr(curpath);
 }
 
-int
-file_getftype(LPSTR filename)
+int32_t
+file_getftype(char* filename)
 {
 
 	(void)filename;
@@ -254,10 +254,11 @@ file_getftype(LPSTR filename)
 }
 
 
-LPSTR
-getFileName(LPSTR filename)
+char*
+getFileName(char* filename)
 {
-	LPSTR p, q;
+	char* p;
+	char* q;
 
 	for (p = q = filename; *p != '\0'; p++)
 		if (*p == '/')
@@ -266,9 +267,10 @@ getFileName(LPSTR filename)
 }
 
 void
-cutFileName(LPSTR filename)
+cutFileName(char* filename)
 {
-	LPSTR p, q;
+	char* p;
+	char* q;
 
 	for (p = filename, q = NULL; *p != '\0'; p++)
 		if (*p == '/')
@@ -277,11 +279,11 @@ cutFileName(LPSTR filename)
 		*q = '\0';
 }
 
-LPSTR
-getExtName(LPSTR filename)
+char*
+getExtName(char* filename)
 {
-	LPSTR	p;
-	LPSTR	q;
+	char*	p;
+	char*	q;
 
 	p = getFileName(filename);
 	q = NULL;
@@ -297,10 +299,10 @@ getExtName(LPSTR filename)
 }
 
 void
-cutExtName(LPSTR filename)
+cutExtName(char* filename)
 {
-	LPSTR	p;
-	LPSTR	q;
+	char*	p;
+	char*	q;
 
 	p = getFileName(filename);
 	q = NULL;
@@ -314,14 +316,14 @@ cutExtName(LPSTR filename)
 		*q = '\0';
 }
 
-int
-kanji1st(LPSTR str, int pos)
+int32_t
+kanji1st(char* str, int32_t pos)
 {
-	int	ret = 0;
-	BYTE	c;
+	int32_t	ret = 0;
+	uint8_t	c;
 
 	for (; pos > 0; pos--) {
-		c = (BYTE)str[pos];
+		c = (uint8_t)str[pos];
 		if (!((0x81 <= c && c <= 0x9f) || (0xe0 <= c && c <= 0xfc)))
 			break;
 		ret ^= 1;
@@ -329,14 +331,14 @@ kanji1st(LPSTR str, int pos)
 	return ret;
 }
 
-int
-kanji2nd(LPSTR str, int pos)
+int32_t
+kanji2nd(char* str, int32_t pos)
 {
-	int	ret = 0;
-	BYTE	c;
+	int32_t	ret = 0;
+	uint8_t	c;
 
 	while (pos-- > 0) {
-		c = (BYTE)str[pos];
+		c = (uint8_t)str[pos];
 		if (!((0x81 <= c && c <= 0x9f) || (0xe0 <= c && c <= 0xfc)))
 			break;
 		ret ^= 1;
@@ -345,10 +347,10 @@ kanji2nd(LPSTR str, int pos)
 }
 
 
-int
-ex_a2i(LPSTR str, int min, int max)
+int32_t
+ex_a2i(char* str, int32_t min, int32_t max)
 {
-	int	ret = 0;
+	int32_t	ret = 0;
 	char	c;
 
 	if (str == NULL)
@@ -371,18 +373,18 @@ ex_a2i(LPSTR str, int min, int max)
 }
 
 void
-cutyen(LPSTR str)
+cutyen(char* str)
 {
-	int pos = strlen(str) - 1;
+	int32_t pos = strlen(str) - 1;
 
 	if ((pos > 0) && (str[pos] == '/'))
 		str[pos] = '\0';
 }
 
 void
-plusyen(LPSTR str, int len)
+plusyen(char* str, int32_t len)
 {
-	int	pos = strlen(str);
+	int32_t	pos = strlen(str);
 
 	if (pos) {
 		if (str[pos-1] == '/')
@@ -396,10 +398,10 @@ plusyen(LPSTR str, int len)
 
 
 void
-fname_mix(LPSTR str, LPSTR mix, int size)
+fname_mix(char* str, char* mix, int32_t size)
 {
-	LPSTR p;
-	int len;
+	char* p;
+	int32_t len;
 	char c;
 	char check;
 
@@ -445,7 +447,7 @@ fname_mix(LPSTR str, LPSTR mix, int size)
 }
 
 /*
- * UNIX -> DOS Æü»þÊÑ´¹
+ * UNIX -> DOS æ—¥æ™‚å¤‰æ›
  */
 /* $NetBSD: msdosfs_conv.c,v 1.29 2001/01/18 20:28:27 jdolecek Exp $ */
 /*-
@@ -498,7 +500,7 @@ fname_mix(LPSTR str, LPSTR mix, int size)
 /*
  * Days in each month in a regular year.
  */
-unsigned short const regyear[] = {
+uint16_t const regyear[] = {
 	31, 28, 31, 30, 31, 30,
 	31, 31, 30, 31, 30, 31
 };
@@ -506,7 +508,7 @@ unsigned short const regyear[] = {
 /*
  * Days in each month in a leap year.
  */
-unsigned short const leapyear[] = {
+uint16_t const leapyear[] = {
 	31, 29, 31, 30, 31, 30,
 	31, 31, 30, 31, 30, 31
 };
@@ -516,23 +518,23 @@ unsigned short const leapyear[] = {
  * can avoid a full conversion.
  */
 static time_t lasttime;
-static unsigned long lastday;
-static unsigned short lastddate;
-static unsigned short lastdtime;
+static uint32_t lastday;
+static uint16_t lastddate;
+static uint16_t lastdtime;
 
 /*
  * Convert the unix version of time to dos's idea of time to be used in
  * file timestamps. The passed in unix time is assumed to be in GMT.
  */
 void
-unix2dostime(time_t t, unsigned short *ddp, unsigned short *dtp, unsigned char *dhp)
+unix2dostime(time_t t, uint16_t *ddp, uint16_t *dtp, uint8_t *dhp)
 {
 	time_t tt;
-	unsigned long days;
-	unsigned long inc;
-	unsigned long year;
-	unsigned long month;
-	const unsigned short *months;
+	uint32_t days;
+	uint32_t inc;
+	uint32_t year;
+	uint32_t month;
+	const uint16_t *months;
 
 	/*
 	 * If the time from the last conversion is the same as now, then
@@ -592,8 +594,8 @@ unix2dostime(time_t t, unsigned short *ddp, unsigned short *dtp, unsigned char *
  */
 #define	SECONDSTO1980	(((8 * 365) + (2 * 366)) * (24 * 60 * 60))
 
-static unsigned short lastdosdate;
-static unsigned long lastseconds;
+static uint16_t lastdosdate;
+static uint32_t lastseconds;
 
 /*
  * Convert from dos' idea of time to unix'. This will probably only be
@@ -601,13 +603,13 @@ static unsigned long lastseconds;
  * not be too efficient.
  */
 void
-dos2unixtime(unsigned int dd, unsigned int dt, unsigned int dh, time_t *tp)
+dos2unixtime(uint32_t dd, uint32_t dt, uint32_t dh, time_t *tp)
 {
-	unsigned long seconds;
-	unsigned long m, month;
-	unsigned long y, year;
-	unsigned long days;
-	const unsigned short *months;
+	uint32_t seconds;
+	uint32_t m, month;
+	uint32_t y, year;
+	uint32_t days;
+	const uint16_t *months;
 
 	if (dd == 0) {
 		/*
@@ -637,8 +639,7 @@ dos2unixtime(unsigned int dd, unsigned int dt, unsigned int dh, time_t *tp)
 		 */
 		month = (dd & DD_MONTH_MASK) >> DD_MONTH_SHIFT;
 		if (month == 0) {
-			printf("dos2unixtime(): month value out of range (%ld)\n",
-			    month);
+			//printf("dos2unixtime(): month value out of range (%ld)\n",month);
 			month = 1;
 		}
 		for (m = 0; m < month - 1; m++)

@@ -23,9 +23,10 @@ static const char* copyright_notice =
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include "d68k.h"
-#include "d68kconf.h"
+#include "x68kmemory.h"
 
 #ifndef CLIB_DECL
 #define CLIB_DECL
@@ -36,8 +37,8 @@ static const char* copyright_notice =
 /* ======================================================================== */
 
 /* unsigned int and int must be at least 32 bits wide */
-#undef uint
-#define uint unsigned int
+//#undef uint
+//#define uint unsigned int
 
 /* Bit Isolation Functions */
 #define BIT_0(A)  ((A) & 0x00000001)
@@ -101,39 +102,39 @@ static const char* copyright_notice =
 /* ======================================================================== */
 
 /* Read external memory */
-uint  read_8  (uint address);
-uint  read_16 (uint address);
-uint  read_32 (uint address);
+uint32_t  read_8  (uint32_t address);
+uint32_t  read_16 (uint32_t address);
+uint32_t  read_32 (uint32_t address);
 
 /* Read data at the PC and increment PC */
-uint  read_imm_8(void);
-uint  read_imm_16(void);
-uint  read_imm_32(void);
+uint32_t  read_imm_8(void);
+uint32_t  read_imm_16(void);
+uint32_t  read_imm_32(void);
 
 /* Read data at the PC but don't imcrement the PC */
-uint  peek_imm_8(void);
-uint  peek_imm_16(void);
-uint  peek_imm_32(void);
+uint32_t  peek_imm_8(void);
+uint32_t  peek_imm_16(void);
+uint32_t  peek_imm_32(void);
 
 /* make signed integers 100% portably */
-static int make_int_8(int value);
-static int make_int_16(int value);
+static int32_t make_int_8(int32_t value);
+static int32_t make_int_16(int32_t value);
 
 /* make a string of a hex value */
-static char* make_signed_hex_str_8(uint val);
-static char* make_signed_hex_str_16(uint val);
-static char* make_signed_hex_str_32(uint val);
+static char* make_signed_hex_str_8(uint32_t val);
+static char* make_signed_hex_str_16(uint32_t val);
+static char* make_signed_hex_str_32(uint32_t val);
 
 /* make string of ea mode */
-static char* get_ea_mode_str(uint instruction, uint size);
+static char* get_ea_mode_str(uint32_t instruction, uint32_t size);
 
-char* get_ea_mode_str_8(uint instruction);
-char* get_ea_mode_str_16(uint instruction);
-char* get_ea_mode_str_32(uint instruction);
+char* get_ea_mode_str_8(uint32_t instruction);
+char* get_ea_mode_str_16(uint32_t instruction);
+char* get_ea_mode_str_32(uint32_t instruction);
 
 /* make string of immediate value */
-static char* get_imm_str_s(uint size);
-static char* get_imm_str_u(uint size);
+static char* get_imm_str_s(uint32_t size);
+static char* get_imm_str_u(uint32_t size);
 
 char* get_imm_str_s8(void);
 char* get_imm_str_s16(void);
@@ -141,17 +142,17 @@ char* get_imm_str_s32(void);
 
 /* Stuff to build the opcode handler jump table */
 static void  build_opcode_table(void);
-static int   valid_ea(uint opcode, uint mask);
-static int CLIB_DECL compare_nof_true_bits(const void *aptr, const void *bptr);
+static int32_t   valid_ea(uint32_t opcode, uint32_t mask);
+static int32_t  CLIB_DECL compare_nof_true_bits(const void *aptr, const void *bptr);
 
 
 /* used to build opcode handler jump table */
 typedef struct
 {
    void (*opcode_handler)(void); /* handler function */
-   uint mask;                    /* mask on opcode */
-   uint match;                   /* what to match after masking */
-   uint ea_mask;                 /* what ea modes are allowed */
+   uint32_t mask;                    /* mask on opcode */
+   uint32_t match;                   /* what to match after masking */
+   uint32_t ea_mask;                 /* what ea modes are allowed */
 } opcode_struct;
 
 
@@ -163,17 +164,17 @@ typedef struct
 /* Opcode handler jump table */
 static void (*g_instruction_table[0x10000])(void);
 /* Flag if disassembler initialized */
-static int  g_initialized = 0;
+static int32_t  g_initialized = 0;
 
 static char g_dasm_str[100]; /* string to hold disassembly */
 static char g_helper_str[100]; /* string to hold helpful info */
-static uint g_cpu_pc;        /* program counter */
-static uint g_cpu_ir;        /* instruction register */
+static uint32_t g_cpu_pc;        /* program counter */
+static uint32_t g_cpu_ir;        /* instruction register */
 
 /* used by ops like asr, ror, addq, etc */
-static uint g_3bit_qdata_table[8] = {8, 1, 2, 3, 4, 5, 6, 7};
+static uint32_t g_3bit_qdata_table[8] = {8, 1, 2, 3, 4, 5, 6, 7};
 
-static uint g_5bit_data_table[32] =
+static uint32_t g_5bit_data_table[32] =
 {
    32,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
    16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31
@@ -226,19 +227,19 @@ static char* g_cpcc[64] =
 
 
 /* 100% portable signed int generators */
-static int make_int_8(int value)
+static int32_t make_int_8(int32_t value)
 {
    return (value & 0x80) ? value | ~0xff : value & 0xff;
 }
 
-static int make_int_16(int value)
+static int32_t make_int_16(int32_t value)
 {
    return (value & 0x8000) ? value | ~0xffff : value & 0xffff;
 }
 
 
 /* Get string representation of hex values */
-static char* make_signed_hex_str_8(uint val)
+static char* make_signed_hex_str_8(uint32_t val)
 {
    static char str[20];
 
@@ -252,7 +253,7 @@ static char* make_signed_hex_str_8(uint val)
    return str;
 }
 
-static char* make_signed_hex_str_16(uint val)
+static char* make_signed_hex_str_16(uint32_t val)
 {
    static char str[20];
 
@@ -266,7 +267,7 @@ static char* make_signed_hex_str_16(uint val)
    return str;
 }
 
-static char* make_signed_hex_str_32(uint val)
+static char* make_signed_hex_str_32(uint32_t val)
 {
    static char str[20];
 
@@ -282,7 +283,7 @@ static char* make_signed_hex_str_32(uint val)
 
 
 /* make string of immediate value */
-static char* get_imm_str_s(uint size)
+static char* get_imm_str_s(uint32_t size)
 {
    static char str[15];
    if(size == 0)
@@ -294,7 +295,7 @@ static char* get_imm_str_s(uint size)
    return str;
 }
 
-static char* get_imm_str_u(uint size)
+static char* get_imm_str_u(uint32_t size)
 {
    static char str[15];
    if(size == 0)
@@ -307,20 +308,20 @@ static char* get_imm_str_u(uint size)
 }
 
 /* Make string of effective address mode */
-static char* get_ea_mode_str(uint instruction, uint size)
+static char* get_ea_mode_str(uint32_t instruction, uint32_t size)
 {
    static char b1[64];
    static char b2[64];
    static char* mode = b2;
-   uint extension;
-   uint base;
-   uint outer;
+   uint32_t extension;
+   uint32_t base;
+   uint32_t outer;
    char base_reg[4];
    char index_reg[8];
-   uint preindex;
-   uint postindex;
-   uint comma = 0;
-   uint temp_value = 0;
+   uint32_t preindex;
+   uint32_t postindex;
+   uint32_t comma = 0;
+   uint32_t temp_value = 0;
 
    /* Switch buffers so we don't clobber on a double-call to this function */
    mode = mode == b1 ? b2 : b1;
@@ -538,7 +539,7 @@ static char* get_ea_mode_str(uint instruction, uint size)
 /* ======================================================================== */
 
 /* Disasemble one instruction at pc and store in str_buff */
-int m68k_disassemble(char* str_buff, int pc)
+int32_t m68k_disassemble(char* str_buff, int32_t pc)
 {
    if(!g_initialized)
    {
@@ -553,7 +554,7 @@ int m68k_disassemble(char* str_buff, int pc)
    return g_cpu_pc - pc;
 }
 
-char* m68k_disassemble_quick(int pc)
+char* m68k_disassemble_quick(int32_t pc)
 {
    static char dasm_str[200];
 
@@ -866,19 +867,19 @@ static void d68000_asl_ea(void)
 
 static void d68000_bcc_8(void)
 {
-   uint temp_pc = g_cpu_pc;
+   uint32_t temp_pc = g_cpu_pc;
    sprintf(g_dasm_str, "b%-2s     %x", g_cc[(g_cpu_ir>>8)&0xf], temp_pc + make_int_8(g_cpu_ir));
 }
 
 static void d68000_bcc_16(void)
 {
-   uint temp_pc = g_cpu_pc;
+   uint32_t temp_pc = g_cpu_pc;
    sprintf(g_dasm_str, "b%-2s     %x", g_cc[(g_cpu_ir>>8)&0xf], temp_pc + make_int_16(read_imm_16()));
 }
 
 static void d68020_bcc_32(void)
 {
-   uint temp_pc = g_cpu_pc;
+   uint32_t temp_pc = g_cpu_pc;
    sprintf(g_dasm_str, "b%-2s     %x; (2+)", g_cc[(g_cpu_ir>>8)&0xf], temp_pc + read_imm_32());
 }
 
@@ -911,7 +912,7 @@ static void d68010_bkpt(void)
 
 static void d68020_bfchg(void)
 {
-   uint extension = read_imm_16();
+   uint32_t extension = read_imm_16();
    char offset[3];
    char width[3];
 
@@ -928,7 +929,7 @@ static void d68020_bfchg(void)
 
 static void d68020_bfclr(void)
 {
-   uint extension = read_imm_16();
+   uint32_t extension = read_imm_16();
    char offset[3];
    char width[3];
 
@@ -945,7 +946,7 @@ static void d68020_bfclr(void)
 
 static void d68020_bfexts(void)
 {
-   uint extension = read_imm_16();
+   uint32_t extension = read_imm_16();
    char offset[3];
    char width[3];
 
@@ -962,7 +963,7 @@ static void d68020_bfexts(void)
 
 static void d68020_bfextu(void)
 {
-   uint extension = read_imm_16();
+   uint32_t extension = read_imm_16();
    char offset[3];
    char width[3];
 
@@ -979,7 +980,7 @@ static void d68020_bfextu(void)
 
 static void d68020_bfffo(void)
 {
-   uint extension = read_imm_16();
+   uint32_t extension = read_imm_16();
    char offset[3];
    char width[3];
 
@@ -996,7 +997,7 @@ static void d68020_bfffo(void)
 
 static void d68020_bfins(void)
 {
-   uint extension = read_imm_16();
+   uint32_t extension = read_imm_16();
    char offset[3];
    char width[3];
 
@@ -1013,7 +1014,7 @@ static void d68020_bfins(void)
 
 static void d68020_bfset(void)
 {
-   uint extension = read_imm_16();
+   uint32_t extension = read_imm_16();
    char offset[3];
    char width[3];
 
@@ -1030,7 +1031,7 @@ static void d68020_bfset(void)
 
 static void d68020_bftst(void)
 {
-   uint extension = read_imm_16();
+   uint32_t extension = read_imm_16();
    char offset[3];
    char width[3];
 
@@ -1047,19 +1048,19 @@ static void d68020_bftst(void)
 
 static void d68000_bra_8(void)
 {
-   uint temp_pc = g_cpu_pc;
+   uint32_t temp_pc = g_cpu_pc;
    sprintf(g_dasm_str, "bra     %x", temp_pc + make_int_8(g_cpu_ir));
 }
 
 static void d68000_bra_16(void)
 {
-   uint temp_pc = g_cpu_pc;
+   uint32_t temp_pc = g_cpu_pc;
    sprintf(g_dasm_str, "bra     %x", temp_pc + make_int_16(read_imm_16()));
 }
 
 static void d68020_bra_32(void)
 {
-   uint temp_pc = g_cpu_pc;
+   uint32_t temp_pc = g_cpu_pc;
    sprintf(g_dasm_str, "bra     %x; (2+)", temp_pc + read_imm_32());
 }
 
@@ -1076,19 +1077,19 @@ static void d68000_bset_s(void)
 
 static void d68000_bsr_8(void)
 {
-   uint temp_pc = g_cpu_pc;
+   uint32_t temp_pc = g_cpu_pc;
    sprintf(g_dasm_str, "bsr     %x", temp_pc + make_int_8(g_cpu_ir));
 }
 
 static void d68000_bsr_16(void)
 {
-   uint temp_pc = g_cpu_pc;
+   uint32_t temp_pc = g_cpu_pc;
    sprintf(g_dasm_str, "bsr     %x", temp_pc + make_int_16(read_imm_16()));
 }
 
 static void d68020_bsr_32(void)
 {
-   uint temp_pc = g_cpu_pc;
+   uint32_t temp_pc = g_cpu_pc;
    sprintf(g_dasm_str, "bsr     %x; (2+)", temp_pc + peek_imm_32());
 }
 
@@ -1111,25 +1112,25 @@ static void d68020_callm(void)
 
 static void d68020_cas_8(void)
 {
-   uint extension = read_imm_16();
+   uint32_t extension = read_imm_16();
    sprintf(g_dasm_str, "cas.b   D%d, D%d, %s; (2+)", extension&7, (extension>>8)&7, get_ea_mode_str_8(g_cpu_ir));
 }
 
 static void d68020_cas_16(void)
 {
-   uint extension = read_imm_16();
+   uint32_t extension = read_imm_16();
    sprintf(g_dasm_str, "cas.w   D%d, D%d, %s; (2+)", extension&7, (extension>>8)&7, get_ea_mode_str_16(g_cpu_ir));
 }
 
 static void d68020_cas_32(void)
 {
-   uint extension = read_imm_16();
+   uint32_t extension = read_imm_16();
    sprintf(g_dasm_str, "cas.l   D%d, D%d, %s; (2+)", extension&7, (extension>>8)&7, get_ea_mode_str_32(g_cpu_ir));
 }
 
 static void d68020_cas2_16(void)
 {
-   uint extension = read_imm_32();
+   uint32_t extension = read_imm_32();
    sprintf(g_dasm_str, "cas2.w  D%d:D%d:D%d:D%d, (%c%d):(%c%d); (2+)",
       (extension>>16)&7, extension&7, (extension>>22)&7, (extension>>6)&7,
       BIT_1F(extension) ? 'A' : 'D', (extension>>28)&7,
@@ -1138,7 +1139,7 @@ static void d68020_cas2_16(void)
 
 static void d68020_cas2_32(void)
 {
-   uint extension = read_imm_32();
+   uint32_t extension = read_imm_32();
    sprintf(g_dasm_str, "cas2.l  D%d:D%d:D%d:D%d, (%c%d):(%c%d); (2+)",
       (extension>>16)&7, extension&7, (extension>>22)&7, (extension>>6)&7,
       BIT_1F(extension) ? 'A' : 'D', (extension>>28)&7,
@@ -1157,19 +1158,19 @@ static void d68020_chk_32(void)
 
 static void d68020_chk2_cmp2_8(void)
 {
-   uint extension = read_imm_16();
+   uint32_t extension = read_imm_16();
    sprintf(g_dasm_str, "%s.b  %s, %c%d; (2+)", BIT_B(extension) ? "chk2" : "cmp2", get_ea_mode_str_8(g_cpu_ir), BIT_F(extension) ? 'A' : 'D', (extension>>12)&7);
 }
 
 static void d68020_chk2_cmp2_16(void)
 {
-   uint extension = read_imm_16();
+   uint32_t extension = read_imm_16();
    sprintf(g_dasm_str, "%s.w  %s, %c%d; (2+)", BIT_B(extension) ? "chk2" : "cmp2", get_ea_mode_str_16(g_cpu_ir), BIT_F(extension) ? 'A' : 'D', (extension>>12)&7);
 }
 
 static void d68020_chk2_cmp2_32(void)
 {
-   uint extension = read_imm_16();
+   uint32_t extension = read_imm_16();
    sprintf(g_dasm_str, "%s.l  %s, %c%d; (2+)", BIT_B(extension) ? "chk2" : "cmp2", get_ea_mode_str_32(g_cpu_ir), BIT_F(extension) ? 'A' : 'D', (extension>>12)&7);
 }
 
@@ -1303,25 +1304,25 @@ static void d68000_cmpm_32(void)
 
 static void d68020_cpbcc_16(void)
 {
-   uint extension = read_imm_16();
-   uint new_pc = g_cpu_pc;
+   uint32_t extension = read_imm_16();
+   uint32_t new_pc = g_cpu_pc;
    new_pc += make_int_16(peek_imm_16());
    sprintf(g_dasm_str, "%db%-4s  %s; %x (extension = %x) (2-3)", (g_cpu_ir>>9)&7, g_cpcc[g_cpu_ir&0x3f], get_imm_str_s16(), new_pc, extension);
 }
 
 static void d68020_cpbcc_32(void)
 {
-   uint extension = read_imm_16();
-   uint new_pc = g_cpu_pc;
+   uint32_t extension = read_imm_16();
+   uint32_t new_pc = g_cpu_pc;
    new_pc += peek_imm_32();
    sprintf(g_dasm_str, "%db%-4s  %s; %x (extension = %x) (2-3)", (g_cpu_ir>>9)&7, g_cpcc[g_cpu_ir&0x3f], get_imm_str_s16(), new_pc, extension);
 }
 
 static void d68020_cpdbcc(void)
 {
-   uint extension1 = read_imm_16();
-   uint extension2 = read_imm_16();
-   uint new_pc = g_cpu_pc;
+   uint32_t extension1 = read_imm_16();
+   uint32_t extension2 = read_imm_16();
+   uint32_t new_pc = g_cpu_pc;
    new_pc += make_int_16(peek_imm_16());
    sprintf(g_dasm_str, "%ddb%-4s D%d,%s; %x (extension = %x) (2-3)", (g_cpu_ir>>9)&7, g_cpcc[extension1&0x3f], g_cpu_ir&7, get_imm_str_s16(), new_pc, extension2);
 }
@@ -1343,29 +1344,29 @@ static void d68020_cpsave(void)
 
 static void d68020_cpscc(void)
 {
-   uint extension1 = read_imm_16();
-   uint extension2 = read_imm_16();
+   uint32_t extension1 = read_imm_16();
+   uint32_t extension2 = read_imm_16();
    sprintf(g_dasm_str, "%ds%-4s  %s; (extension = %x) (2-3)", (g_cpu_ir>>9)&7, g_cpcc[extension1&0x3f], get_ea_mode_str_8(g_cpu_ir), extension2);
 }
 
 static void d68020_cptrapcc_0(void)
 {
-   uint extension1 = read_imm_16();
-   uint extension2 = read_imm_16();
+   uint32_t extension1 = read_imm_16();
+   uint32_t extension2 = read_imm_16();
    sprintf(g_dasm_str, "%dtrap%-4s; (extension = %x) (2-3)", (g_cpu_ir>>9)&7, g_cpcc[extension1&0x3f], extension2);
 }
 
 static void d68020_cptrapcc_16(void)
 {
-   uint extension1 = read_imm_16();
-   uint extension2 = read_imm_16();
+   uint32_t extension1 = read_imm_16();
+   uint32_t extension2 = read_imm_16();
    sprintf(g_dasm_str, "%dtrap%-4s %s; (extension = %x) (2-3)", (g_cpu_ir>>9)&7, g_cpcc[extension1&0x3f], get_imm_str_u16(), extension2);
 }
 
 static void d68020_cptrapcc_32(void)
 {
-   uint extension1 = read_imm_16();
-   uint extension2 = read_imm_16();
+   uint32_t extension1 = read_imm_16();
+   uint32_t extension2 = read_imm_16();
    sprintf(g_dasm_str, "%dtrap%-4s %s; (extension = %x) (2-3)", (g_cpu_ir>>9)&7, g_cpcc[extension1&0x3f], get_imm_str_u32(), extension2);
 }
 
@@ -1390,13 +1391,13 @@ static void d68040_cpush(void)
 
 static void d68000_dbra(void)
 {
-   uint temp_pc = g_cpu_pc;
+   uint32_t temp_pc = g_cpu_pc;
    sprintf(g_dasm_str, "dbra    D%d, %x", g_cpu_ir & 7, temp_pc + make_int_16(read_imm_16()));
 }
 
 static void d68000_dbcc(void)
 {
-   uint temp_pc = g_cpu_pc;
+   uint32_t temp_pc = g_cpu_pc;
    sprintf(g_dasm_str, "db%-2s    D%d, %x", g_cc[(g_cpu_ir>>8)&0xf], g_cpu_ir & 7, temp_pc + make_int_16(read_imm_16()));
 }
 
@@ -1412,7 +1413,7 @@ static void d68000_divu(void)
 
 static void d68020_divl(void)
 {
-   uint extension = read_imm_16();
+   uint32_t extension = read_imm_16();
 
    if((extension&7) == ((extension>>12)&7))
       sprintf(g_dasm_str, "div%c.l  %s, D%d; (2+)", BIT_B(extension) ? 's' : 'u', get_ea_mode_str_32(g_cpu_ir), (extension>>12)&7);
@@ -1650,7 +1651,7 @@ static void d68000_move_to_usp(void)
 
 static void d68010_movec(void)
 {
-   uint extension = read_imm_16();
+   uint32_t extension = read_imm_16();
    char* reg_name;
    char* processor;
 
@@ -1733,11 +1734,11 @@ static void d68010_movec(void)
 
 static void d68000_movem_pd_16(void)
 {
-   uint data = read_imm_16();
+   uint32_t data = read_imm_16();
    char buffer[40];
-   uint first;
-   uint run_length;
-   uint i;
+   uint32_t first;
+   uint32_t run_length;
+   uint_fast16_t i;
 
    buffer[0] = 0;
    for(i=0;i<8;i++)
@@ -1777,11 +1778,11 @@ static void d68000_movem_pd_16(void)
 
 static void d68000_movem_pd_32(void)
 {
-   uint data = read_imm_16();
+   uint32_t data = read_imm_16();
    char buffer[40];
-   uint first;
-   uint run_length;
-   uint i;
+   uint32_t first;
+   uint32_t run_length;
+   uint_fast16_t i;
 
    buffer[0] = 0;
    for(i=0;i<8;i++)
@@ -1821,11 +1822,11 @@ static void d68000_movem_pd_32(void)
 
 static void d68000_movem_er_16(void)
 {
-   uint data = read_imm_16();
+   uint32_t data = read_imm_16();
    char buffer[40];
-   uint first;
-   uint run_length;
-   uint i;
+   uint32_t first;
+   uint32_t run_length;
+   uint_fast16_t i;
 
    buffer[0] = 0;
    for(i=0;i<8;i++)
@@ -1865,11 +1866,11 @@ static void d68000_movem_er_16(void)
 
 static void d68000_movem_er_32(void)
 {
-   uint data = read_imm_16();
+   uint32_t data = read_imm_16();
    char buffer[40];
-   uint first;
-   uint run_length;
-   uint i;
+   uint32_t first;
+   uint32_t run_length;
+   uint_fast16_t i;
 
    buffer[0] = 0;
    for(i=0;i<8;i++)
@@ -1909,11 +1910,11 @@ static void d68000_movem_er_32(void)
 
 static void d68000_movem_re_16(void)
 {
-   uint data = read_imm_16();
+   uint32_t data = read_imm_16();
    char buffer[40];
-   uint first;
-   uint run_length;
-   uint i;
+   uint32_t first;
+   uint32_t run_length;
+   uint_fast16_t i;
 
    buffer[0] = 0;
    for(i=0;i<8;i++)
@@ -1953,11 +1954,11 @@ static void d68000_movem_re_16(void)
 
 static void d68000_movem_re_32(void)
 {
-   uint data = read_imm_16();
+   uint32_t data = read_imm_16();
    char buffer[40];
-   uint first;
-   uint run_length;
-   uint i;
+   uint32_t first;
+   uint32_t run_length;
+   uint_fast16_t i;
 
    buffer[0] = 0;
    for(i=0;i<8;i++)
@@ -2017,7 +2018,7 @@ static void d68000_movep_er_32(void)
 
 static void d68010_moves_8(void)
 {
-   uint extension = read_imm_16();
+   uint32_t extension = read_imm_16();
    if(BIT_B(extension))
       sprintf(g_dasm_str, "moves.b %c%d, %s; (1+)", BIT_F(extension) ? 'A' : 'D', (extension>>12)&7, get_ea_mode_str_8(g_cpu_ir));
    else
@@ -2026,7 +2027,7 @@ static void d68010_moves_8(void)
 
 static void d68010_moves_16(void)
 {
-   uint extension = read_imm_16();
+   uint32_t extension = read_imm_16();
    if(BIT_B(extension))
       sprintf(g_dasm_str, "moves.b %c%d, %s; (1+)", BIT_F(extension) ? 'A' : 'D', (extension>>12)&7, get_ea_mode_str_16(g_cpu_ir));
    else
@@ -2035,7 +2036,7 @@ static void d68010_moves_16(void)
 
 static void d68010_moves_32(void)
 {
-   uint extension = read_imm_16();
+   uint32_t extension = read_imm_16();
    if(BIT_B(extension))
       sprintf(g_dasm_str, "moves.b %c%d, %s; (1+)", BIT_F(extension) ? 'A' : 'D', (extension>>12)&7, get_ea_mode_str_32(g_cpu_ir));
    else
@@ -2084,7 +2085,7 @@ static void d68000_mulu(void)
 
 static void d68020_mull(void)
 {
-   uint extension = read_imm_16();
+   uint32_t extension = read_imm_16();
 
    if(BIT_A(extension))
       sprintf(g_dasm_str, "mul%c.l  %s, D%d; (2+)", BIT_B(extension) ? 's' : 'u', get_ea_mode_str_32(g_cpu_ir), (extension>>12)&7);
@@ -2966,7 +2967,7 @@ static opcode_struct g_opcode_info[] =
 };
 
 /* Check if opcode is using a valid ea mode */
-static int valid_ea(uint opcode, uint mask)
+static int32_t valid_ea(uint32_t opcode, uint32_t mask)
 {
    if(mask == 0)
       return 1;
@@ -3010,10 +3011,10 @@ static int valid_ea(uint opcode, uint mask)
 }
 
 /* Used by qsort */
-static int CLIB_DECL compare_nof_true_bits(const void *aptr, const void *bptr)
+static int32_t CLIB_DECL compare_nof_true_bits(const void *aptr, const void *bptr)
 {
-   uint a = ((opcode_struct*)aptr)->mask;
-   uint b = ((opcode_struct*)bptr)->mask;
+   uint16_t a = ((opcode_struct*)aptr)->mask;
+   uint16_t b = ((opcode_struct*)bptr)->mask;
 
    a = ((a & 0xAAAA) >> 1) + (a & 0x5555);
    a = ((a & 0xCCCC) >> 2) + (a & 0x3333);
@@ -3031,10 +3032,10 @@ static int CLIB_DECL compare_nof_true_bits(const void *aptr, const void *bptr)
 /* build the opcode handler jump table */
 static void build_opcode_table(void)
 {
-   uint i;
-   uint opcode;
+   uint_fast32_t i;
+   uint32_t opcode;
    opcode_struct* ostruct;
-   uint opcode_info_length = 0;
+   uint32_t opcode_info_length = 0;
 
    (void)copyright_notice;
 
@@ -3069,7 +3070,7 @@ static void build_opcode_table(void)
    }
 }
 
-int d68k_is_valid_instruction(int instruction)
+int32_t d68k_is_valid_instruction(uint32_t instruction)
 {
    return g_instruction_table[instruction&0xffff] != d68000_illegal;
 }

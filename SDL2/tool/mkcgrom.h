@@ -1,11 +1,11 @@
 
-// X68KのCGROMを侯る
-// buf:           侯る挝拌 (0xc0000バイト尸のバッファ)
-// x68030:        X68030フォントを侯るか々 (附哼痰跟)
-// primaryface:   今挛１ (肩に16ドット脱)
-// secondaryface: 今挛２ (肩に24ドット脱)
+// X68K偺CGROM傪嶌傞
+// buf:           嶌傞椞堟 (0xc0000僶僀僩暘偺僶僢僼傽)
+// x68030:        X68030僼僅儞僩傪嶌傞偐丠 (尰嵼柍岠)
+// primaryface:   彂懱侾 (庡偵16僪僢僩梡)
+// secondaryface: 彂懱俀 (庡偵24僪僢僩梡)
 //
-// 提り猛:         FALSE: 己窃, TRUE: 喇根
+// 栠傝抣:         FALSE: 幐攕, TRUE: 惉岟
 
 
 int make_cgromdat(BYTE *buf, int x68030, LPSTR primaryface, LPSTR secondaryface);

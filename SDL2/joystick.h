@@ -46,34 +46,34 @@ typedef struct _vbtn_points {
 
 void Joystick_Init(void);
 void Joystick_Cleanup(void);
-BYTE FASTCALL Joystick_Read(BYTE num);
-void FASTCALL Joystick_Write(BYTE num, BYTE data);
+uint8_t FASTCALL Joystick_Read(uint8_t num);
+void FASTCALL Joystick_Write(uint8_t num, uint8_t data);
 #ifdef PSP
-void FASTCALL Joystick_Update(int is_menu);
+void FASTCALL Joystick_Update(int32_t is_menu);
 #else
 #if !SDL_VERSION_ATLEAST(2, 0, 0)
 typedef signed int SDL_Keycode;
 #endif
-void FASTCALL Joystick_Update(int is_menu, SDL_Keycode key);
+void FASTCALL Joystick_Update(int32_t is_menu, SDL_Keycode key);
 #endif
 
-BYTE get_joy_downstate(void);
+uint8_t get_joy_downstate(void);
 void reset_joy_downstate(void);
-BYTE get_joy_upstate(void);
+uint8_t get_joy_upstate(void);
 void reset_joy_upstate(void);
 #ifdef PSP
-DWORD Joystick_get_downstate_psp(DWORD ctrl_bit);
-void Joystick_reset_downstate_psp(DWORD ctrl_bit);
+uint32_t Joystick_get_downstate_psp(uint32_t ctrl_bit);
+void Joystick_reset_downstate_psp(uint32_t ctrl_bit);
 void Joystatic_reset_anapad_psp(void);
 void Joystick_mv_anapad_psp(void);
 #endif
 #if defined(ANDROID) || TARGET_OS_IPHONE
 VBTN_POINTS *Joystick_get_btn_points(float scale);
 void Joystick_Vbtn_Update(float scale);
-BYTE Joystick_get_vbtn_state(WORD n);
+uint8_t Joystick_get_vbtn_state(uint16_t n);
 #endif
 
-extern BYTE JoyKeyState;
+extern uint8_t JoyKeyState;
 #ifndef PSP
 extern SDL_Joystick *sdl_joy;
 #endif

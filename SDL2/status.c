@@ -27,7 +27,7 @@
 
 #if 0
 /* -------------------------------------------------------------------------- *
- *   FDD¾õÂÖÉ½¼¨ÍÑ¥¹¥Æ¡¼¥¿¥¹¥Ð¡¼                                              *
+ *   FDDçŠ¶æ…‹è¡¨ç¤ºç”¨ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒãƒ¼                                              *
  * -------------------------------------------------------------------------- */
 
 #include "common.h"
@@ -67,10 +67,10 @@ static char **pixmaps[] = {
 //static GdkPixmap *dev_pixmap[NELEMENTS(pixmaps)];
 
 typedef struct {
-	int insert;
-	int access;
-	int blink;
-	int timer;
+	int32_t insert;
+	int32_t access;
+	int32_t blink;
+	int32_t timer;
 	char file[MAX_PATH];
 } FDDLED;
 
@@ -87,7 +87,7 @@ expose(GtkWidget *w, GdkEventExpose *ev, gpointer d)
 		if (ev->count == 0) {
 			gdk_draw_pixmap(w->window,
 			    w->style->fg_gc[GTK_WIDGET_STATE(w)],
-			    devstat_pixmap[(int)d], 0, 0, 0, 0, 16, 16);
+			    devstat_pixmap[(int32_t)d], 0, 0, 0, 0, 16, 16);
 		}
 		return TRUE;
 	}
@@ -112,7 +112,7 @@ StatBar_Redraw(void)
 
 
 void
-StatBar_Show(int sw)
+StatBar_Show(int32_t sw)
 {
 #if 1
 	(void)sw;
@@ -122,8 +122,8 @@ StatBar_Show(int sw)
 			GdkVisual *visual;
 			GdkColormap *colormap;
 			GdkBitmap *mask;
-			int pos = 0;
-			int i;
+			int32_t pos = 0;
+			int32_t i;
 
 			statbar = gtk_table_new(1, 18, FALSE);
 			gtk_box_pack_start(GTK_BOX(main_vbox), statbar,
@@ -138,7 +138,7 @@ StatBar_Show(int sw)
 
 			for (i = 0; i < NELEMENTS(devstat); ++i) {
 				GtkWidget *w;
-				int idx = 0;
+				int32_t idx = 0;
 
 				if (i == NELEMENTS(devstat) - 1) {
 					w = gtk_vseparator_new();
@@ -222,7 +222,7 @@ StatBar_UpdateTimer(void)
 
 
 void
-StatBar_HDD(int hd)
+StatBar_HDD(int32_t hd)
 {
 #if 1
 	(void)hd;
@@ -240,7 +240,7 @@ StatBar_HDD(int hd)
 
 
 void
-StatBar_SetFDD(int drv, char* file)
+StatBar_SetFDD(int32_t drv, char* file)
 {
 #if 1
 	(void)drv;
@@ -248,7 +248,7 @@ StatBar_SetFDD(int drv, char* file)
 #else
 	char name[81];
 	char *f;
-	int i;
+	int32_t i;
 
 	if ((drv < 0)||(drv > 1))
 		return;
@@ -266,8 +266,8 @@ StatBar_SetFDD(int drv, char* file)
 	}
 
 	if (statbar) {
-		int len = strlen(name);
-		int c = ((FddLed[drv].blink) && (!FddLed[drv].file[0])) ? FddLed[drv].timer : FddLed[drv].access;
+		int32_t len = strlen(name);
+		int32_t c = ((FddLed[drv].blink) && (!FddLed[drv].file[0])) ? FddLed[drv].timer : FddLed[drv].access;
 		gdk_draw_pixmap(devstat_pixmap[drv],
 		    devstat[drv]->style->fg_gc[
 		      GTK_WIDGET_STATE(devstat[drv])],
@@ -283,7 +283,7 @@ StatBar_SetFDD(int drv, char* file)
 
 
 void
-StatBar_ParamFDD(int drv, int access, int insert, int blink)
+StatBar_ParamFDD(int32_t drv, int32_t access, int32_t insert, int32_t blink)
 {
 #if 1
 	(void)drv;
@@ -291,7 +291,7 @@ StatBar_ParamFDD(int drv, int access, int insert, int blink)
 	(void)insert;
 	(void)blink;
 #else
-	int update;
+	int32_t update;
 
 	if ((drv < 0) || (drv > 1))
 		return;
@@ -312,7 +312,7 @@ StatBar_ParamFDD(int drv, int access, int insert, int blink)
 
 	if (update) {
 		if (statbar) {
-			int c = ((FddLed[drv].blink) && (!FddLed[drv].file[0])) ? FddLed[drv].timer : FddLed[drv].access;
+			int32_t c = ((FddLed[drv].blink) && (!FddLed[drv].file[0])) ? FddLed[drv].timer : FddLed[drv].access;
 			gdk_draw_pixmap(devstat_pixmap[drv],
 			    devstat[drv]->style->fg_gc[
 			      GTK_WIDGET_STATE(devstat[drv])],
@@ -325,18 +325,18 @@ StatBar_ParamFDD(int drv, int access, int insert, int blink)
 
 
 void
-StatBar_FDName(int drv, char* name)
+StatBar_FDName(int32_t drv, char* name)
 {
-	/* Full screen ÀìÍÑ */
+	/* Full screen å°‚ç”¨ */
 	(void)drv;
 	(void)name;
 }
 
 
 void
-StatBar_FDD(int drv, int led, int col)
+StatBar_FDD(int32_t drv, int32_t led, int32_t col)
 {
-	/* Full screen ÀìÍÑ */
+	/* Full screen å°‚ç”¨ */
 	(void)drv;
 	(void)led;
 	(void)col;

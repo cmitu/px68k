@@ -10,16 +10,16 @@
 #define	FSEEK_CUR	1
 #define	FSEEK_END	2
 
-LPSTR getFileName(LPSTR filename);
+char* getFileName(char* filename);
 //#define	getFileName	GetFileName
 
-FILEH	File_Open(BYTE *filename);
-FILEH	File_Create(BYTE *filename);
-DWORD	File_Seek(FILEH handle, long pointer, short mode);
-DWORD	File_Read(FILEH handle, void *data, DWORD length);
-DWORD	File_Write(FILEH handle, void *data, DWORD length);
-short	File_Close(FILEH handle);
-short	File_Attr(BYTE *filename);
+FILEH	File_Open(uint8_t *filename);
+FILEH	File_Create(uint8_t *filename);
+uint32_t	File_Seek(FILEH handle, int32_t pointer, uint16_t mode);
+uint32_t	File_Read(FILEH handle, void *data, uint32_t length);
+uint32_t	File_Write(FILEH handle, void *data, uint32_t length);
+uint16_t	File_Close(FILEH handle);
+uint16_t	File_Attr(uint8_t *filename);
 #define	File_Open	file_open
 #define	File_Create	file_create
 #define	File_Seek	file_seek
@@ -28,10 +28,10 @@ short	File_Attr(BYTE *filename);
 #define	File_Close	file_close
 #define	File_Attr	file_attr
 
-void	File_SetCurDir(BYTE *exename);
-FILEH	File_OpenCurDir(BYTE *filename);
-FILEH	File_CreateCurDir(BYTE *filename);
-short	File_AttrCurDir(BYTE *filename);
+void	File_SetCurDir(uint8_t *exename);
+FILEH	File_OpenCurDir(uint8_t *filename);
+FILEH	File_CreateCurDir(uint8_t *filename);
+int16_t	File_AttrCurDir(uint8_t *filename);
 #define	File_SetCurDir		file_setcd
 #define	File_OpenCurDir		file_open_c
 #define	File_CreateCurDir	file_create_c

@@ -1,9 +1,18 @@
 #ifndef winx68k_common_h
 #define winx68k_common_h
 
+#ifdef _WIN32
 #include "windows.h"
+#endif
+
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
+#include <pthread.h>
+
+#ifndef _WIN32
+#include "../win32api/windows.h"
+#endif
 
 #ifdef __APPLE__
 #include "TargetConditionals.h"
@@ -14,7 +23,9 @@
 #define	SUCCESS		0
 #define	FAILURE		1
 
+#undef FASTCALL
 #define FASTCALL
+
 #define STDCALL
 #define	LABEL
 #define	__stdcall
@@ -23,22 +34,22 @@
 #ifdef MAX_PATH
 #undef MAX_PATH
 #endif
-#define MAX_PATH 256
+#define MAX_PATH 320
 #endif
 
-typedef unsigned char	UINT8;
-typedef unsigned short	UINT16;
-typedef unsigned int	UINT32;
-typedef signed char	INT8;
-typedef signed short	INT16;
-typedef signed int	INT32;
+typedef uint8_t	UINT8;
+typedef uint16_t	UINT16;
+typedef uint32_t	UINT32;
+typedef int8_t	INT8;
+typedef int16_t	INT16;
+typedef int32_t	INT32;
 
 typedef union {
 	struct {
-		BYTE l;
-		BYTE h;
+		uint8_t l;
+		uint8_t h;
 	} b;
-	WORD w;
+	uint16_t w;
 } PAIR;
 
 #ifdef __cplusplus

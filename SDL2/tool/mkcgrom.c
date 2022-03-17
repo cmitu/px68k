@@ -1,23 +1,51 @@
 // -----------------------------------------------------------------------
-//   CGROM║ю└об┴  дцддд╡дєд╦║юд├д╞дтдщд├д┐дк
+//   CGROMНьРмБ`  ВфВвВ│ВёВ╔НьВ┴В─ВрВчВ┴В╜Ви
 // -----------------------------------------------------------------------
 #include	<windows.h>
 
+main(){
+	static const char FONTFILE[] = "cgrom.dat";
+	static const char FONTFILETMP[] = "cgrom.tmp";
+	FILEH fp;
+	int32_t i;
+	uint8_t tmp;
+	HWND hWndMain;
+
+			MessageBox(hWndMain,
+				"ГtГHГУГgROMГCГББ[ГWВкМйВ┬ВйВшВ▄В╣Вё.\nWindowsГtГHГУГgВйВчРVЛKВ╔НьРмВ╡В▄В╖.",
+				"ВпВыВ╥Б[В╠ГБГbГZБ[ГW", MB_ICONWARNING | MB_OK);
+			SSTP_SendMes(SSTPMES_MAKEFONT);
+			make_cgromdat(FONT, FALSE, "ВlВr ГSГVГbГN", "ВlВr Ц╛Тй");
+			//WinX68k_MakeFont();
+			//DialogBox(hInst, MAKEINTRESOURCE(IDD_PROGBAR),
+			//		hWndMain, (DLGPROC)MakeFontProc);
+			fp = File_CreateCurDir(FONTFILETMP);
+			if (fp)
+			{
+				File_Write(fp, FONT, 0xc0000);
+				File_Close(fp);
+				return;
+			}
+			return;
+}
+
+
+
 static char *str_x68k[14] = {
-						"бббкб╔бЇбЁбєбїб╟б╩б╦бЎб▄бдб▌беб┐",
-						"г░г▒г▓г│г┤г╡г╢г╖г╕г╣бибзбубсбфбй",
-						"бўг┴г┬г├г─г┼г╞г╟г╚г╔г╩г╦г╠г═г╬г╧",
-						"г╨г╤г╥г╙г╘г╒г╓г╫г╪г┘г┌б╬бяб╧б░б▓",
-						"б╞гсгтгугфгхгцгчгшгщгъгыгьгэгюгя",
-						"гЁгёгЄгєгЇгїгЎгўг°г∙г·б╨б├б╤б▒бб",
-						"ббббббббббббдЄдбдгдедздйдудхдчд├",
-						"ббдвдддждидкдлдндпд▒д│д╡д╖д╣д╗д╜",
-						"бббгб╓б╫бвбжеЄебегееезейеуехече├",
-						"б╝еведежеиекеленепе▒е│е╡е╖е╣е╗е╜",
-						"е┐е┴е─е╞е╚е╩е╦е╠е═е╬е╧е╥е╒е╪е█е▐",
-						"е▀ересетефецешещеъеыеьеэеяеєблбм",
-						"д┐д┴д─д╞д╚д╩д╦д╠д═д╬д╧д╥д╒д╪д█д▐",
-						"д▀дрдсдтдфдцдшдщдъдыдьдэдядєбббб"};
+						"Б@БIБhБФБРБУБХБfБiБjБЦБ{БCБ|БDБ^",
+						"ВOВPВQВRВSВTВUВVВWВXБFБGБГБББДБH",
+						"БЧВ`ВaВbВcВdВeВfВgВhВiВjВkВlВmВn",
+						"ВoВpВqВrВsВtВuВvВwВxВyБmБПБnБOБQ",
+						"БeВБВВВГВДВЕВЖВЗВИВЙВКВЛВМВНВОВП",
+						"ВРВСВТВУВФВХВЦВЧВШВЩВЪБoБbБpБPБ@",
+						"Б_Б`БbБ@Б@Б@ВЁВЯВбВгВеВзВсВуВхВ┴",
+						"Б@ВаВвВдВжВиВйВлВнВпВ▒В│В╡В╖В╣В╗",
+						"Б@БBБuБvБAБEГТГ@ГBГDГFГHГГГЕГЗГb",
+						"Б[ГAГCГEГGГIГJГLГNГPГRГTГVГXГZГ\",
+						"Г^Г`ГcГeГgГiГjГkГlГmГnГqГtГwГzГ}",
+						"Г~ГАГБГВГДГЖГИГЙГКГЛГМГНГПГУБJБK",
+						"В╜В┐В┬В─В╞В╚В╔В╩В╦В╠В═В╨В╙В╓В┘В▄",
+						"В▌В▐В▀ВрВтВфВцВчВшВщВъВыВэВёБ@Б@"};
 
 static int deltable[] = {
 		//     del         del        del          del         del
@@ -1061,12 +1089,12 @@ int make_cgromdat(BYTE *buf, int x68030, LPSTR primaryface, LPSTR secondaryface)
 		cpy12fnt2cgrom(buf + 0x3d000 + (i+ 2)*16*2*24,
 							fnt + (i+0)*8*3, 12*256, 24);
 	}
-	// еле┐еле╩
+	// ГJГ^ГJГi
 	for (i=0; i<4; i++) {
 		cpy12fnt2cgrom(buf + 0x3d000 + (i+10)*16*2*24,
 							fnt + (i+6)*8*3, 12*256, 24);
 	}
-	// ╩┐▓╛╠╛
+	// Х╜Й╝Ц╝
 	for (i=0; i<2; i++) {
 		getfont_sub(fnt, str_x68k[i+6], secondaryface, 6, 24, 256, 24);
 		cpy12fnt2cgrom(buf + 0x3d000 + (i+ 8)*16*2*24, fnt, 256, 24);

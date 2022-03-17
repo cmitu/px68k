@@ -7,30 +7,30 @@
 extern "C" {
 #endif
 
-DWORD	WINAPI GetTickCount(void);
+uint32_t	FAKE_GetTickCount(void);
 
-BOOL	WINAPI ReadFile(HANDLE, PVOID, DWORD, PDWORD, LPOVERLAPPED);
-BOOL	WINAPI WriteFile(HANDLE, PCVOID, DWORD, PDWORD, LPOVERLAPPED);
-HANDLE	WINAPI CreateFile(LPCSTR, DWORD, DWORD, LPSECURITY_ATTRIBUTES,
-		DWORD, DWORD, HANDLE);
-DWORD	WINAPI SetFilePointer(HANDLE, LONG, PLONG, DWORD);
-BOOL	WINAPI CloseHandle(HANDLE);
-DWORD	WINAPI GetFileAttributes(LPCSTR);
+BOOL	ReadFile(void*, void*, uint32_t, uint32_t*, LPOVERLAPPED);
+BOOL	WriteFile(void*, const void* , uint32_t, uint32_t*, LPOVERLAPPED);
+void*	CreateFile(const char*, uint32_t, uint32_t, LPSECURITY_ATTRIBUTES,
+		uint32_t, uint32_t, void*);
+uint32_t	SetFilePointer(void*, int32_t, int32_t*, uint32_t);
+BOOL	FAKE_CloseHandle(void*);
+int32_t	GetFileAttributes(const char*);
 
-HLOCAL	WINAPI LocalAlloc(UINT, UINT);
-HLOCAL	WINAPI LocalFree(HLOCAL);
-PVOID	WINAPI LocalLock(HLOCAL);
-BOOL	WINAPI LocalUnlock(HLOCAL);
+HLOCAL	LocalAlloc(uint32_t, uint32_t);
+HLOCAL	LocalFreeX(HLOCAL);
+void*	LocalLock(HLOCAL);
+BOOL	LocalUnlock(HLOCAL);
 
-HGLOBAL WINAPI GlobalAlloc(UINT, DWORD);
-HGLOBAL	WINAPI GlobalFree(HGLOBAL);
-LPVOID	WINAPI GlobalLock(HGLOBAL);
-BOOL	WINAPI GlobalUnlock(HGLOBAL);
-HGLOBAL	WINAPI GlobalHandle(PCVOID);
+HGLOBAL GlobalAlloc(uint32_t, uint32_t);
+HGLOBAL	GlobalFree(HGLOBAL);
+void*	GlobalLock(HGLOBAL);
+BOOL	GlobalUnlock(HGLOBAL);
+HGLOBAL	GlobalHandle(const void* p);
 
-DWORD	WINAPI GetPrivateProfileString(LPCSTR, LPCSTR, LPCSTR, LPSTR,
-		DWORD, LPCSTR);
-UINT	WINAPI GetPrivateProfileInt(LPCSTR, LPCSTR, INT, LPCSTR);
+uint32_t	GetPrivateProfileString(const char*, const char*, const char*, char*,
+		uint32_t, const char*);
+uint32_t	GetPrivateProfileInt(const char*, const char*, int32_t, const char*);
 
 #ifdef __cplusplus
 };

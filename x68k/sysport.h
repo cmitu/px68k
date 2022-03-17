@@ -3,10 +3,10 @@
 
 #include "common.h"
 
-extern	BYTE	SysPort[7];
+extern	uint8_t	SysPort[7];
 
 void SysPort_Init(void);
-BYTE FASTCALL SysPort_Read(DWORD adr);
-void FASTCALL SysPort_Write(DWORD adr, BYTE data);
+uint8_t FASTCALL SysPort_Read(int32_t adr);
+void FASTCALL SysPort_Write(int32_t adr, uint8_t data);
 
 #endif

@@ -70,45 +70,49 @@
 
 #include "fmg_wrap.h"
 
-extern	BYTE		fdctrace;
-extern	BYTE		traceflag;
-extern	WORD		FrameCount;
-extern	DWORD		TimerICount;
-extern	unsigned int	hTimerID;
-	DWORD		timertick=0;
-extern	int		FullScreenFlag;
-	int		UI_MouseFlag = 0;
-	int		UI_MouseX = -1, UI_MouseY = -1;
+extern	uint8_t		fdctrace;
+extern	uint8_t		traceflag;
+
+extern  uint8_t SRAM[];
+
+extern	uint32_t	FrameCount;
+extern	uint32_t	TimerICount;
+extern	uint32_t	hTimerID;
+		uint32_t	timertick=0;
+extern	int32_t		FullScreenFlag;
+		int32_t		UI_MouseFlag = 0;
+		int32_t		UI_MouseX = -1, UI_MouseY = -1;
 extern	short		timertrace;
 
-	BYTE		MenuClearFlag = 0;
+		int32_t		MenuClearFlag = 0;
 
-	BYTE		Debug_Text=1, Debug_Grp=1, Debug_Sp=1;
+		int32_t		Debug_Text=1, Debug_Grp=1, Debug_Sp=1;
 
-	char		filepath[MAX_PATH] = ".";
-	int		fddblink = 0;
-	int		fddblinkcount = 0;
-	int		hddtrace = 0;
-extern  int		dmatrace;
+		char		filepath[MAX_PATH] = ".";
+		int32_t		fddblink = 0;
+		int32_t		fddblinkcount = 0;
 
-	DWORD		LastClock[4] = {0, 0, 0, 0};
+		int32_t		hddtrace = 0;
+extern  int32_t		dmatrace;
 
-char cur_dir_str[MAX_PATH];
-int cur_dir_slen;
+		int32_t		LastClock[4] = {0, 0, 0, 0};
+
+		char cur_dir_str[MAX_PATH];
+		int32_t cur_dir_slen;
 
 struct menu_flist mfl;
 
 /***** menu items *****/
 
-#define MENU_NUM 13
+#define MENU_NUM 14
 #define MENU_WINDOW 7
 
-int mval_y[] = {0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 1, 1};
+int32_t mval_y[] = {0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 1, 1, 1}; /*初期値*/
 
-enum menu_id {M_SYS, M_JOM, M_FD0, M_FD1, M_HD0, M_HD1, M_FS, M_SR, M_VKS, M_VBS, M_HJS, M_NW, M_JK};
+enum menu_id {M_SYS, M_JOM, M_FD0, M_FD1, M_HD0, M_HD1, M_FS, M_SR, M_VKS, M_VBS, M_HJS, M_NW, M_JK, M_RAM};
 
 // Max # of characters is 15.
-char menu_item_key[][15] = {"SYSTEM", "Joy/Mouse", "FDD0", "FDD1", "HDD0", "HDD1", "Frame Skip", "Sound Rate", "VKey Size", "VBtn Swap", "HwJoy Setting", "No Wait Mode", "JoyKey", "uhyo", ""};
+char menu_item_key[][15] = {"SYSTEM", "Joy/Mouse", "FDD0", "FDD1", "HDD0", "HDD1", "Frame Skip", "Sound Rate", "VKey Size", "VBtn Swap", "HwJoy Setting", "No Wait Mode", "JoyKey", "RAM", "uhyo", ""};
 
 // Max # of characters is 30.
 // Max # of items including terminater `""' in each line is 15.
@@ -123,25 +127,27 @@ char menu_items[][15][30] = {
 	{"No Sound", "11025Hz", "22050Hz", "44100Hz", "48000Hz", ""},
 	{"Ultra Huge", "Super Huge", "Huge", "Large", "Medium", "Small", ""},
 	{"TRIG1 TRIG2", "TRIG2 TRIG1", ""},
-	{"Axis0: xx", "Axis1: xx", "Hat: xx", "Button0: xx", "Button1: xx",  ""},
+	{"Axis0: X", "Axis1: Y", "Hat: ", "Button0: ", "Button1: ",  ""},
 	{"Off", "On", ""},
-	{"Off", "On", ""}
+	{"Off", "On", ""},
+	{"1MB", "2MB", "4MB", "8MB", "12MB", ""}
 };
 
-static void menu_system(int v);
-static void menu_joy_or_mouse(int v);
-static void menu_create_flist(int v);
-static void menu_frame_skip(int v);
-static void menu_sound_rate(int v);
-static void menu_vkey_size(int v);
-static void menu_vbtn_swap(int v);
-static void menu_hwjoy_setting(int v);
-static void menu_nowait(int v);
-static void menu_joykey(int v);
+static void menu_system(int32_t v);
+static void menu_joy_or_mouse(int32_t v);
+static void menu_create_flist(int32_t v);
+static void menu_frame_skip(int32_t v);
+static void menu_sound_rate(int32_t v);
+static void menu_vkey_size(int32_t v);
+static void menu_vbtn_swap(int32_t v);
+static void menu_hwjoy_setting(int32_t v);
+static void menu_nowait(int32_t v);
+static void menu_joykey(int32_t v);
+static void menu_ram_size(int32_t v);
 
 struct _menu_func {
-	void (*func)(int v);
-	int imm;
+	void (*func)(int32_t v);
+	int32_t imm;
 };
 
 struct _menu_func menu_func[] = {
@@ -157,10 +163,11 @@ struct _menu_func menu_func[] = {
 	{menu_vbtn_swap, 1},
 	{menu_hwjoy_setting, 0},
 	{menu_nowait, 1},
-	{menu_joykey, 1}
+	{menu_joykey, 1},
+	{menu_ram_size, 1}
 };
 
-int WinUI_get_drv_num(int key)
+int32_t WinUI_get_drv_num(int32_t key)
 {
 	char *s = menu_item_key[key];
 
@@ -173,8 +180,10 @@ int WinUI_get_drv_num(int key)
 	}
 }
 
-static void menu_hwjoy_print(int v)
+static void menu_hwjoy_print(int32_t v)
 {
+	return;/*--if debug then delete*/
+
 	if (v <= 1) {
 		sprintf(menu_items[M_HJS][v], "Axis%d(%s): %d",
 			v,
@@ -195,7 +204,7 @@ static void menu_hwjoy_print(int v)
 void
 WinUI_Init(void)
 {
-	int i;
+	int32_t i;
 
 	mval_y[M_JOM] = Config.JoyOrMouse;
 	if (Config.FrameRate == 7) {
@@ -236,6 +245,22 @@ WinUI_Init(void)
 	mval_y[M_NW] = Config.NoWaitMode;
 	mval_y[M_JK] = Config.JoyKey;
 
+	if (Config.ram_size == 1) {
+		mval_y[M_RAM] = 0;
+	} else if (Config.ram_size == 2) {
+		mval_y[M_RAM] = 1;
+	} else if (Config.ram_size == 4) {
+		mval_y[M_RAM] = 2;
+	} else if (Config.ram_size == 8) {
+		mval_y[M_RAM] = 3;
+	} else if (Config.ram_size == 12) {
+		mval_y[M_RAM] = 4;
+	} else {
+		mval_y[M_RAM] = 1;
+	}
+
+
+
 #if defined(ANDROID)
 #define CUR_DIR_STR winx68k_dir
 #elif TARGET_OS_IPHONE && TARGET_IPHONE_SIMULATOR == 0
@@ -244,10 +269,19 @@ WinUI_Init(void)
 #define CUR_DIR_STR "./"
 #endif
 
-	strcpy(cur_dir_str, CUR_DIR_STR);
+	if (filepath[0]!='\0') {
+		strcpy(cur_dir_str, filepath);
+		if (cur_dir_str[strlen(cur_dir_str)-1]!='/')
+			strcat(cur_dir_str, "/");
+	}
+	else{
+			strcpy(cur_dir_str, CUR_DIR_STR);
+	}
+
 #ifdef ANDROID
 	strcat(cur_dir_str, "/");
 #endif
+
 	cur_dir_slen = strlen(cur_dir_str);
 	p6logd("cur_dir_str %s %d\n", cur_dir_str, cur_dir_slen);
 
@@ -274,7 +308,7 @@ stretch(gpointer data, guint action, GtkWidget *w)
 	UNUSED(data);
 	UNUSED(w);
 
-	if (Config.WinStrech != (int)action)
+	if (Config.WinStrech != (int32_t)action)
 		Config.WinStrech = action;
 }
 
@@ -284,7 +318,7 @@ xvimode(gpointer data, guint action, GtkWidget *w)
 	UNUSED(data);
 	UNUSED(w);
 
-	if (Config.XVIMode != (int)action)
+	if (Config.XVIMode != (int32_t)action)
 		Config.XVIMode = action;
 }
 
@@ -317,7 +351,7 @@ float VKey_scale[] = {3.0, 2.5, 2.0, 1.5, 1.25, 1.0};
 
 float WinUI_get_vkscale(void)
 {
-	int n = Config.VkeyScale;
+	int32_t n = Config.VkeyScale;
 
 	// failsafe against invalid values
 	if (n < 0 || n >= sizeof(VKey_scale)/sizeof(float)) {
@@ -326,11 +360,11 @@ float WinUI_get_vkscale(void)
 	return VKey_scale[n];
 }
 
-int menu_state = ms_key;
-int mkey_y = 0;
-int mkey_pos = 0;
+int32_t menu_state = ms_key;
+int32_t mkey_y = 0;
+int32_t mkey_pos = 0;
 
-static void menu_system(int v)
+static void menu_system(int32_t v)
 {
 	switch (v) {
 	case 0 :
@@ -342,7 +376,7 @@ static void menu_system(int v)
 	}
 }
 
-static void menu_joy_or_mouse(int v)
+static void menu_joy_or_mouse(int32_t v)
 {
 	Config.JoyOrMouse = v;
 	Mouse_StartCapture(v == 1);
@@ -359,9 +393,11 @@ static void upper(char *s)
 	}
 }
 
-static void menu_create_flist(int v)
+int32_t fnamecmp();
+/*------Open File List------*/
+static void menu_create_flist(int32_t v)
 {
-	int drv;
+	int32_t drv;
 	//file extension of FD image
 	char support[] = "D8888DHDMDUP2HDDIMXDFIMG";
 
@@ -371,29 +407,32 @@ static void menu_create_flist(int v)
 		return;
 	}
 
-	// set current directory when FDD is ejected
+	// set current directory when FDD/HDD is ejected
 	if (v == 1) {
 		if (drv < 2) {
 			FDD_EjectFD(drv);
 			Config.FDDImage[drv][0] = '\0';
 		} else {
 			Config.HDImage[drv - 2][0] = '\0';
+			Config.SCSIEXHDImage[drv - 2][0] = '\0';
 		}
 		strcpy(mfl.dir[drv], cur_dir_str);
 		return;
 	}
 
 	if (drv >= 2) {
-		strcpy(support, "HDF");
+		strcpy(support, "HDFHDS");/*SASI:HDF SCSI:HDS*/
 	}
 
 	// This routine gets file lists.
 	DIR *dp;
 	struct dirent *dent;
 	struct stat buf;
-	int i, len;
+	int_fast32_t i,j,k;
+	int32_t l, len;
 	char *n, ext[4], *p;
 	char ent_name[MAX_PATH];
+	char srt[100];
 
 	dp = opendir(mfl.dir[drv]);
 
@@ -418,13 +457,14 @@ static void menu_create_flist(int v)
 				continue;
 			}
 			strcpy(ext, n + len - 3);
-			upper(ext);
+			upper(ext);	 /*拡張子判別用大文字変換*/
 			p = strstr(support, ext);
 			if (p == NULL || (p - support) % 3 != 0) {
 				i--;
 				continue;
 			}
 		} else {
+			// current directory.
 			if (!strcmp(n, ".")) {
 				i--;
 				continue;
@@ -446,12 +486,34 @@ static void menu_create_flist(int v)
 
 	closedir(dp);
 
+	/*==ファイル名を昇順に並び替え==*/
+	for(j=0; j<i; j++){
+		for(k=j+1; k<i; k++)
+		if (fnamecmp(mfl.name[j],mfl.name[k]) > 0){
+			strcpy(srt , mfl.name[j]);
+			strcpy(mfl.name[j] , mfl.name[k]);
+			strcpy(mfl.name[k] , srt);
+			l = mfl.type[j];
+			mfl.type[j] = mfl.type[k];
+			mfl.type[k] = l;
+		}
+	}
+
 	strcpy(mfl.name[i], "");
 	mfl.num = i;
 	mfl.ptr = 0;
+
 }
 
-static void menu_frame_skip(int v)
+/*昇順にソートする比較関数*/
+int32_t fnamecmp(const void* p1, const void* p2) {
+    const char* str1 = (const char*)p1;
+    const char* str2 = (const char*)p2;
+    return strcmp(str1, str2);
+}
+
+
+static void menu_frame_skip(int32_t v)
 {
 	if (v == 0) {
 		Config.FrameRate = 7;
@@ -468,7 +530,7 @@ static void menu_frame_skip(int v)
 	}
 }
 
-static void menu_sound_rate(int v)
+static void menu_sound_rate(int32_t v)
 {
 	if (v == 0) {
 		Config.SampleRate = 0;
@@ -483,7 +545,7 @@ static void menu_sound_rate(int v)
 	}
 }
 
-static void menu_vkey_size(int v)
+static void menu_vkey_size(int32_t v)
 {
 	Config.VkeyScale = v;
 #if defined(ANDROID) || TARGET_OS_IPHONE
@@ -491,31 +553,53 @@ static void menu_vkey_size(int v)
 #endif
 }
 
-static void menu_vbtn_swap(int v)
+static void menu_vbtn_swap(int32_t v)
 {
 	Config.VbtnSwap = v;
 }
 
-static void menu_hwjoy_setting(int v)
+static void menu_hwjoy_setting(int32_t v)
 {
 	menu_state = ms_hwjoy_set;
 }
 
-static void menu_nowait(int v)
+static void menu_nowait(int32_t v)
 {
 	Config.NoWaitMode = v;
 }
 
-static void menu_joykey(int v)
+static void menu_joykey(int32_t v)
 {
 	Config.JoyKey = v;
 }
 
+static void menu_ram_size(int32_t v)
+{
+
+	if (v == 0) {
+		Config.ram_size = 1;
+	} else if (v == 1) {
+		Config.ram_size = 2;
+	} else if (v == 2) {
+		Config.ram_size = 4;
+	} else if (v == 3) {
+		Config.ram_size = 8;
+	} else if (v == 4) {
+		Config.ram_size = 12;
+	} else {
+		Config.ram_size = 2;
+	}
+
+	/*Set SRAM[8]:RAM-Size*/
+	SRAM[(uint32_t)8] = (uint8_t)(Config.ram_size << 4);
+
+}
+
 // ex. ./hoge/.. -> ./
 // ( ./ ---down hoge dir--> ./hoge ---up hoge dir--> ./hoge/.. )
-static void shortcut_dir(int drv)
+static void shortcut_dir(int32_t drv)
 {
-	int i, len, found = 0;
+	int32_t i, len, found = 0;
 	char *p;
 
 	// len is larger than 2
@@ -536,14 +620,16 @@ static void shortcut_dir(int drv)
 	}
 }
 
-int WinUI_Menu(int first)
+/*=== PF12 Menu ===*/
+int32_t WinUI_Menu(int32_t first)
 {
-	int i, n;
-	int cursor0;
-	BYTE joy;
-	int menu_redraw = 0;
-	int pad_changed = 0;
-	int mfile_redraw = 0;
+	int32_t i, n;
+	int32_t cursor0;
+	uint8_t joy;
+	int32_t menu_redraw = 0;
+	int32_t pad_changed = 0;
+	int32_t mfile_redraw = 0;
+	char *p;
 
 	if (first) {
 		menu_state = ms_key;
@@ -562,17 +648,23 @@ int WinUI_Menu(int first)
 	reset_joy_downstate();
 
 #ifndef PSP
+	/* GamePad setting */
 	if (menu_state == ms_hwjoy_set && sdl_joy) {
-		int y;
+		int32_t y;
 		y = mval_y[mkey_y];
 		SDL_JoystickUpdate();
 		if (y <= 1) {
 			for (i = 0; i < SDL_JoystickNumAxes(sdl_joy); i++) {
 				n = SDL_JoystickGetAxis(sdl_joy, i);
-				p6logd("axis%d:%d", i, n);
 				if (n < -JOYAXISPLAY || n > JOYAXISPLAY) {
 					Config.HwJoyAxis[y] = i;
-					menu_hwjoy_print(y);
+					if(n>0){
+						Config.HwJoyAxisAtr[y] = 0;
+					}
+					else{
+						Config.HwJoyAxisAtr[y] = 1;
+					}
+					menu_hwjoy_print(y);/*for Debug*/
 					pad_changed = 1;
 					break;
 				}
@@ -671,7 +763,7 @@ int WinUI_Menu(int first)
 	}
 
 	if (!(joy & JOY_TRG1)) {
-		int drv, y;
+		int32_t drv, y;
 		switch (menu_state) {
 		case ms_key:
 			menu_state = ms_value;
@@ -712,12 +804,13 @@ int WinUI_Menu(int first)
 			break;
 		case ms_file:
 			drv = WinUI_get_drv_num(mkey_y);
-			printf("***** drv:%d *****\n", drv);
+			p6logd("***** drv:%d *****\n", drv);
 			if (drv < 0) {
 				break; 
 			}
 			y = mfl.ptr + mfl.y;
-			p6logd("file slect %s\n", mfl.name[y]);
+			// file loaded
+			//p6logd("file slect %s\n", mfl.name[y]);
 			if (mfl.type[y]) {
 				// directory operation
 				if (!strcmp(mfl.name[y], "..")) {
@@ -736,9 +829,21 @@ int WinUI_Menu(int first)
 					strcat(tmpstr, mfl.name[y]);
 					if (drv < 2) {
 						FDD_SetFD(drv, tmpstr, 0);
-						strcpy(Config.FDDImage[drv], tmpstr);
+						strcpy((char *)Config.FDDImage[drv], tmpstr);
 					} else {
-						strcpy(Config.HDImage[drv - 2], tmpstr);
+						char exthds[]={'H','D','S'};
+						char strwork[MAX_PATH];
+						strcpy(strwork, tmpstr);
+						upper(strwork);	 /*拡張子判別用大文字変換*/
+						p = strstr(strwork, exthds);
+						if (p == NULL ) {
+						 strcpy((char *)Config.HDImage[drv - 2], tmpstr);
+						 Config.SCSIEXHDImage[drv - 2][0] = '\0';
+						}
+						else{
+						 Config.HDImage[drv - 2][0] = '\0';
+						 strcpy((char *)Config.SCSIEXHDImage[drv - 2], tmpstr);
+						}
 					}
 				}
 				menu_state = ms_key;
@@ -791,13 +896,14 @@ int WinUI_Menu(int first)
 	}
 
 	if (mfile_redraw) {
-		WinDraw_DrawMenufile(&mfl);
+		WinDraw_DrawMenufile(&mfl); /*File選択*/
 		mfile_redraw = 0;
 	}
 
 	if (menu_redraw) {
+		//p6logd("RedrawMenu\n");
 		WinDraw_ClearMenuBuffer();
-		WinDraw_DrawMenu(menu_state, mkey_pos, mkey_y, mval_y);
+		WinDraw_DrawMenu(menu_state, mkey_pos, mkey_y, mval_y);/*Menu ReDraw*/
 	}
 
 	return 0;

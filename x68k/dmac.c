@@ -1,12 +1,12 @@
 // ---------------------------------------------------------------------------------------
-//  DMAC.C - DMA¥³¥ó¥È¥í¡¼¥é¡ÊHD63450¡Ë
-//  ToDo : ¤â¤Ã¤È´ñÎï¤Ë ^^;
+//  DMAC.C - DMAã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ï¼ˆHD63450ï¼‰
+//  ToDo : ã‚‚ã£ã¨å¥‡éº—ã« ^^;
 // ---------------------------------------------------------------------------------------
 
 #include "common.h"
 #include "winx68k.h"
 #include "m68000.h"
-#include "memory.h"
+#include "x68kmemory.h"
 #include "irqh.h"
 #include "fdc.h"
 #include "sasi.h"
@@ -15,11 +15,10 @@
 #include "dmac.h"
 
 dmac_ch	DMA[4];
-int dmatrace = 0;
 
-static int DMA_IntCH = 0;
-static int DMA_LastInt = 0;
-static int (*IsReady[4])(void) = { 0, 0, 0, 0 };
+static int32_t DMA_IntCH = 0;
+static int32_t DMA_LastInt = 0;
+static int32_t (*IsReady[4])(void) = { 0, 0, 0, 0 };
 
 #define DMAINT(ch)     if ( DMA[ch].CCR&0x08 )	{ DMA_IntCH |= (1<<ch); IRQH_Int(3, &DMA_Int); }
 #define DMAERR(ch,err) DMA[ch].CER  = err; \
@@ -29,34 +28,34 @@ static int (*IsReady[4])(void) = { 0, 0, 0, 0 };
                        DMAINT(ch)
 
 
-static int DMA_DummyIsReady(void)
+static int32_t DMA_DummyIsReady(void)
 {
 	return 0;
 }
 
 
-void DMA_SetReadyCB(int ch, int (*func)(void))
+void DMA_SetReadyCB(int32_t ch, int32_t (*func)(void))
 {
 	if ( (ch>=0)&&(ch<=3) ) IsReady[ch] = func;
 }
 
 // -----------------------------------------------------------------------
-//   ³ä¤ê¹ş¤ß¥Ù¥¯¥¿¤òÊÖ¤¹
+//   å‰²ã‚Šè¾¼ã¿ãƒ™ã‚¯ã‚¿ã‚’è¿”ã™
 // -----------------------------------------------------------------------
-DWORD FASTCALL DMA_Int(BYTE irq)
+int32_t FASTCALL DMA_Int(uint8_t irq)
 {
-	DWORD ret = 0xffffffff;
-	int bit = 0;
-	int i = DMA_LastInt;
+	int32_t ret = -1;
+	int32_t bit = 0;
+	int32_t i = DMA_LastInt;
 	IRQH_IRQCallBack(irq);
 	if ( irq==3 ) {
 		do {
 			bit = 1<<i;
 			if ( DMA_IntCH&bit ) {
 				if ( (DMA[i].CSR)&0x10 )
-					ret = ((DWORD)(DMA[i].EIV));
+					ret = ((int32_t)(DMA[i].EIV));
 				else
-					ret = ((DWORD)(DMA[i].NIV));
+					ret = ((int32_t)(DMA[i].NIV));
 				DMA_IntCH &= ~bit;
 				break;
 			}
@@ -72,12 +71,12 @@ DWORD FASTCALL DMA_Int(BYTE irq)
 // -----------------------------------------------------------------------
 //   I/O Read
 // -----------------------------------------------------------------------
-BYTE FASTCALL DMA_Read(DWORD adr)
+uint8_t FASTCALL DMA_Read(int32_t adr)
 {
-	unsigned char* p;
-	int off = adr&0x3f, ch = ((adr-0xe84000)>>6);
+	uint8_t* p;
+	int32_t off = adr&0x3f, ch = ((adr-0xe84000)>>6);
 
-	if ( adr>=0xe84100 ) return 0;		// ¤Ğ¤¹¤¨¤é¡¼¡©
+	if ( adr>=0xe84100 ) return 0;		// ã°ã™ãˆã‚‰ãƒ¼ï¼Ÿ
 
 	p = (unsigned char*)&DMA[ch];
 
@@ -110,21 +109,16 @@ BYTE FASTCALL DMA_Read(DWORD adr)
 // -----------------------------------------------------------------------
 //   I/O Write
 // -----------------------------------------------------------------------
-void FASTCALL DMA_Write(DWORD adr, BYTE data)
+void FASTCALL DMA_Write(int32_t adr, uint8_t data)
 {
-	unsigned char* p;
-	int off = adr&0x3f, ch = ((adr-0xe84000)>>6);
-	BYTE old;
+	uint8_t* p;
+	int32_t off = adr&0x3f, ch = ((adr-0xe84000)>>6);
+	uint8_t old;
 
-	if ( adr>=0xe84100 ) return;		// ¤Ğ¤¹¤¨¤é¡¼¡©
+	if ( adr>=0xe84100 ) return;		// ã°ã™ãˆã‚‰ãƒ¼ï¼Ÿ
 
-	p = (unsigned char*)&DMA[ch];
+	p = (uint8_t*)&DMA[ch];
 
-/*if (ch==3) {
-FILE* fp = fopen("_dma.txt", "a");
-fprintf(fp, "W $%02X $%02X\n", off, data);
-fclose(fp);
-}*/
 
 	switch ( off ) {
 	case 0x0a: case 0x0b: case 0x1a: case 0x1b:
@@ -143,51 +137,51 @@ fclose(fp);
 		break;
 	case 0x07:
 		old = DMA[ch].CCR;
-		DMA[ch].CCR = (data&0xef) | (DMA[ch].CCR&0x80);	// CCR¤ÎSTR¤Ï½ñ¤­¹ş¤ß¤Ç¤ÏÍî¤È¤»¤Ê¤¤
+		DMA[ch].CCR = (data&0xef) | (DMA[ch].CCR&0x80);	// CCRã®STRã¯æ›¸ãè¾¼ã¿ã§ã¯è½ã¨ã›ãªã„
 		if ( (data&0x10)&&(DMA[ch].CCR&0x80) ) {		// Software Abort
 			DMAERR(ch,0x11)
 			break;
 		}
 		if ( data&0x20 ) {					// Halt
-//			DMA[ch].CSR &= 0xf7;			// ËÜÍè¤ÏÍî¤Á¤ë¤Ï¤º¡£Nemesis'90¤ÇÄ´»Ò°­¤¤¤Î¤Ç¡Ä
+//			DMA[ch].CSR &= 0xf7;			// æœ¬æ¥ã¯è½ã¡ã‚‹ã¯ãšã€‚Nemesis'90ã§èª¿å­æ‚ªã„ã®ã§â€¦
 			break;
 		}
-		if ( data&0x80 ) {							// Æ°ºî³«»Ï
-			if ( old&0x20 ) {				// Halt²ò½ü
+		if ( data&0x80 ) {							// å‹•ä½œé–‹å§‹
+			if ( old&0x20 ) {				// Haltè§£é™¤
 				DMA[ch].CSR |= 0x08;
 				DMA_Exec(ch);
 			} else {
-				if ( DMA[ch].CSR&0xf8 ) {					// ¥¿¥¤¥ß¥ó¥°¥¨¥é¡¼
+				if ( DMA[ch].CSR&0xf8 ) {					// ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã‚¨ãƒ©ãƒ¼
 					DMAERR(ch,0x02)
 					break;
 				}
 				DMA[ch].CSR |= 0x08;
-				if ( (DMA[ch].OCR&8)/*&&(!DMA[ch].MTC)*/ ) {	// ¥¢¥ì¥¤¡¿¥ê¥ó¥¯¥¢¥ì¥¤¥Á¥§¥¤¥ó
+				if ( (DMA[ch].OCR&8)/*&&(!DMA[ch].MTC)*/ ) {	// ã‚¢ãƒ¬ã‚¤ï¼ãƒªãƒ³ã‚¯ã‚¢ãƒ¬ã‚¤ãƒã‚§ã‚¤ãƒ³
 					DMA[ch].MAR = dma_readmem24_dword(DMA[ch].BAR)&0xffffff;
 					DMA[ch].MTC = dma_readmem24_word(DMA[ch].BAR+4);
 					if (DMA[ch].OCR&4) {
 						DMA[ch].BAR = dma_readmem24_dword(DMA[ch].BAR+6);
 					} else {
 						DMA[ch].BAR += 6;
-						if ( !DMA[ch].BTC ) {			// ¤³¤ì¤â¥«¥¦¥ó¥È¥¨¥é¡¼
+						if ( !DMA[ch].BTC ) {			// ã“ã‚Œã‚‚ã‚«ã‚¦ãƒ³ãƒˆã‚¨ãƒ©ãƒ¼
 						DMAERR(ch,0x0f)
 							break;
 						}
 					}
 				}
-				if ( !DMA[ch].MTC ) {					// ¥«¥¦¥ó¥È¥¨¥é¡¼
+				if ( !DMA[ch].MTC ) {					// ã‚«ã‚¦ãƒ³ãƒˆã‚¨ãƒ©ãƒ¼
 					DMAERR(ch,0x0d)
 					break;
 				}
 				DMA[ch].CER  = 0x00;
-				DMA_Exec(ch);								// ³«»ÏÄ¾¸å¤Ë¥«¥¦¥ó¥¿¤ò¸«¤ÆÆ°ºî¥Á¥§¥Ã¥¯¤¹¤ë¾ì¹ç¤¬¤¢¤ë¤Î¤Ç¡¢¾¯¤·¤À¤±¼Â¹Ô¤·¤Æ¤ª¤¯
+				DMA_Exec(ch);							// é–‹å§‹ç›´å¾Œã«ã‚«ã‚¦ãƒ³ã‚¿ã‚’è¦‹ã¦å‹•ä½œãƒã‚§ãƒƒã‚¯ã™ã‚‹å ´åˆãŒã‚ã‚‹ã®ã§ã€å°‘ã—ã ã‘å®Ÿè¡Œã—ã¦ãŠã
 			}
 		}
 		if ( (data&0x40)&&(!DMA[ch].MTC) ) {			// Continuous Op.
 			if ( DMA[ch].CCR&0x80 ) {
 				if ( DMA[ch].CCR&0x40 ) {
 					DMAERR(ch,0x02)
-				} else if ( DMA[ch].OCR&8 ) {				// ¥¢¥ì¥¤¡¿¥ê¥ó¥¯¥¢¥ì¥¤¥Á¥§¥¤¥ó
+				} else if ( DMA[ch].OCR&8 ) {				// ã‚¢ãƒ¬ã‚¤ï¼ãƒªãƒ³ã‚¯ã‚¢ãƒ¬ã‚¤ãƒã‚§ã‚¤ãƒ³
 					DMAERR(ch,0x01)
 				} else {
 					DMA[ch].MAR = DMA[ch].BAR;
@@ -196,7 +190,7 @@ fclose(fp);
 					DMA[ch].BAR = 0;
 					DMA[ch].BTC = 0;
 					if ( !DMA[ch].MAR ) {
-						DMA[ch].CSR |= 0x40;			// ¥Ö¥í¥Ã¥¯Å¾Á÷½ªÎ»¥Ó¥Ã¥È¡¿³ä¤ê¹ş¤ß
+						DMA[ch].CSR |= 0x40;			// ãƒ–ãƒ­ãƒƒã‚¯è»¢é€çµ‚äº†ãƒ“ãƒƒãƒˆï¼å‰²ã‚Šè¾¼ã¿
 						DMAINT(ch)
 						break;
 					} else if ( !DMA[ch].MTC ) {
@@ -206,7 +200,7 @@ fclose(fp);
 					DMA[ch].CCR &= 0xbf;
 					DMA_Exec(ch);
 				}
-			} else {									// ÈóActive»ş¤ÎCNT¥Ó¥Ã¥È¤ÏÆ°ºî¥¿¥¤¥ß¥ó¥°¥¨¥é¡¼
+			} else {									// éActiveæ™‚ã®CNTãƒ“ãƒƒãƒˆã¯å‹•ä½œã‚¿ã‚¤ãƒŸãƒ³ã‚°ã‚¨ãƒ©ãƒ¼
 				DMAERR(ch,0x02)
 			}
 		}
@@ -221,11 +215,11 @@ fclose(fp);
 
 
 // -----------------------------------------------------------------------
-//   DMA¼Â¹Ô
+//   DMAå®Ÿè¡Œ
 // -----------------------------------------------------------------------
-int FASTCALL DMA_Exec(int ch)
+int32_t FASTCALL DMA_Exec(int32_t ch)
 {
-	DWORD *src, *dst;
+	uint32_t *src, *dst;
 
 //	if ( DMA_IntCH&(1<<ch) ) return 1;
 
@@ -317,9 +311,9 @@ int FASTCALL DMA_Exec(int ch)
 		}
 
 		DMA[ch].MTC--;
-		if ( !DMA[ch].MTC ) {					// »ØÄêÊ¬¤Î¥Ğ¥¤¥È¿ôÅ¾Á÷½ªÎ»
-			if ( DMA[ch].OCR&8 ) {				// ¥Á¥§¥¤¥ó¥â¡¼¥É¤ÇÆ°¤¤¤Æ¤¤¤ë¾ì¹ç
-				if ( DMA[ch].OCR&4 ) {			// ¥ê¥ó¥¯¥¢¥ì¥¤¥Á¥§¥¤¥ó
+		if ( !DMA[ch].MTC ) {					// æŒ‡å®šåˆ†ã®ãƒã‚¤ãƒˆæ•°è»¢é€çµ‚äº†
+			if ( DMA[ch].OCR&8 ) {				// ãƒã‚§ã‚¤ãƒ³ãƒ¢ãƒ¼ãƒ‰ã§å‹•ã„ã¦ã„ã‚‹å ´åˆ
+				if ( DMA[ch].OCR&4 ) {			// ãƒªãƒ³ã‚¯ã‚¢ãƒ¬ã‚¤ãƒã‚§ã‚¤ãƒ³
 					if ( DMA[ch].BAR ) {
 						DMA[ch].MAR = dma_readmem24_dword(DMA[ch].BAR);
 						DMA[ch].MTC = dma_readmem24_word(DMA[ch].BAR+4);
@@ -336,9 +330,9 @@ int FASTCALL DMA_Exec(int ch)
 							break;
 						}
 					}
-				} else {						// ¥¢¥ì¥¤¥Á¥§¥¤¥ó
+				} else {						// ã‚¢ãƒ¬ã‚¤ãƒã‚§ã‚¤ãƒ³
 					DMA[ch].BTC--;
-					if ( DMA[ch].BTC ) {		// ¼¡¤Î¥Ö¥í¥Ã¥¯¤¬¤¢¤ë
+					if ( DMA[ch].BTC ) {		// æ¬¡ã®ãƒ–ãƒ­ãƒƒã‚¯ãŒã‚ã‚‹
 						DMA[ch].MAR = dma_readmem24_dword(DMA[ch].BAR);
 						DMA[ch].MTC = dma_readmem24_word(DMA[ch].BAR+4);
 						DMA[ch].BAR += 6;
@@ -355,9 +349,9 @@ int FASTCALL DMA_Exec(int ch)
 						}
 					}
 				}
-			} else {								// ÄÌ¾ï¥â¡¼¥É¡Ê1¥Ö¥í¥Ã¥¯¤Î¤ß¡Ë½ªÎ»
-				if ( DMA[ch].CCR&0x40 ) {			// CountinuousÆ°ºîÃæ
-					DMA[ch].CSR |= 0x40;			// ¥Ö¥í¥Ã¥¯Å¾Á÷½ªÎ»¥Ó¥Ã¥È¡¿³ä¤ê¹ş¤ß
+			} else {								// é€šå¸¸ãƒ¢ãƒ¼ãƒ‰ï¼ˆ1ãƒ–ãƒ­ãƒƒã‚¯ã®ã¿ï¼‰çµ‚äº†
+				if ( DMA[ch].CCR&0x40 ) {			// Countinuouså‹•ä½œä¸­
+					DMA[ch].CSR |= 0x40;			// ãƒ–ãƒ­ãƒƒã‚¯è»¢é€çµ‚äº†ãƒ“ãƒƒãƒˆï¼å‰²ã‚Šè¾¼ã¿
 					DMAINT(ch)
 					if ( DMA[ch].BAR ) {
 						DMA[ch].MAR  = DMA[ch].BAR;
@@ -386,11 +380,11 @@ int FASTCALL DMA_Exec(int ch)
 
 
 // -----------------------------------------------------------------------
-//   ½é´ü²½
+//   åˆæœŸåŒ–
 // -----------------------------------------------------------------------
 void DMA_Init(void)
 {
-	int i;
+	int_fast32_t i;
 	DMA_IntCH = 0;
 	DMA_LastInt = 0;
 	for (i=0; i<4; i++) {

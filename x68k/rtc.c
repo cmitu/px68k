@@ -7,18 +7,18 @@
 
 #include <time.h>
 
-BYTE	RTC_Regs[2][16];
-BYTE	RTC_Bank = 0;
-static int RTC_Timer1 = 0;
-static int RTC_Timer16 = 0;
+uint8_t	RTC_Regs[2][16];
+uint8_t	RTC_Bank = 0;
+static int32_t RTC_Timer1 = 0;
+static int32_t RTC_Timer16 = 0;
 
 
 // -----------------------------------------------------------------------
-//   ΩÈ¥¸≤Ω
+//   ÂàùÊúüÂåñ
 // -----------------------------------------------------------------------
 void RTC_Init(void)
 {
-	ZeroMemory(&RTC_Regs[1][0], 16);
+	memset(&RTC_Regs[1][0], 0, 16);
 	RTC_Regs[0][13] = 0;
 	RTC_Regs[0][14] = 0;
 	RTC_Regs[0][15] = 0x0c;
@@ -26,11 +26,11 @@ void RTC_Init(void)
 
 
 // -----------------------------------------------------------------------
-//   §»§±§§§Œ§Í°º§…
+//   „Å®„Åë„ÅÑ„ÅÆ„Çä„Éº„Å©
 // -----------------------------------------------------------------------
-BYTE FASTCALL RTC_Read(DWORD adr)
+uint8_t FASTCALL RTC_Read(int32_t adr)
 {
-	BYTE ret = 0;
+	uint8_t ret = 0;
 	struct tm *tm;
 	time_t t;
 	t = time(NULL);
@@ -48,7 +48,7 @@ BYTE FASTCALL RTC_Read(DWORD adr)
 		case 0x07: ret=(tm->tm_min)/10; break;
 		case 0x09: ret=(tm->tm_hour)%10; break;
 		case 0x0b: ret=(tm->tm_hour)/10; break;
-		case 0x0d: ret=(BYTE)(tm->tm_wday); break;
+		case 0x0d: ret=(uint8_t)(tm->tm_wday); break;
 		case 0x0f: ret=(tm->tm_mday)%10; break;
 		case 0x11: ret=(tm->tm_mday)/10; break;
 		case 0x13: ret=(tm->tm_mon+1)%10; break;
@@ -74,22 +74,22 @@ BYTE FASTCALL RTC_Read(DWORD adr)
 
 
 // -----------------------------------------------------------------------
-//   §È§§§»
+//   „Çâ„ÅÑ„Å®
 // -----------------------------------------------------------------------
-void FASTCALL RTC_Write(DWORD adr, BYTE data)
+void FASTCALL RTC_Write(int32_t adr, uint8_t data)
 {
 	if ( adr==0xe8a001 ) {
 //		RTC_Timer1  = 0;
 //		RTC_Timer16 = 0;
 	} else if ( adr==0xe8a01b ) {
-		RTC_Regs[0][13] = RTC_Regs[1][13] = data&0x0c;		// Alarm/Timer Enable¿©∏Ê
+		RTC_Regs[0][13] = RTC_Regs[1][13] = data&0x0c;		// Alarm/Timer EnableÂà∂Âæ°
 	} else if ( adr==0xe8a01f ) {
-		RTC_Regs[0][15] = RTC_Regs[1][15] = data&0x0c;		// Alarm√ºª“Ω–Œœ¿©∏Ê
+		RTC_Regs[0][15] = RTC_Regs[1][15] = data&0x0c;		// AlarmÁ´ØÂ≠êÂá∫ÂäõÂà∂Âæ°
 	}
 }
 
 
-void RTC_Timer(int clock)
+void RTC_Timer(int32_t clock)
 {
 	RTC_Timer1  += clock;
 	RTC_Timer16 += clock;

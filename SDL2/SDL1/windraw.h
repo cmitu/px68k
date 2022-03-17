@@ -1,43 +1,44 @@
 #ifndef _winx68k_windraw_h
 #define _winx68k_windraw_h
 
-extern BYTE Draw_DrawFlag;
-extern int winx, winy;
-extern int winh, winw;
-extern int FullScreenFlag;
-extern BYTE Draw_ClrMenu;
-extern WORD FrameCount;
-extern WORD WinDraw_Pal16B, WinDraw_Pal16R, WinDraw_Pal16G;
+extern uint8_t Draw_DrawFlag;
+extern int32_t winx, winy;
+extern uint32_t winh, winw;
+extern int32_t FullScreenFlag;
+extern uint8_t Draw_ClrMenu;
+extern uint32_t FrameCount;
+extern uint16_t WinDraw_Pal16B, WinDraw_Pal16R, WinDraw_Pal16G;
 
-extern	BYTE	Draw_BitMask[800];
-extern	BYTE	Draw_TextBitMask[800];
 
-extern	int	WindowX;
-extern	int	WindowY;
-extern	int	kbd_x, kbd_y, kbd_w, kbd_h;
+extern	int32_t	WindowX;
+extern	int32_t	WindowY;
+extern	int32_t	kbd_x, kbd_y, kbd_w, kbd_h;
 
-void WinDraw_InitWindowSize(WORD width, WORD height);
-void WinDraw_ChangeMode(int flag);
-int WinDraw_Init(void);
+void WinDraw_InitWindowSize(void);
+void WinDraw_ChangeMode(int32_t flg);
+
 void WinDraw_Cleanup(void);
 void WinDraw_Redraw(void);
 void FASTCALL WinDraw_Draw(void);
-void WinDraw_ShowMenu(int flag);
+void WinDraw_ShowMenu(int32_t flag);
 void WinDraw_DrawLine(void);
 void WinDraw_HideSplash(void);
-void WinDraw_ChangeSize(void);
+void WinGetRootSize(void);
+
+extern int32_t WinDraw_ChangeSize(void);
+extern int32_t WinDraw_Init();
 
 void WinDraw_StartupScreen(void);
 void WinDraw_CleanupScreen(void);
 
-int WinDraw_MenuInit(void);
-void WinDraw_DrawMenu(int menu_state, int mkey_pos, int mkey_y, int *mval_y);
+int32_t WinDraw_MenuInit(void);
+void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int32_t *mval_y);
 
 extern struct menu_flist mfl;
 
 void WinDraw_DrawMenufile(struct menu_flist *mfl);
 void WinDraw_ClearMenuBuffer(void);
-void WinDraw_reverse_key(int x, int y);
+void WinDraw_reverse_key(int32_t x, int32_t y);
 
 #endif //winx68k_windraw_h
 

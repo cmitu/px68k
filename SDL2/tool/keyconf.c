@@ -1,19 +1,19 @@
 // ---------------------------------------------------------------------------------------
-//  KEYCONF.C - KeyConfig ∆˛Œœ¬‘§¡•¿•§•¢•Ì•∞
+//  KEYCONF.C - KeyConfig ÂÖ•ÂäõÂæÖ„Å°„ÉÄ„Ç§„Ç¢„É≠„Ç∞
 // ---------------------------------------------------------------------------------------
 #include	"common.h"
 #include	"resource.h"
 #include	"keyconf.h"
 #include	"winx68k.h"
 
-HWND	hWndKeyConf = NULL;
-WORD	KeyConf_CodeW = 0;
-DWORD	KeyConf_CodeL = 0;
-char	KeyConfMessage[255];
-int	KeyConfFlag = 0;
+int32_t	hWndKeyConf = NULL;
+int32_t	KeyConf_CodeW = 0;
+int32_t	KeyConf_CodeL = 0;
+int8_t	KeyConfMessage[255];
+int32_t	KeyConfFlag = 0;
 
 
-LRESULT CALLBACK KeyConfProc(HWND hdlg, UINT msg, WPARAM wp, LPARAM lp)
+LRESULT CALLBACK KeyConfProc(int32_t hdlg, uint32_t msg, uint16_t wp, uint32_t lp)
 {
 	switch (msg)
 	{

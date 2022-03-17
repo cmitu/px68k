@@ -5,7 +5,7 @@
 
 #if 0
 /*
- * Juliet ¥À¥ß¡¼
+ * Juliet ãƒ€ãƒŸãƒ¼
  */
 
 BOOL
@@ -28,21 +28,21 @@ juliet_prepare(void)
 }
 
 
-// ---- YM2151Éô
-// ¥ê¥»¥Ã¥È¤ÈÆ±»ş¤Ë¡¢OPM¥Á¥Ã¥×¤ÎÍ­Ìµ¤â³ÎÇ§
+// ---- YM2151éƒ¨
+// ãƒªã‚»ãƒƒãƒˆã¨åŒæ™‚ã«ã€OPMãƒãƒƒãƒ—ã®æœ‰ç„¡ã‚‚ç¢ºèª
 void
 juliet_YM2151Reset(void)
 {
 }
 
-int
+int32_t
 juliet_YM2151IsEnable(void)
 {
 
 	return FALSE;
 }
 
-int
+int32_t
 juliet_YM2151IsBusy(void)
 {
 
@@ -51,25 +51,25 @@ juliet_YM2151IsBusy(void)
 
 
 void
-juliet_YM2151W(BYTE reg, BYTE data)
+juliet_YM2151W(uint8_t reg, uint8_t data)
 {
 }
 
-// ---- YMF288Éô
+// ---- YMF288éƒ¨
 
 void
 juliet_YMF288Reset(void)
 {
 }
 
-int
+int32_t
 juliet_YM288IsEnable(void)
 {
 
 	return TRUE;
 }
 
-int
+int32_t
 juliet_YM288IsBusy(void)
 {
 
@@ -77,22 +77,22 @@ juliet_YM288IsBusy(void)
 }
 
 void
-juliet_YMF288A(BYTE addr, BYTE data)
+juliet_YMF288A(uint8_t addr, uint8_t data)
 {
 }
 
 void
-juliet_YMF288B(BYTE addr, BYTE data)
+juliet_YMF288B(uint8_t addr, uint8_t data)
 {
 }
 
 void
-juliet_YMF288W(BYTE addr, BYTE data)
+juliet_YMF288W(uint8_t addr, uint8_t data)
 {
 }
 
-BYTE
-juliet_YMF288R(BYTE addr)
+uint8_t
+juliet_YMF288R(uint8_t addr)
 {
 
 	return 0xff;

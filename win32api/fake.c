@@ -40,8 +40,8 @@
 #include "windows.h"
 #include "mmsystem.h"
 
-int WINAPI
-MessageBox(HWND hWnd, LPCSTR str, LPCSTR title, UINT flags)
+int32_t
+MessageBox(int32_t hWnd, const char* str, const char* title, uint32_t flags)
 {
 
 	(void)hWnd;
@@ -54,22 +54,22 @@ MessageBox(HWND hWnd, LPCSTR str, LPCSTR title, UINT flags)
 	return 0;
 }
 
-void WINAPI
-PostQuitMessage(int m)
+void
+PostQuitMessage(int32_t m)
 {
 
 	exit(m);
 }
 
-DWORD WINAPI
-GetLastError(VOID)
+uint32_t
+FAKE_GetLastError(void)
 {
 
 	return NO_ERROR;
 }
 
-BOOL WINAPI
-SetEndOfFile(HANDLE hFile)
+BOOL
+SetEndOfFile(void *hFile)
 {
 
 	(void)hFile;
@@ -77,18 +77,18 @@ SetEndOfFile(HANDLE hFile)
 	return FALSE;
 }
 
-WINMMAPI MMRESULT WINAPI
-midiOutPrepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, UINT cbmh)
+WINMMAPI MMRESULT
+midiOutPrepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh)
 {
 
 	(void)hmo;
 	(void)pmh;
 	(void)cbmh;
-	return !MIDIERR_STILLPLAYING;	// (§©
+	return !MIDIERR_STILLPLAYING;	// („Åâ
 }
 
-WINMMAPI MMRESULT WINAPI
-midiOutUnprepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, UINT cbmh)
+WINMMAPI MMRESULT
+midiOutUnprepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh)
 {
 
 	(void)hmo;
@@ -97,8 +97,8 @@ midiOutUnprepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, UINT cbmh)
 	return MMSYSERR_NOERROR;
 }
 
-WINMMAPI MMRESULT WINAPI
-midiOutShortMsg(HMIDIOUT hmo, DWORD dwMsg)
+WINMMAPI MMRESULT
+midiOutShortMsg(HMIDIOUT hmo, uint32_t dwMsg)
 {
 
 	(void)hmo;
@@ -106,8 +106,8 @@ midiOutShortMsg(HMIDIOUT hmo, DWORD dwMsg)
 	return MMSYSERR_NOERROR;
 }
 
-WINMMAPI MMRESULT WINAPI
-midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, UINT cbmh)
+WINMMAPI MMRESULT
+midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh)
 {
 
 	(void)hmo;
@@ -116,9 +116,9 @@ midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, UINT cbmh)
 	return MMSYSERR_NOERROR;
 }
 
-WINMMAPI MMRESULT WINAPI
-midiOutOpen(LPHMIDIOUT phmo, UINT uDeviceID, DWORD dwCallback,
-    DWORD dwInstance, DWORD fdwOpen)
+WINMMAPI MMRESULT
+midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
+    uint32_t dwInstance, uint32_t fdwOpen)
 {
 
 	(void)phmo;
@@ -126,10 +126,10 @@ midiOutOpen(LPHMIDIOUT phmo, UINT uDeviceID, DWORD dwCallback,
 	(void)dwCallback;
 	(void)dwInstance;
 	(void)fdwOpen;
-	return !MMSYSERR_NOERROR;	// (§£
+	return !MMSYSERR_NOERROR;	// („ÅÉ
 }
 
-WINMMAPI MMRESULT WINAPI
+WINMMAPI MMRESULT
 midiOutClose(HMIDIOUT hmo)
 {
 
@@ -137,7 +137,7 @@ midiOutClose(HMIDIOUT hmo)
 	return MMSYSERR_NOERROR;
 }
 
-WINMMAPI MMRESULT WINAPI
+WINMMAPI MMRESULT
 midiOutReset(HMIDIOUT hmo)
 {
 
@@ -145,20 +145,20 @@ midiOutReset(HMIDIOUT hmo)
 	return MMSYSERR_NOERROR;
 }
 
-static int _WritePrivateProfileString_subr(
-			FILE **, long, long, LPCSTR, LPCSTR);
+static int32_t _WritePrivateProfileString_subr(
+			FILE **, int32_t, int32_t, const char*, const char*);
 
-BOOL WINAPI
-WritePrivateProfileString(LPCSTR sect, LPCSTR key, LPCSTR str, LPCSTR inifile)
+BOOL
+WritePrivateProfileString(const char* sect, const char* key, const char* str, const char* inifile)
 {
 	char lbuf[256];
 	char newbuf[256];
 	struct stat sb;
 	FILE *fp;
-	long pos;
-	int found = 0;
-	int notfound = 0;
-	int delta;
+	int32_t pos;
+	int32_t found = 0;
+	int32_t notfound = 0;
+	int32_t delta;
 
 	if (stat(inifile, &sb) == 0)
 		fp = fopen(inifile, "r+");
@@ -253,9 +253,9 @@ writefail:
 /*
  * XXX: REWRITE ME!!!
  */
-static int
-_WritePrivateProfileString_subr(FILE **fp, long pos, long nowpos,
-		LPCSTR buf, LPCSTR file)
+static int32_t
+_WritePrivateProfileString_subr(FILE **fp, int32_t pos, int32_t nowpos,
+		const char* buf, const char* file)
 {
 	struct stat sb;
 	char *p;

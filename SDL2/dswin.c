@@ -34,28 +34,34 @@
 short	playing = FALSE;
 
 #define PCMBUF_SIZE 2*2*48000
-BYTE pcmbuffer[PCMBUF_SIZE];
-BYTE *pcmbufp = pcmbuffer;
-BYTE *pbsp = pcmbuffer;
-BYTE *pbrp = pcmbuffer, *pbwp = pcmbuffer;
-BYTE *pbep = &pcmbuffer[PCMBUF_SIZE];
-DWORD ratebase = 22050;
-long DSound_PreCounter = 0;
-BYTE sdlsndbuf[PCMBUF_SIZE];
+uint8_t pcmbuffer[PCMBUF_SIZE];
+uint8_t *pcmbufp = pcmbuffer;
+uint8_t *pbsp = pcmbuffer;
+uint8_t *pbrp = pcmbuffer, *pbwp = pcmbuffer;
+uint8_t *pbep = &pcmbuffer[PCMBUF_SIZE];
+uint32_t ratebase = 22050;
+int32_t DSound_PreCounter = 0;
+uint8_t sdlsndbuf[PCMBUF_SIZE];
 
-int audio_fd = -1;
+int32_t audio_fd = -1;
 
-static void sdlaudio_callback(void *userdata, unsigned char *stream, int len);
+static void sdlaudio_callback(void *userdata, uint8_t *stream, int32_t len);
 
 #ifndef NOSOUND
-#include	"SDL2/SDL.h"
-#include	"SDL_audio.h"
 
-int
-DSound_Init(unsigned long rate, unsigned long buflen)
+#ifndef SDL1
+#include	"SDL2/SDL.h"
+#include	"SDL2/SDL_audio.h"
+#else
+#include	"SDL/SDL.h"
+#include	"SDL/SDL_audio.h"
+#endif
+
+int32_t
+DSound_Init(uint32_t rate, uint32_t buflen)
 {
 	SDL_AudioSpec fmt;
-	DWORD samples;
+	uint32_t samples;
 
 	if (playing) {
 		return FALSE;
@@ -113,7 +119,7 @@ DSound_Stop(void)
 		SDL_PauseAudio(1);
 }
 
-int
+int32_t
 DSound_Cleanup(void)
 {
 	playing = FALSE;
@@ -125,39 +131,43 @@ DSound_Cleanup(void)
 	return TRUE;
 }
 
-static void sound_send(int length)
+static void sound_send(int32_t length)
 {
-	int rate;
+	int32_t rate;
 
 #ifdef PSP
 	rate = Config.SampleRate;
 #else
 	rate = 0;
 #endif
+
 	SDL_LockAudio();
-	ADPCM_Update((short *)pbwp, length, rate, pbsp, pbep);
-	OPM_Update((short *)pbwp, length, rate, pbsp, pbep);
+	ADPCM_Update((int16_t *)pbwp, length, rate, pbsp, pbep);
+	OPM_Update((int16_t *)pbwp, length, rate, pbsp, pbep);
+
 #ifndef	NO_MERCURY
 	//Mcry_Update((short *)pcmbufp, length);
 #endif
+
 #ifdef PSP
-	pbwp += length * sizeof(WORD) * 2 * (44100 / rate);
+	pbwp += length * sizeof(uint16_t) * 2 * (44100 / rate);
 	if (pbwp >= pbep) {
 		pbwp = pbsp + (pbwp - pbep);
 	}
 #else
-	pbwp += length * sizeof(WORD) * 2;
+	pbwp += length * sizeof(uint16_t) * 2;
 	if (pbwp >= pbep) {
 		pbwp = pbsp + (pbwp - pbep);
 	}
 #endif
+
 	SDL_UnlockAudio();
 }
 
-void FASTCALL DSound_Send0(long clock)
+void FASTCALL DSound_Send0(int32_t clock)
 {
-	int length = 0;
-	int rate;
+	int32_t length = 0;
+	int32_t rate;
 
 	if (audio_fd < 0) {
 		return;
@@ -174,9 +184,9 @@ void FASTCALL DSound_Send0(long clock)
 	sound_send(length);
 }
 
-static void FASTCALL DSound_Send(int length)
+static void FASTCALL DSound_Send(int32_t length)
 {
-	int rate;
+	int32_t rate;
 
 	if (audio_fd < 0) {
 		return;
@@ -185,19 +195,19 @@ static void FASTCALL DSound_Send(int length)
 }
 
 static void
-sdlaudio_callback(void *userdata, unsigned char *stream, int len)
+sdlaudio_callback(void *userdata, uint8_t *stream, int32_t len)
 {
-	int lena, lenb, datalen, rate;
-	BYTE *buf;
-	static DWORD bef;
-	DWORD now;
+	int32_t lena, lenb, datalen, rate;
+	uint8_t *buf;
+	static uint32_t bef;
+	uint32_t now;
 
 	now = timeGetTime();
 
 	//p6logd("tdiff %4d : len %d ", now - bef, len);
 
 #ifdef PSP
-	rate = (int)userdata;
+	rate = (int32_t)userdata;
 #endif
 
 cb_start:
@@ -271,18 +281,15 @@ cb_start:
 		}
 	}
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)	
-	// SDL2.0ではstream bufferのクリアが必要
-	memset(stream, 0, len);
-#endif
+	memset(stream, 0, len); // clear stream buffer for SDL2.(and SDL1)
 	SDL_MixAudio(stream, buf, len, SDL_MIX_MAXVOLUME);
 
 	bef = now;
 }
 
 #else	/* NOSOUND */
-int
-DSound_Init(unsigned long rate, unsigned long buflen)
+int32_t
+DSound_Init(uint32_t rate, uint32_t buflen)
 {
 	return FALSE;
 }
@@ -297,7 +304,7 @@ DSound_Stop(void)
 {
 }
 
-int
+int32_t
 DSound_Cleanup(void)
 {
 	return TRUE;
