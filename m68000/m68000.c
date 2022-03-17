@@ -8,7 +8,7 @@
 
 #include "m68000.h"
 #include "c68k/c68k.h"
-#include "../x68k/memory.h"
+#include "../x68k/x68kmemory.h"
 
 int m68000_ICountBk;
 int ICount;
