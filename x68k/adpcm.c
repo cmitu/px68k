@@ -260,7 +260,7 @@ INLINE void ADPCM_WriteOne(int32_t val)
 // -----------------------------------------------------------------------
 //   I/O Write
 // -----------------------------------------------------------------------
-void FASTCALL ADPCM_Write(int32_t adr, uint8_t data)
+void FASTCALL ADPCM_Write(uint32_t adr, uint8_t data)
 {
 	if ( adr==0xe92001 ) {
 		if ( data&1 ) {
@@ -286,7 +286,7 @@ void FASTCALL ADPCM_Write(int32_t adr, uint8_t data)
 // -----------------------------------------------------------------------
 //   I/O Read（ステータスチェック）
 // -----------------------------------------------------------------------
-uint8_t FASTCALL ADPCM_Read(int32_t adr)
+uint8_t FASTCALL ADPCM_Read(uint32_t adr)
 {
 	if ( adr==0xe92001 )
 		return ((ADPCM_Playing)?0xc0:0x40);

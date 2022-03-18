@@ -102,9 +102,9 @@ static const char* copyright_notice =
 /* ======================================================================== */
 
 /* Read external memory */
-uint32_t  read_8  (uint32_t address);
-uint32_t  read_16 (uint32_t address);
-uint32_t  read_32 (uint32_t address);
+uint32_t  read_8  (int32_t address);
+uint32_t  read_16 (int32_t address);
+uint32_t  read_32 (int32_t address);
 
 /* Read data at the PC and increment PC */
 uint32_t  read_imm_8(void);

@@ -21,8 +21,8 @@ extern	uint16_t	BG_LineBuf[1600];
 
 void BG_Init(void);
 
-uint8_t FASTCALL BG_Read(int32_t adr);
-void FASTCALL 	BG_Write(int32_t adr, uint8_t data);
+uint8_t FASTCALL BG_Read(uint32_t adr);
+void FASTCALL 	BG_Write(uint32_t adr, uint8_t data);
 
 void FASTCALL	BG_DrawLine(int32_t opaq, int32_t gd);
 

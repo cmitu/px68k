@@ -29,28 +29,28 @@
 
 #include "fmg_wrap.h"
 
-void AdrError(int32_t, int32_t);
-void BusError(int32_t, int32_t);
+void AdrError(uint32_t, int32_t);
+void BusError(uint32_t, int32_t);
 
-static void wm_main(int32_t addr, uint8_t val);
-static void wm_cnt(int32_t addr, uint8_t val);
-static void wm_buserr(int32_t addr, uint8_t val);
-static void wm_opm(int32_t addr, uint8_t val);
-static void wm_e82(int32_t addr, uint8_t val);
-static void wm_nop(int32_t addr, uint8_t val);
+static void wm_main(uint32_t addr, uint8_t val);
+static void wm_cnt(uint32_t addr, uint8_t val);
+static void wm_buserr(uint32_t addr, uint8_t val);
+static void wm_opm(uint32_t addr, uint8_t val);
+static void wm_e82(uint32_t addr, uint8_t val);
+static void wm_nop(uint32_t addr, uint8_t val);
 
-static uint8_t rm_main(int32_t addr);
-static uint8_t rm_font(int32_t addr);
-static uint8_t rm_ipl(int32_t addr);
-static uint8_t rm_nop(int32_t addr);
-static uint8_t rm_opm(int32_t addr);
-static uint8_t rm_e82(int32_t addr);
-static uint8_t rm_buserr(int32_t addr);
+static uint8_t rm_main(uint32_t addr);
+static uint8_t rm_font(uint32_t addr);
+static uint8_t rm_ipl(uint32_t addr);
+static uint8_t rm_nop(uint32_t addr);
+static uint8_t rm_opm(uint32_t addr);
+static uint8_t rm_e82(uint32_t addr);
+static uint8_t rm_buserr(uint32_t addr);
 
-void cpu_setOPbase24(int32_t addr);
+void cpu_setOPbase24(uint32_t addr);
 void Memory_ErrTrace(void);
 
-uint8_t (*MemReadTable[])(int32_t) = {
+uint8_t (*MemReadTable[])(uint32_t) = {
 	TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read,
 	TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read,
 	TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read, TVRAM_Read,
@@ -90,7 +90,7 @@ uint8_t (*MemReadTable[])(int32_t) = {
 	rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl, rm_ipl,
 };
 
-void (*MemWriteTable[])(int32_t, uint8_t) = {
+void (*MemWriteTable[])(uint32_t, uint8_t) = {
 	TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write,
 	TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write,
 	TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write, TVRAM_Write,
@@ -144,7 +144,7 @@ int32_t MemByteAccess = 0;
  * write function
  */
 void 
-dma_writemem24(int32_t addr, uint8_t val)
+dma_writemem24(uint32_t addr, uint8_t val)
 {
 
 	MemByteAccess = 0;
@@ -153,7 +153,7 @@ dma_writemem24(int32_t addr, uint8_t val)
 }
 
 void 
-dma_writemem24_word(int32_t addr, uint16_t val)
+dma_writemem24_word(uint32_t addr, uint16_t val)
 {
 
 	MemByteAccess = 0;
@@ -168,7 +168,7 @@ dma_writemem24_word(int32_t addr, uint16_t val)
 }
 
 void 
-dma_writemem24_dword(int32_t addr, uint32_t val)
+dma_writemem24_dword(uint32_t addr, uint32_t val)
 {
 
 	MemByteAccess = 0;
@@ -185,7 +185,7 @@ dma_writemem24_dword(int32_t addr, uint32_t val)
 }
 
 void 
-cpu_writemem24(int32_t addr, uint32_t val)
+cpu_writemem24(uint32_t addr, uint32_t val)
 {
 
 	MemByteAccess = 0;
@@ -199,7 +199,7 @@ cpu_writemem24(int32_t addr, uint32_t val)
 }
 
 void 
-cpu_writemem24_word(int32_t addr, uint32_t val)
+cpu_writemem24_word(uint32_t addr, uint32_t val)
 {
 
 	MemByteAccess = 0;
@@ -221,7 +221,7 @@ cpu_writemem24_word(int32_t addr, uint32_t val)
 }
 
 void 
-cpu_writemem24_dword(int32_t addr, uint32_t val)
+cpu_writemem24_dword(uint32_t addr, uint32_t val)
 {
 
 	MemByteAccess = 0;
@@ -245,7 +245,7 @@ cpu_writemem24_dword(int32_t addr, uint32_t val)
 }
 
 static void 
-wm_main(int32_t addr, uint8_t val)
+wm_main(uint32_t addr, uint8_t val)
 {
 
 	if ((BusErrFlag & 7) == 0)
@@ -253,7 +253,7 @@ wm_main(int32_t addr, uint8_t val)
 }
 
 static void 
-wm_cnt(int32_t addr, uint8_t val)
+wm_cnt(uint32_t addr, uint8_t val)
 {
 
 	addr &= 0x00ffffff;
@@ -267,7 +267,7 @@ wm_cnt(int32_t addr, uint8_t val)
 }
 
 static void 
-wm_buserr(int32_t addr, uint8_t val)
+wm_buserr(uint32_t addr, uint8_t val)
 {
 
 	BusErrFlag = 2;
@@ -276,7 +276,7 @@ wm_buserr(int32_t addr, uint8_t val)
 }
 
 static void 
-wm_opm(int32_t addr, uint8_t val)
+wm_opm(uint32_t addr, uint8_t val)
 {
 	uint8_t t;
 #ifdef RFMDRV
@@ -297,7 +297,7 @@ wm_opm(int32_t addr, uint8_t val)
 }
 
 static void 
-wm_e82(int32_t addr, uint8_t val) /* VIDEO WRITE */
+wm_e82(uint32_t addr, uint8_t val) /* VIDEO WRITE */
 {
 
 	if (addr < 0x00e82400) {
@@ -308,7 +308,7 @@ wm_e82(int32_t addr, uint8_t val) /* VIDEO WRITE */
 }
 
 static void 
-wm_nop(int32_t addr, uint8_t val)
+wm_nop(uint32_t addr, uint8_t val)
 {
 
 	/* Nothing to do */
@@ -320,14 +320,14 @@ wm_nop(int32_t addr, uint8_t val)
  * read function
  */
 uint8_t
-dma_readmem24(int32_t addr)
+dma_readmem24(uint32_t addr)
 {
 
 	return rm_main(addr);
 }
 
 uint16_t
-dma_readmem24_word(int32_t addr)
+dma_readmem24_word(uint32_t addr)
 {
 	uint16_t v;
 
@@ -342,7 +342,7 @@ dma_readmem24_word(int32_t addr)
 }
 
 uint32_t
-dma_readmem24_dword(int32_t addr)
+dma_readmem24_dword(uint32_t addr)
 {
 	uint32_t v;
 
@@ -359,7 +359,7 @@ dma_readmem24_dword(int32_t addr)
 }
 
 uint32_t
-cpu_readmem24(int32_t addr)
+cpu_readmem24(uint32_t addr)
 {
 	uint8_t v;
 
@@ -373,7 +373,7 @@ cpu_readmem24(int32_t addr)
 }
 
 uint32_t
-cpu_readmem24_word(int32_t addr)
+cpu_readmem24_word(uint32_t addr)
 {
 	uint16_t v;
 
@@ -395,7 +395,7 @@ cpu_readmem24_word(int32_t addr)
 }
 
 uint32_t
-cpu_readmem24_dword(int32_t addr)
+cpu_readmem24_dword(uint32_t addr)
 {
 	uint32_t v;
 
@@ -417,7 +417,7 @@ cpu_readmem24_dword(int32_t addr)
 }
 
 static uint8_t
-rm_main(int32_t addr)
+rm_main(uint32_t addr)
 {
 	uint8_t v;
 
@@ -434,21 +434,21 @@ rm_main(int32_t addr)
 }
 
 static uint8_t
-rm_font(int32_t addr)
+rm_font(uint32_t addr)
 {
 
 	return FONT[addr & 0xfffff];
 }
 
 static uint8_t
-rm_ipl(int32_t addr)
+rm_ipl(uint32_t addr)
 {
 
 	return IPL[(addr & 0x3ffff) ^ 1];
 }
 
 static uint8_t
-rm_nop(int32_t addr)
+rm_nop(uint32_t addr)
 {
 
 	(void)addr;
@@ -456,7 +456,7 @@ rm_nop(int32_t addr)
 }
 
 static uint8_t
-rm_opm(int32_t addr)
+rm_opm(uint32_t addr)
 {
 
 	if ((addr & 3) == 3) {
@@ -466,7 +466,7 @@ rm_opm(int32_t addr)
 }
 
 static uint8_t
-rm_e82(int32_t addr)
+rm_e82(uint32_t addr)
 {
 
 	if (addr < 0x00e82400) {
@@ -478,7 +478,7 @@ rm_e82(int32_t addr)
 }
 
 static uint8_t
-rm_buserr(int32_t addr)
+rm_buserr(uint32_t addr)
 {
     p6logd("func = %s addr = %x flag = %d\n", __func__, addr, BusErrFlag);
 
@@ -500,7 +500,7 @@ void Memory_Init(void)
 }
 
 void 
-cpu_setOPbase24(int32_t addr)
+cpu_setOPbase24(uint32_t addr)
 {
 
 	switch ((addr >> 20) & 0xf) {
@@ -587,7 +587,7 @@ Memory_IntErr(int32_t i)
 }
 
 void
-AdrError(int32_t adr, int32_t unknown)
+AdrError(uint32_t adr, int32_t unknown)
 {
 
 	(void)adr;
@@ -597,7 +597,7 @@ AdrError(int32_t adr, int32_t unknown)
 }
 
 void
-BusError(int32_t adr, int32_t unknown)
+BusError(uint32_t adr, int32_t unknown)
 {
 
 	(void)adr;

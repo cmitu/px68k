@@ -156,7 +156,7 @@ void CRTC_Init(void)
 }
 
 
-uint8_t FASTCALL CRTC_Read(int32_t adr)
+uint8_t FASTCALL CRTC_Read(uint32_t adr)
 {
 	uint8_t ret;
 	if (adr<0xe803ff) {
@@ -180,7 +180,7 @@ uint8_t FASTCALL CRTC_Read(int32_t adr)
 }
 
 
-void FASTCALL CRTC_Write(int32_t adr, uint8_t data)
+void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 {
 	uint8_t old;
 	uint8_t reg = (uint8_t)(adr&0x3f);

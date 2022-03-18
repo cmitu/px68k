@@ -62,7 +62,7 @@ void BG_Init(void)
 // -----------------------------------------------------------------------
 //   I/O Read
 // -----------------------------------------------------------------------
-uint8_t FASTCALL BG_Read(int32_t adr)
+uint8_t FASTCALL BG_Read(uint32_t adr)
 {
 	if ((adr>=0xeb0000)&&(adr<0xeb0400))
 	{
@@ -93,7 +93,7 @@ uint8_t FASTCALL BG_Read(int32_t adr)
 }
 
 
-void FASTCALL BG_Write(int32_t adr, uint8_t data)
+void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 {
 	uint32_t bg16chr;
 	int32_t s1, s2, v = 0;

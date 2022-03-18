@@ -83,7 +83,7 @@ void SCC_Init(void)
 // -----------------------------------------------------------------------
 //   I/O Write
 // -----------------------------------------------------------------------
-void FASTCALL SCC_Write(int32_t adr, uint8_t data)
+void FASTCALL SCC_Write(uint32_t adr, uint8_t data)
 {
 	if (adr>=0xe98008) return;
 
@@ -165,7 +165,7 @@ void FASTCALL SCC_Write(int32_t adr, uint8_t data)
 // -----------------------------------------------------------------------
 //   I/O Read
 // -----------------------------------------------------------------------
-uint8_t FASTCALL SCC_Read(int32_t adr)
+uint8_t FASTCALL SCC_Read(uint32_t adr)
 {
 	uint8_t ret=0;
 

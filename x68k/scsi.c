@@ -247,7 +247,7 @@ void SCSI_Cleanup(void)
 // -----------------------------
 /* ダミーIPL IOCS(F5) */
 // -----------------------------
-void SCSI_iocs(int32_t adr, uint8_t SCSIiocs)
+void SCSI_iocs(uint32_t adr, uint8_t SCSIiocs)
 {
   uint32_t i,j;
 
@@ -598,7 +598,7 @@ return;
 // -----------------------------------
 //   Read (Ex-SCSI area)
 // -----------------------------------
-uint8_t FASTCALL SCSI_Read(int32_t adr)
+uint8_t FASTCALL SCSI_Read(uint32_t adr)
 {
 
 /*MB89352 SCSI Protocol Controller (SPC) Register set*/
@@ -667,7 +667,7 @@ uint32_t j;
 // -----------------------------------------------
 //   Write (Ex-SCSI area)
 // -----------------------------------------------
-void FASTCALL SCSI_Write(int32_t adr, uint8_t data)
+void FASTCALL SCSI_Write(uint32_t adr, uint8_t data)
 {
 	uint8_t i;
 

@@ -14,8 +14,8 @@ void TVRAM_SetAllDirty(void);
 void TVRAM_Init(void);
 void TVRAM_Cleanup(void);
 
-uint8_t FASTCALL TVRAM_Read(int32_t adr);
-void FASTCALL TVRAM_Write(int32_t adr, uint8_t data);
+uint8_t FASTCALL TVRAM_Read(uint32_t adr);
+void FASTCALL TVRAM_Write(uint32_t adr, uint8_t data);
 void FASTCALL TVRAM_RCUpdate(void);
 void FASTCALL Text_DrawLine(int32_t opaq);
 

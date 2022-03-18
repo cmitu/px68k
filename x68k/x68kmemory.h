@@ -28,23 +28,23 @@ void Memory_ErrTrace(void);
 void Memory_IntErr(int32_t i);
 
 void Memory_Init(void);
-uint32_t Memory_ReadB(int32_t adr);
-uint32_t Memory_ReadW(int32_t adr);
-uint32_t Memory_ReadD(int32_t adr);
+uint32_t Memory_ReadB(uint32_t adr);
+uint32_t Memory_ReadW(uint32_t adr);
+uint32_t Memory_ReadD(uint32_t adr);
 
-uint8_t  dma_readmem24(int32_t adr);
-uint16_t dma_readmem24_word(int32_t adr);
-uint32_t dma_readmem24_dword(int32_t adr);
+uint8_t  dma_readmem24(uint32_t adr);
+uint16_t dma_readmem24_word(uint32_t adr);
+uint32_t dma_readmem24_dword(uint32_t adr);
 
-void Memory_WriteB(int32_t adr, uint32_t data);
-void Memory_WriteW(int32_t adr, uint32_t data);
-void Memory_WriteD(int32_t adr, uint32_t data);
+void Memory_WriteB(uint32_t adr, uint32_t data);
+void Memory_WriteW(uint32_t adr, uint32_t data);
+void Memory_WriteD(uint32_t adr, uint32_t data);
 
-void dma_writemem24(int32_t adr, uint8_t data);
-void dma_writemem24_word(int32_t adr, uint16_t data);
-void dma_writemem24_dword(int32_t adr, uint32_t data);
+void dma_writemem24(uint32_t adr, uint8_t data);
+void dma_writemem24_word(uint32_t adr, uint16_t data);
+void dma_writemem24_dword(uint32_t adr, uint32_t data);
 
-void cpu_setOPbase24(int32_t adr);
+void cpu_setOPbase24(uint32_t adr);
 
 void Memory_SetSCSIMode(int32_t mode);
 

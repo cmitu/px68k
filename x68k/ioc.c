@@ -22,7 +22,7 @@ void IOC_Init(void)
 // -----------------------------------------------------------------------
 //   りーど
 // -----------------------------------------------------------------------
-uint8_t FASTCALL IOC_Read(int32_t adr)
+uint8_t FASTCALL IOC_Read(uint32_t adr)
 {
 	if (adr==0xe9c001)
 		return IOC_IntStat;
@@ -34,7 +34,7 @@ uint8_t FASTCALL IOC_Read(int32_t adr)
 // -----------------------------------------------------------------------
 //   らいと
 // -----------------------------------------------------------------------
-void FASTCALL IOC_Write(int32_t adr, uint8_t data)
+void FASTCALL IOC_Write(uint32_t adr, uint8_t data)
 {
 	if (adr==0xe9c001)
 	{

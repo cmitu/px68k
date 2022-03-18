@@ -214,7 +214,7 @@ void C68k_Write_Long(c68k_struc *cpu, u32 adr, u32 data)
 // setting core functions
 //////////////////////////
 
-void C68k_Set_Fetch(c68k_struc *cpu, u32 low_adr, u32 high_adr, pointer fetch_adr)
+void C68k_Set_Fetch(c68k_struc *cpu, u32 low_adr, u32 high_adr, uintptr_t fetch_adr)
 {
     u32 i, j;
 

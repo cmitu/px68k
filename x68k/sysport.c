@@ -23,7 +23,7 @@ void SysPort_Init(void)
 // -----------------------------------------------------------------------
 //   らいと
 // -----------------------------------------------------------------------
-void FASTCALL SysPort_Write(int32_t adr, uint8_t data)
+void FASTCALL SysPort_Write(uint32_t adr, uint8_t data)
 {
 	switch(adr)
 	{
@@ -56,7 +56,7 @@ void FASTCALL SysPort_Write(int32_t adr, uint8_t data)
 // -----------------------------------------------------------------------
 //   りーど
 // -----------------------------------------------------------------------
-uint8_t FASTCALL SysPort_Read(int32_t adr)
+uint8_t FASTCALL SysPort_Read(uint32_t adr)
 {
 	uint8_t ret=0xff;
 

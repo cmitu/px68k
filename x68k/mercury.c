@@ -142,7 +142,7 @@ INLINE void Mcry_WriteOne(void)
 // -----------------------------------------------------------------------
 //   I/O Write
 // -----------------------------------------------------------------------
-void FASTCALL Mcry_Write(int32_t adr, uint8_t data)
+void FASTCALL Mcry_Write(uint32_t adr, uint8_t data)
 {
 	if ((adr == 0xecc080)||(adr == 0xecc081)||(adr == 0xecc000)||(adr == 0xecc001))	// Data Port
 	{
@@ -212,7 +212,7 @@ void FASTCALL Mcry_Write(int32_t adr, uint8_t data)
 // -----------------------------------------------------------------------
 //   I/O Read
 // -----------------------------------------------------------------------
-uint8_t FASTCALL Mcry_Read(int32_t adr)
+uint8_t FASTCALL Mcry_Read(uint32_t adr)
 {
 	uint8_t ret = 0;
 	if ((adr == 0xecc080)||(adr == 0xecc081)||(adr == 0xecc000)||(adr == 0xecc001))

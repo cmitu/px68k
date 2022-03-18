@@ -436,7 +436,7 @@ static void FDC_WriteBuffer(void)
 // -----------------------------------------------------------------------
 //   I/O Read
 // -----------------------------------------------------------------------
-uint8_t FASTCALL FDC_Read(int32_t adr)
+uint8_t FASTCALL FDC_Read(uint32_t adr)
 {
 	uint8_t ret = 0x00;
 	if ( adr==0xe94001 ) {					/* FDC Status */
@@ -466,7 +466,7 @@ uint8_t FASTCALL FDC_Read(int32_t adr)
 // -----------------------------------------------------------------------
 //   I/O Write
 // -----------------------------------------------------------------------
-void FASTCALL FDC_Write(int32_t adr, uint8_t data)
+void FASTCALL FDC_Write(uint32_t adr, uint8_t data)
 {
 	if ( adr==0xe94003 ) {
 		if ( fdc.bufnum ) {                 // WriteData

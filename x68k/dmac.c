@@ -71,7 +71,7 @@ int32_t FASTCALL DMA_Int(uint8_t irq)
 // -----------------------------------------------------------------------
 //   I/O Read
 // -----------------------------------------------------------------------
-uint8_t FASTCALL DMA_Read(int32_t adr)
+uint8_t FASTCALL DMA_Read(uint32_t adr)
 {
 	uint8_t* p;
 	int32_t off = adr&0x3f, ch = ((adr-0xe84000)>>6);
@@ -109,7 +109,7 @@ uint8_t FASTCALL DMA_Read(int32_t adr)
 // -----------------------------------------------------------------------
 //   I/O Write
 // -----------------------------------------------------------------------
-void FASTCALL DMA_Write(int32_t adr, uint8_t data)
+void FASTCALL DMA_Write(uint32_t adr, uint8_t data)
 {
 	uint8_t* p;
 	int32_t off = adr&0x3f, ch = ((adr-0xe84000)>>6);

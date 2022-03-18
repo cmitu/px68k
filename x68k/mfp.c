@@ -146,7 +146,7 @@ void MFP_Init(void)
 // -----------------------------------------------------------------------
 //   I/O Read
 // -----------------------------------------------------------------------
-uint8_t FASTCALL MFP_Read(int32_t adr)
+uint8_t FASTCALL MFP_Read(uint32_t adr)
 {
 	uint8_t reg;
 	uint8_t ret = 0;
@@ -195,7 +195,7 @@ uint8_t FASTCALL MFP_Read(int32_t adr)
 // -----------------------------------------------------------------------
 //   I/O Write
 // -----------------------------------------------------------------------
-void FASTCALL MFP_Write(int32_t adr, uint8_t data)
+void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 {
 	uint8_t reg;
 	if (adr>0xe8802f) return;

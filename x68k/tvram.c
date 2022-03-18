@@ -70,7 +70,7 @@ void TVRAM_Cleanup(void)
 // -----------------------------------------------------------------------
 //   読むなり
 // -----------------------------------------------------------------------
-uint8_t FASTCALL TVRAM_Read(int32_t adr)
+uint8_t FASTCALL TVRAM_Read(uint32_t adr)
 {
 	adr &= 0x7ffff;
 	adr ^= 1;
@@ -81,8 +81,9 @@ uint8_t FASTCALL TVRAM_Read(int32_t adr)
 // -----------------------------------------------------------------------
 //   1ばいと書くなり
 // -----------------------------------------------------------------------
-INLINE void TVRAM_WriteByte(int32_t adr, uint8_t data)
+INLINE void TVRAM_WriteByte(uint32_t adr, uint8_t data)
 {
+	adr &= 0x7ffff;
 	if (TVRAM[adr]!=data)
 	{
 		TextDirtyLine[(((adr&0x1ffff)/128)-TextScrollY)&1023] = 1;
@@ -108,7 +109,7 @@ INLINE void TVRAM_WriteByteMask(int32_t adr, uint8_t data)
 // -----------------------------------------------------------------------
 //   書くなり
 // -----------------------------------------------------------------------
-void FASTCALL TVRAM_Write(int32_t adr, uint8_t data)
+void FASTCALL TVRAM_Write(uint32_t adr, uint8_t data)
 {
 	adr &= 0x7ffff;
 	adr ^= 1;

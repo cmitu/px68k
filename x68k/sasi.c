@@ -122,7 +122,7 @@ int32_t SASI_Flush(void)
 // -----------------------------------------------------------------------
 //   I/O Read
 // -----------------------------------------------------------------------
-uint8_t FASTCALL SASI_Read(int32_t adr)
+uint8_t FASTCALL SASI_Read(uint32_t adr)
 {
 	uint8_t ret = 0;
 	int32_t result;
@@ -311,7 +311,7 @@ void SASI_CheckCmd(void)
 // -----------------------------------------------------------------------
 //   I/O Write
 // -----------------------------------------------------------------------
-void FASTCALL SASI_Write(int32_t adr, uint8_t data)
+void FASTCALL SASI_Write(uint32_t adr, uint8_t data)
 {
 	int32_t result;
 	int32_t i;

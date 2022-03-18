@@ -28,7 +28,7 @@ void RTC_Init(void)
 // -----------------------------------------------------------------------
 //   とけいのりーど
 // -----------------------------------------------------------------------
-uint8_t FASTCALL RTC_Read(int32_t adr)
+uint8_t FASTCALL RTC_Read(uint32_t adr)
 {
 	uint8_t ret = 0;
 	struct tm *tm;
@@ -76,7 +76,7 @@ uint8_t FASTCALL RTC_Read(int32_t adr)
 // -----------------------------------------------------------------------
 //   らいと
 // -----------------------------------------------------------------------
-void FASTCALL RTC_Write(int32_t adr, uint8_t data)
+void FASTCALL RTC_Write(uint32_t adr, uint8_t data)
 {
 	if ( adr==0xe8a001 ) {
 //		RTC_Timer1  = 0;

@@ -513,7 +513,7 @@ void MIDI_Message(uint8_t mes) {
 // -----------------------------------------------------------------------
 //   I/O Read
 // -----------------------------------------------------------------------
-uint8_t FASTCALL MIDI_Read(int32_t adr)
+uint8_t FASTCALL MIDI_Read(uint32_t adr)
 {
 	uint8_t ret = 0;
 
@@ -675,7 +675,7 @@ void MIDI_DelayOut(uint32_t delay)
 // -----------------------------------------------------------------------
 //   I/O Write
 // -----------------------------------------------------------------------
-void FASTCALL MIDI_Write(int32_t adr, uint8_t data)
+void FASTCALL MIDI_Write(uint32_t adr, uint8_t data)
 {
 	if ( (adr<0xeafa01)||(adr>=0xeafa10)||(!Config.MIDI_SW) )	// 変なアドレスか、
 	{								// MIDI OFF時にはバスエラーにする
