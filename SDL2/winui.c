@@ -659,10 +659,10 @@ int32_t WinUI_Menu(int32_t first)
 				if (n < -JOYAXISPLAY || n > JOYAXISPLAY) {
 					Config.HwJoyAxis[y] = i;
 					if(n>0){
-						Config.HwJoyAxisAtr[y] = 0;
+						JoyDirection = 0;
 					}
 					else{
-						Config.HwJoyAxisAtr[y] = 1;
+						JoyDirection = 1;
 					}
 					menu_hwjoy_print(y);/*for Debug*/
 					pad_changed = 1;

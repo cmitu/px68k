@@ -337,10 +337,6 @@ void LoadConfig(void)
 
 	Config.HwJoyAxis[1] = GetPrivateProfileInt((const char*)ini_title, "HwJoyAxis1", 1, winx68k_ini);
 
-	Config.HwJoyAxisAtr[0] = GetPrivateProfileInt((const char*)ini_title, "HwJoyAxis0UP", 0, winx68k_ini);
-
-	Config.HwJoyAxisAtr[1] = GetPrivateProfileInt((const char*)ini_title, "HwJoyAxis1UP", 0, winx68k_ini);
-
 	Config.HwJoyHat = GetPrivateProfileInt((const char*)ini_title, "HwJoyHat", 0, winx68k_ini);
 
 	for (i = 0; i < 8; i++) {
@@ -487,12 +483,6 @@ void SaveConfig(void)
 
 	wsprintf(buf, "%d", Config.HwJoyAxis[1]);
 	WritePrivateProfileString((const char*)ini_title, "HwJoyAxis1", buf, winx68k_ini);
-
-	wsprintf(buf, "%d", Config.HwJoyAxisAtr[0]);
-	WritePrivateProfileString((const char*)ini_title, "HwJoyAxis0UP", buf, winx68k_ini);
-
-	wsprintf(buf, "%d", Config.HwJoyAxisAtr[1]);
-	WritePrivateProfileString((const char*)ini_title, "HwJoyAxis1UP", buf, winx68k_ini);
 
 	wsprintf(buf, "%d", Config.HwJoyHat);
 	WritePrivateProfileString((const char*)ini_title, "HwJoyHat", buf, winx68k_ini);

@@ -412,9 +412,6 @@ skip_vpad:
 		x = SDL_JoystickGetAxis(sdl_joy, Config.HwJoyAxis[0]);
 		y = SDL_JoystickGetAxis(sdl_joy, Config.HwJoyAxis[1]);
 
-		if(Config.HwJoyAxisAtr[0] != 0 ) x*=(-1);/* invert */
-		if(Config.HwJoyAxisAtr[1] != 0 ) y*=(-1);/* invert */
-
 		if (x < -JOYAXISPLAY) {
 			ret0 ^= JOY_LEFT;
 		}

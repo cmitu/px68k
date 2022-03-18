@@ -53,7 +53,6 @@ typedef struct
 	int32_t VbtnSwap;
 	int32_t JoyOrMouse;
 	int32_t HwJoyAxis[2];
-	int32_t HwJoyAxisAtr[2];
 	int32_t HwJoyHat;
 	int32_t HwJoyBtn[8];
 	int32_t NoWaitMode;

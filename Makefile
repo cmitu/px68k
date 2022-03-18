@@ -61,7 +61,7 @@ CDEBUGFLAGS += -g -O0 -fno-strict-aliasing
 # CDEBUGFLAGS+= -DNO_SOUND
 
 #
-# Big endian (PowerPC...)
+# Big endian (PowerPC...) not support
 #
 # CDEBUGFLAGS+= -D__BIG_ENDIAN__
 
