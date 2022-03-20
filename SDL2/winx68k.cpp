@@ -229,7 +229,7 @@ WinX68k_SCSICheck()
  return;
 }
 
-/*= for Little-endian guy =*/
+/*= thread for Little-endian guy =*/
 void *Chg_endian(void *para)
 {
 	int32_t i;
@@ -272,27 +272,21 @@ WinX68k_LoadROMs(void)
 	if(i==4) strcat(window_title," XVI");
 
 	/*==for little endian guy!==*/
-	pthread_t th[5];
-	struct chdata dt[5];
+	pthread_t th[3];
+	struct chdata dt[3];
 
-	dt[2].addr = &IPL[0x20000];
-	dt[2].num  = 0x10000;
-	dt[3].addr = &IPL[0x30000];
-	dt[3].num  = 0x10000;
-	pthread_create(&th[2], NULL, Chg_endian, &dt[2]);
-	pthread_create(&th[3], NULL, Chg_endian, &dt[3]);
+	dt[0].addr = &IPL[0x20000];
+	dt[0].num  = 0x20000;
+	pthread_create(&th[0], NULL, Chg_endian, &dt[0]);
 
 	WinX68k_SCSICheck();	// Load SCSI IPL in:$fc0000～ ex:ea0000
 
-	dt[0].addr = &IPL[0x00000];
-	dt[0].num  = 0x10000;
-	dt[1].addr = &IPL[0x10000];
-	dt[1].num  = 0x10000;
-	dt[4].addr = &SCSIIPL[0x00000];
-	dt[4].num  = 0x02000;
-	pthread_create(&th[0], NULL, Chg_endian, &dt[0]);
+	dt[1].addr = &IPL[0x00000];
+	dt[1].num  = 0x20000;
+	dt[2].addr = &SCSIIPL[0x00000];
+	dt[2].num  = 0x02000;
 	pthread_create(&th[1], NULL, Chg_endian, &dt[1]);
-	pthread_create(&th[4], NULL, Chg_endian, &dt[4]);
+	pthread_create(&th[2], NULL, Chg_endian, &dt[2]);
 
 	fp = File_OpenCurDir((char *)FONTFILE);
 	if (fp == 0) {
@@ -307,12 +301,10 @@ WinX68k_LoadROMs(void)
 	File_Read(fp, FONT, 0xc0000);
 	File_Close(fp);
 
-	/* check end */
+	/* check thread end */
 	pthread_join(th[0], NULL);
 	pthread_join(th[1], NULL);
 	pthread_join(th[2], NULL);
-	pthread_join(th[3], NULL);
-	pthread_join(th[4], NULL);
 
 	SDL_SetWindowTitle(sdl_window, window_title); /*SDL2 only*/
 
@@ -358,28 +350,52 @@ WinX68k_Reset(void)
 	return TRUE;
 }
 
+/*= memorry clear thread =*/
+void *zeromemset(void *para)
+{
+	struct chdata *endch = (struct chdata *)para;
+
+	memset(endch->addr, 0, endch->num);
+
+return NULL;
+}
 
 int32_t
 WinX68k_Init(void)
 {
-#ifdef PSP
-#define MEM_SIZE 0x400000
-#else
-#define MEM_SIZE 0xc00000
-#endif
+	int32_t ret= FALSE;
+
+	pthread_t th[3];
+	struct chdata zero[3];
 
 	IPL = (uint8_t*)malloc(0x40000 + 100);
-	MEM = (uint8_t*)malloc(MEM_SIZE + 100);
+	MEM = (uint8_t*)malloc(0xc00000 + 100);
 	FONT = (uint8_t*)malloc(0xc0000 + 100);
 
-	if (MEM)
-		memset(MEM, 0, MEM_SIZE);
+	if (MEM){
+	  //memset(MEM, 0, MEM_SIZE);// スレッドで分割クリアにしてみる。
+	  zero[0].addr = &MEM[0x000000];
+	  zero[0].num  = 0x400000;
+	  zero[1].addr = &MEM[0x400000];
+	  zero[1].num  = 0x40000;
+	  zero[2].addr = &MEM[0x800000];
+	  zero[2].num  = 0x400000;
+	  pthread_create(&th[0], NULL, zeromemset, &zero[0]);
+	  pthread_create(&th[1], NULL, zeromemset, &zero[1]);
+	  pthread_create(&th[2], NULL, zeromemset, &zero[2]);
+	}
 
 	if (MEM && FONT && IPL) {
 	  	m68000_init();  
-		return TRUE;
-	} else
-		return FALSE;
+		ret = TRUE;
+	}
+
+	/* check thread end */
+	pthread_join(th[0], NULL);
+	pthread_join(th[1], NULL);
+	pthread_join(th[2], NULL);
+
+return ret;
 }
 
 void
