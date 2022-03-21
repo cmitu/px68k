@@ -346,18 +346,13 @@ WinX68k_Reset(void)
 int32_t
 WinX68k_Init(void)
 {
-#ifdef PSP
-#define MEM_SIZE 0x400000
-#else
-#define MEM_SIZE 0xc00000
-#endif
 
 	IPL = (uint8_t*)malloc(0x40000 + 100);
-	MEM = (uint8_t*)malloc(MEM_SIZE + 100);
+	MEM = (uint8_t*)malloc(0xc00000 + 100);
 	FONT = (uint8_t*)malloc(0xc0000 + 100);
 
 	if (MEM)
-		memset(MEM, 0, MEM_SIZE);
+		memset(MEM, 0, 0xc00000);
 
 	if (MEM && FONT && IPL) {
 	  	m68000_init();  

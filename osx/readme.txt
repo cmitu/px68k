@@ -8,12 +8,13 @@ install SDL2 for FrameWorks, but not include sdl2-config.
 this script for --lib, --cflags LINKER option, for FrameWorks SDL2.
 
 px68k build for mac.
-$ make SDL2=1
+$ make
+and...
 $ make mac
 
 build for GNU/Linux
 edit makefile sdl2-config-mac to sdl2-config
-$ make SDL2=1
+$ make
 
 joy for your Mac life!
 

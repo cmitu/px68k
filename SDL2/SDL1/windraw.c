@@ -67,6 +67,7 @@ uint16_t *menu_buffer;
 uint16_t *kbd_buffer;
 #endif
 
+int32_t JoyDirection;
 int32_t Draw_Opaque;
 int32_t FullScreenFlag = 0;
 extern uint8_t Draw_RedrawAllFlag;
@@ -122,7 +123,7 @@ int32_t WinDraw_ChangeSize(void)
 	int32_t absx,absy;
 	ScreenChangeX = 0;
 	static const int32_t ChkScreenX[] = {768, 640, 512, 456, 384, 320, 256, 128 ,0};
-	static const int32_t ChkScreenY[] = {512, 480, 400, 256, 240, 200, 128, 0};
+	static const int32_t ChkScreenY[] = {512, 480, 400, 256, 240, 224, 200, 128, 0};
 
 	/*Check Screen Size*/
 	for(x = 0; ChkScreenX[x]!=0; x++){
@@ -2049,11 +2050,21 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 				switch(mval_y[i + mkey_pos])/*Axis0,1,Hat,Button0,1*/
 				{
 				case 0:/*Axis0 set*/
-					sprintf(tmp," Right-Set:%d inv:%d",Config.HwJoyAxis[0],Config.HwJoyAxisAtr[0]);
+					if(JoyDirection == 0){
+						sprintf(tmp," Right-Set:%d →",Config.HwJoyAxis[0]);
+					}
+					else{
+						sprintf(tmp," Left -Set:%d ←",Config.HwJoyAxis[0]);
+					}
 					draw_str(tmp,1);
 					break;
 				case 1:/*Axis1 set*/
-					sprintf(tmp," Down-Set:%d inv:%d",Config.HwJoyAxis[1],Config.HwJoyAxisAtr[1]);
+					if(JoyDirection == 0){
+						sprintf(tmp," Down-Set:%d ↓",Config.HwJoyAxis[1]);
+					}
+					else{
+						sprintf(tmp," Up  -Set:%d ↑",Config.HwJoyAxis[1]);
+					}
 					draw_str(tmp,1);
 					break;
 				case 2:/*hats set*/
@@ -2061,11 +2072,11 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 					draw_str(tmp,1);
 					break;
 				case 3:/*Button0 set*/
-					sprintf(tmp," Set:%d",Config.HwJoyBtn[0]);
+					sprintf(tmp," Set ■:%d",Config.HwJoyBtn[0]);
 					draw_str(tmp,1);
 					break;
 				case 4:/*Button1 set*/
-					sprintf(tmp," Set:%d",Config.HwJoyBtn[1]);
+					sprintf(tmp," Set ×:%d",Config.HwJoyBtn[1]);
 					draw_str(tmp,1);
 					break;
 				default: break;
