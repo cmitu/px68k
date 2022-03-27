@@ -52,54 +52,55 @@ midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
 	(void)dwInstance;
 	(void)fdwOpen;
 
-		OSStatus err_sts;
+	OSStatus err_sts;
 
-		// Create a MIDI client
-		err_sts = MIDIClientCreate(CFSTR("px68k"), NULL, NULL, &mid_client);
+	// Create a MIDI client
+	err_sts = MIDIClientCreate(CFSTR("px68k"), NULL, NULL, &mid_client);
 
-		if (err_sts != noErr)
-		{
-			p6logd("MIDI:CoreMIDI: No client created.");
-			return !MMSYSERR_NOERROR;
-		}
+	if (err_sts != noErr)
+	{
+		p6logd("MIDI:CoreMIDI: No client created.");
+		return !MMSYSERR_NOERROR;
+	}
 
-		// Create a MIDI Source
-		err_sts = MIDISourceCreate(mid_client, CFSTR("px68k MIDI Source"),
-					&mid_endpoint);
+	// Create a MIDI Source
+	err_sts = MIDISourceCreate(mid_client, CFSTR("px68k MIDI Source"),
+				&mid_endpoint);
 
-		if (err_sts != noErr)
-		{
-			p6logd("MIDI:CoreMIDI: No Sorce created.");
-			return !MMSYSERR_NOERROR;
-		}
+	if (err_sts != noErr)
+	{
+		p6logd("MIDI:CoreMIDI: No Sorce created.");
+		return !MMSYSERR_NOERROR;
+	}
 
-		// Create a MIDI  port
-		err_sts = MIDIOutputPortCreate(mid_client, CFSTR("px68k MIDI Port"), &mid_port);
+	// Create a MIDI  port
+	err_sts = MIDIOutputPortCreate(mid_client, CFSTR("px68k MIDI Port"), &mid_port);
 
-		if (err_sts != noErr)
-		{
-			p6logd("MIDI:CoreMIDI: No port created.");
-			return !MMSYSERR_NOERROR;
-		}
+	if (err_sts != noErr)
+	{
+		p6logd("MIDI:CoreMIDI: No port created.");
+		return !MMSYSERR_NOERROR;
+	}
 
-		// Get the MIDIEndPoint
-		mid_endpoint = 0;
-		//uint32_t destId = MIDIGetNumberOfDevices();//仮想ポート含まない
-		//mid_endpoint = MIDIGetDevice(destId);
-	    uint32_t destId = MIDIGetNumberOfDestinations();//仮想ポート含む
-		if (destId == 0)
-		{
-			p6logd("No MIDI-port found.\n");
-			return !MMSYSERR_NOERROR;
-		}
-		destId = 0;// 最初のMIDI port固定
-		mid_endpoint = MIDIGetDestination(destId);
-		CFStringRef strRef;
-		char mididevicename[64];
-		MIDIObjectGetStringProperty(mid_endpoint, kMIDIPropertyName, &strRef);
-		CFStringGetCString(strRef, mididevicename, sizeof(mididevicename), 0);
-		CFRelease(strRef);
-		printf("Find MIDI:%s\n",mididevicename);
+	// Get the MIDIEndPoint
+	mid_endpoint = 0;
+	//uint32_t destId = MIDIGetNumberOfDevices();//仮想ポート含まない
+	//mid_endpoint = MIDIGetDevice(destId);
+	uint32_t destId = MIDIGetNumberOfDestinations();//仮想ポート含む
+	if (destId == 0)
+	{
+		p6logd("No MIDI-port found.\n");
+		return !MMSYSERR_NOERROR;
+	}
+	destId = 0;// 最初のMIDI port固定
+	mid_endpoint = MIDIGetDestination(destId);
+	CFStringRef strRef;
+	char mididevicename[64];
+	MIDIObjectGetStringProperty(mid_endpoint, kMIDIPropertyName, &strRef);
+	CFStringGetCString(strRef, mididevicename, sizeof(mididevicename), 0);
+	CFRelease(strRef);
+	p6logd("Find MIDI:%s\n",mididevicename);
+
 
 	*phmo = (HANDLE)mid_name; //MIDI Active!(ダミーを代入しておく)
 

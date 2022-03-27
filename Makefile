@@ -104,7 +104,7 @@ CDEBUGFLAGS+=-DHAVE_STDINT_H
 SDL_INCLUDE=	`$(SDL_CONFIG) --cflags`
 SDL_LIB=		`$(SDL_CONFIG) --libs`
 
-LDLIBS = -lm
+LDLIBS = -lm -lpthread
 
 ifeq "$(PLATFORM)" "Darwin"
 LDLIBS+=  -framework Cocoa -framework CoreMIDI
