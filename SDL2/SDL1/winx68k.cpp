@@ -472,7 +472,7 @@ void WinX68k_Exec(void)
 
 		if ( clk_count>=clk_next ) {
 			//OPM_RomeoOut(Config.BufferSize*5);
-			//MIDI_DelayOut((Config.MIDIAutoDelay)?(Config.BufferSize*5):Config.MIDIDelay);
+			MIDI_DelayOut((Config.MIDIAutoDelay)?(Config.BufferSize*5):Config.MIDIDelay);
 			MFP_TimerA();
 			if ( (MFP[MFP_AER]&0x40)&&(vline==CRTC_IntLine) )
 				MFP_Int(1);

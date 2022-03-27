@@ -20,11 +20,21 @@
 #include "prop.h"
 #include "winx68k.h"
 #include "fileio.h"
-#include "mmsystem.h"
+//#include "mmsystem.h"
 #include "x68kmemory.h"
 #include "irqh.h"
 #include "midi.h"
 #include "m68000.h"
+
+#ifdef _WIN32
+#include "midi_win.h"
+#endif
+#ifdef __unix__
+#include "midi_alsa.h"
+#endif
+#ifdef __MACH__
+#include "midi_darwin.h"
+#endif
 
 #define MIDIBUFFERS 1024			// 1024は流石に越えないでしょう^_^;
 #define MIDIBUFTIMER 3200			// 10MHz / (31.25K / 10bit) = 3200 が正解になります... 

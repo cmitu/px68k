@@ -38,7 +38,7 @@
 #include <unistd.h>
 
 #include "windows.h"
-#include "mmsystem.h"
+//#include "mmsystem.h"
 
 int32_t
 MessageBox(int32_t hWnd, const char* str, const char* title, uint32_t flags)
@@ -76,7 +76,7 @@ SetEndOfFile(void *hFile)
 
 	return FALSE;
 }
-
+/*
 WINMMAPI MMRESULT
 midiOutPrepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh)
 {
@@ -144,7 +144,7 @@ midiOutReset(HMIDIOUT hmo)
 	(void)hmo;
 	return MMSYSERR_NOERROR;
 }
-
+*/
 static int32_t _WritePrivateProfileString_subr(
 			FILE **, int32_t, int32_t, const char*, const char*);
 

@@ -106,6 +106,17 @@ SDL_LIB=		`$(SDL_CONFIG) --libs`
 
 LDLIBS = -lm
 
+ifeq "$(PLATFORM)" "Darwin"
+LDLIBS+=  -framework Cocoa -framework CoreMIDI
+else
+ifeq "$(PLATFORM)" "Linux"
+# 
+else
+# Cygwin for MIDI (winmm.lib)
+LDLIBS+= -lwinmm
+endif
+endif
+
 EXTRA_INCLUDES= -I./SDL2 -I./x68k -I./fmgen -I./win32api $(SDL_INCLUDE)
 
 CXXDEBUGFLAGS= $(CDEBUGFLAGS)
