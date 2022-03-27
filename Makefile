@@ -185,5 +185,6 @@ mac::
 	-rm -rf "$(PROGRAM).app/"
 	mkdir "$(PROGRAM).app/"
 	cp -r "osx/Contents/" "$(PROGRAM).app/Contents"
+	mkdir "$(PROGRAM).app/Contents/MacOS"
 	cp $(PROGRAM) "$(PROGRAM).app/Contents/MacOS/px68k"
 
