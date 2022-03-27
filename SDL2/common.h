@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <string.h>
 #include <pthread.h>
+#include <time.h>
+#include <sched.h>
 
 #ifndef _WIN32
 #include "../win32api/windows.h"

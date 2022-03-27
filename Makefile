@@ -43,8 +43,8 @@ endif
 
 include version.txt
 
-CC	 = gcc -std=c11
-CXX	 = c++ -std=c++11
+CC	 = gcc
+CXX	 = c++
 CXXLINK	 = $(CXX)
 RM	 = rm -f
 TAGS	 = etags
