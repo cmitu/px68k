@@ -171,6 +171,7 @@ WinX68k_SCSICheck()
 	uint16_t *p1, *p2;
 	int32_t scsi;
 	int32_t i;
+	uint8_t tmp;
 	FILEH fp;
 	static const char CZ6BS1IPLFILE[] = "scsiexrom.dat";
 	static const char SCSIINIPLFILE[] = "scsiinrom.dat";
@@ -222,8 +223,14 @@ WinX68k_SCSICheck()
 			File_Close(fp);
 			memset(&SCSIIPL[0x000440], 0, (0x2000-0x440));
 			memcpy( &SCSIIPL[0x000440], EX_SCSIIOCS, sizeof(EX_SCSIIOCS));//IOCS Patch
-			//Memory_SetSCSIMode(1);
 		}
+
+		for (i = 0; i < 0x02000; i += 2) {
+			tmp = SCSIIPL[i];
+			SCSIIPL[i] = SCSIIPL[i + 1];
+			SCSIIPL[i + 1] = tmp;
+		}
+
 	}
 
  return;
@@ -271,22 +278,13 @@ WinX68k_LoadROMs(void)
 	if(i==3) strcat(window_title," XVIcpt");
 	if(i==4) strcat(window_title," XVI");
 
-	/*==for little endian guy!==*/
-	pthread_t th[3];
-	struct chdata dt[3];
-
-	dt[0].addr = &IPL[0x20000];
-	dt[0].num  = 0x20000;
-	pthread_create(&th[0], NULL, Chg_endian, &dt[0]);
-
 	WinX68k_SCSICheck();	// Load SCSI IPL in:$fc0000～ ex:ea0000
 
-	dt[1].addr = &IPL[0x00000];
-	dt[1].num  = 0x20000;
-	dt[2].addr = &SCSIIPL[0x00000];
-	dt[2].num  = 0x02000;
-	pthread_create(&th[1], NULL, Chg_endian, &dt[1]);
-	pthread_create(&th[2], NULL, Chg_endian, &dt[2]);
+	for (i = 0; i < 0x40000; i += 2) {
+		tmp = IPL[i];
+		IPL[i] = IPL[i + 1];
+		IPL[i + 1] = tmp;
+	}
 
 	fp = File_OpenCurDir((char *)FONTFILE);
 	if (fp == 0) {
@@ -300,11 +298,6 @@ WinX68k_LoadROMs(void)
 	}
 	File_Read(fp, FONT, 0xc0000);
 	File_Close(fp);
-
-	/* check thread end */
-	pthread_join(th[0], NULL);
-	pthread_join(th[1], NULL);
-	pthread_join(th[2], NULL);
 
 	SDL_SetWindowTitle(sdl_window, window_title); /*SDL2 only*/
 
@@ -350,15 +343,6 @@ WinX68k_Reset(void)
 	return TRUE;
 }
 
-/*= memorry clear thread =*/
-void *zeromemset(void *para)
-{
-	struct chdata *endch = (struct chdata *)para;
-
-	memset(endch->addr, 0, endch->num);
-
-return NULL;
-}
 
 int32_t
 WinX68k_Init(void)
@@ -373,27 +357,13 @@ WinX68k_Init(void)
 	FONT = (uint8_t*)malloc(0xc0000 + 100);
 
 	if (MEM){
-	  //memset(MEM, 0, MEM_SIZE);// スレッドで分割クリアにしてみる。
-	  zero[0].addr = &MEM[0x000000];
-	  zero[0].num  = 0x400000;
-	  zero[1].addr = &MEM[0x400000];
-	  zero[1].num  = 0x40000;
-	  zero[2].addr = &MEM[0x800000];
-	  zero[2].num  = 0x400000;
-	  pthread_create(&th[0], NULL, zeromemset, &zero[0]);
-	  pthread_create(&th[1], NULL, zeromemset, &zero[1]);
-	  pthread_create(&th[2], NULL, zeromemset, &zero[2]);
+	  memset(MEM, 0, 0xc00000);
 	}
 
 	if (MEM && FONT && IPL) {
 	  	m68000_init();  
 		ret = TRUE;
 	}
-
-	/* check thread end */
-	pthread_join(th[0], NULL);
-	pthread_join(th[1], NULL);
-	pthread_join(th[2], NULL);
 
 return ret;
 }
@@ -819,7 +789,7 @@ int32_t main(int32_t argc, char *argv[])
 	WinX68k_Reset();
 	Timer_Init();
 
-	MIDI_Init();
+	//MIDI_Init();
 	MIDI_SetMimpiMap((char *)Config.ToneMapFile);	// 音色設定ファイル使用反映
 	MIDI_EnableMimpiDef(Config.ToneMap);
 
