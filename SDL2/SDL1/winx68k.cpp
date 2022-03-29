@@ -126,18 +126,19 @@ WinX68k_SCSICheck(void)
 // SCSIデバイスからの起動は不可、初期化ルーチンはSCSI IOCS($F5)のベクタ設定のみを行います。
 	static	uint8_t	EX_SCSIIMG[] = {
 		0x00, 0xea, 0x00, 0x34,			// $ea0020 SCSI起動用のエントリアドレス
-		0x00, 0xea, 0x00, 0x36,			// $ea0024 IOCSベクタ設定のエントリアドレス(必ず"Human"の8バイト前)
+		0x00, 0xea, 0x00, 0x52,			// $ea0024 Human-Loader(必ず"Human68k"の8バイト前)
 		0x00, 0xea, 0x00, 0x4a,			// $ea0028 SCSI IOCSエントリアドレス
-		0x48, 0x75, 0x6d, 0x61,			// $ea002c ↓
-		0x6e, 0x36, 0x38, 0x6b,			// $ea0030 ID "Human68k"	(必ず起動エントリポイントの直前)
-		0x4e, 0x75,				// $ea0034 "rts"		(起動エントリポイント、何もしないよ)
-		0x23, 0xfc, 0x00, 0xea, 0x00, 0x4a,	// $ea0036 ↓			(IOCSベクタ設定エントリポイント)
-		0x00, 0x00, 0x07, 0xd4,			// $ea003c "move.l #$ea004a, $7d4.l" (IOCS $F5のベクタ設定)
-		0x74, 0xff,				// $ea0040 "moveq #-1, d2"
-		0x4e, 0x75,				// $ea0042 "rts"
+		0x48, 0x75, 0x6d, 0x61,0x6e, 0x36, 0x38, 0x6b,	// $ea002c ↓"Human68k"	(必ず起動エントリポイントの直前)
+		0x13, 0xc1, 0x00, 0xe9, 0xf8, 0x10,	// $ea0034 "move.b d1, $e9f810"	 (SCSI 起動エントリポイント)
+		0x0c, 0x11, 0x00, 0x60,				// $ea003a "cmp.b #$60,(a1)"
+		0x66, 0x02,							// $ea003e "bne $(pc+2)"
+		0x4e, 0x91,							// $ea0040 "jsr(a1)"
+		0x4e, 0x75,							// $ea0042 "rts"
 		0x53, 0x43, 0x53, 0x49, 0x45, 0x58,	// $ea0044 ID "SCSIEX"		(SCSIカードのID)
 		0x13, 0xc1, 0x00, 0xe9, 0xf8, 0x00,	// $ea004a "move.b d1, $e9f800"	(SCSI IOCSコールエントリポイント)
-		0x4e, 0x75,				// $ea0050 "rts"
+		0x4e, 0x75,							// $ea0050 "rts"
+		0x13, 0xc1, 0x00, 0xe9, 0xf8, 0x20,	// $ea0052 "move.b d1, $e9f820"	(Human 起動エントリポイント)
+		0x4e, 0x75,							// $ea0058 "rts"
 	};
 
 // XVI/Compact/030の内蔵SCSI ROM
@@ -173,13 +174,9 @@ WinX68k_SCSICheck(void)
 	static const char SCSIINIPLFILE[] = "scsiinrom.dat";
 
 
+	/*check IPL scsi=0:ExSCSI 1:InSCSI*/
 	scsi = 0;
 	for (i = 0x30600; i < 0x30c00; i += 2) {
-#if 0 // 4の倍数ではない偶数アドレスからの4バイト長アクセスはMIPSには無理
-		p = (uint32_t *)(&IPL[i]);
-		if (*p == 0x0000fc00)
-			scsi = 1;
-#else
 		p1 = (uint16_t *)(&IPL[i]);
 		p2 = p1 + 1;
 		// xxx: works only for little endian guys
@@ -187,7 +184,6 @@ WinX68k_SCSICheck(void)
 			scsi = 1;
 			break;
 		}
-#endif
 	}
 	scsi=0;/* force CZ-6BS1 active */
 
@@ -224,26 +220,17 @@ WinX68k_SCSICheck(void)
 			File_Close(fp);
 			memset(&SCSIIPL[0x000440], 0, (0x2000-0x440));
 			memcpy( &SCSIIPL[0x000440], EX_SCSIIOCS, sizeof(EX_SCSIIOCS));//IOCS Patch
-			//Memory_SetSCSIMode(1);
+
+			for (i = 0; i < 0x02000; i += 2) {
+			 tmp = SCSIIPL[i];
+			 SCSIIPL[i] = SCSIIPL[i + 1];
+			 SCSIIPL[i + 1] = tmp;
+			}
 		}
+
 	}
 
  return;
-}
-
-/*= for Little-endian guy =*/
-void *Chg_endian(void *para)
-{
-	int32_t i;
-	uint8_t tmp;
-	struct chdata *endch = (struct chdata *)para;
-
-	for (i = 0; i < endch->num; i += 2){
-		tmp = endch->addr[i];
-		  endch->addr[i] = endch->addr[i + 1];
-		  endch->addr[i + 1] = tmp;
-	}
-return NULL;
 }
 
 /* Load IPL,cg-rom and SCSI-IPL */
@@ -279,11 +266,6 @@ WinX68k_LoadROMs(void)
 		tmp = IPL[i];
 		IPL[i] = IPL[i + 1];
 		IPL[i + 1] = tmp;
-	}
-	for (i = 0; i < 0x02000; i += 2) {
-		tmp = SCSIIPL[i];
-		SCSIIPL[i] = SCSIIPL[i + 1];
-		SCSIIPL[i + 1] = tmp;
 	}
 
 	fp = File_OpenCurDir((char *)FONTFILE);
@@ -346,19 +328,22 @@ WinX68k_Reset(void)
 int32_t
 WinX68k_Init(void)
 {
+	int32_t ret= FALSE;
 
 	IPL = (uint8_t*)malloc(0x40000 + 100);
 	MEM = (uint8_t*)malloc(0xc00000 + 100);
 	FONT = (uint8_t*)malloc(0xc0000 + 100);
 
-	if (MEM)
+	if (MEM){
 		memset(MEM, 0, 0xc00000);
+	}
 
 	if (MEM && FONT && IPL) {
 	  	m68000_init();  
 		return TRUE;
-	} else
-		return FALSE;
+	}
+
+	return FALSE;
 }
 
 void
@@ -540,7 +525,7 @@ void WinX68k_Exec(void)
 	TimerICount += clk_total;
 
 	t_end = timeGetTime();
-	if ( (int)(t_end-t_start)>((CRTC_Regs[0x29]&0x10)?14:16) ) {
+	if ( (int32_t)(t_end-t_start)>((CRTC_Regs[0x29]&0x10)?14:16) ) {
 		FrameSkipQueue += ((t_end-t_start)/((CRTC_Regs[0x29]&0x10)?14:16))+1;
 		if ( FrameSkipQueue>100 )
 			FrameSkipQueue = 100;
@@ -780,7 +765,7 @@ int32_t main(int32_t argc, char *argv[])
 	WinX68k_Reset();
 	Timer_Init();
 
-	MIDI_Init();
+	//MIDI_Init();
 	MIDI_SetMimpiMap((char *)Config.ToneMapFile);	// 音色設定ファイル使用反映
 	MIDI_EnableMimpiDef(Config.ToneMap);
 
@@ -805,9 +790,6 @@ int32_t main(int32_t argc, char *argv[])
 	case 2:
 		strcpy((char *)Config.FDDImage[0], argv[1]);
 		break;
-	case 0:
-		// start menu when running without content
-		menu_mode = menu_enter;
 	}
 
 	FDD_SetFD(0, (char *)Config.FDDImage[0], 0);

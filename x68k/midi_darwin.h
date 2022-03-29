@@ -29,16 +29,17 @@ typedef	HMIDIOUT *	LPHMIDIOUT;
 #define	MIDI_MAPPER		-1
 #define	CALLBACK_NULL		0x00000000L
 
-// for CoreMIDI 
+	// for CoreMIDI 
 	MIDIPortRef mid_port;
 	MIDIClientRef mid_client;
 	MIDIEndpointRef mid_endpoint;
 	MIDIPacket* mid_Packet = 0;
 
+	// Create MIDIPacketList from packetbuff
+	const uint8_t packetBuf[MIDBUF_SIZE];
+	MIDIPacketList *packetList = (MIDIPacketList *)packetBuf;
 
-	uint8_t MIDI_EXCVWAIT;
 	const char mid_name[] = {"px68k-MIDI"};
-
 
 // -----------------------------------------------------------------------
 //   MIDI port Open (Client -> Source -> Port ,EndPoint)
@@ -54,7 +55,7 @@ midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
 
 	OSStatus err_sts;
 
-	// Create a MIDI client
+	// Create Client for MIDI
 	err_sts = MIDIClientCreate(CFSTR("px68k"), NULL, NULL, &mid_client);
 
 	if (err_sts != noErr)
@@ -63,7 +64,7 @@ midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
 		return !MMSYSERR_NOERROR;
 	}
 
-	// Create a MIDI Source
+	// Create Source for client
 	err_sts = MIDISourceCreate(mid_client, CFSTR("px68k MIDI Source"),
 				&mid_endpoint);
 
@@ -73,7 +74,7 @@ midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
 		return !MMSYSERR_NOERROR;
 	}
 
-	// Create a MIDI  port
+	// Create OutPort for client
 	err_sts = MIDIOutputPortCreate(mid_client, CFSTR("px68k MIDI Port"), &mid_port);
 
 	if (err_sts != noErr)
@@ -116,14 +117,23 @@ midiOutClose(HMIDIOUT hmo)
 {
 	(void)hmo;
 
-	// Dispose the port
-	MIDIPortDispose(mid_port);
+	OSStatus err_sts;
 
-	// Dispose the client
-	MIDIClientDispose(mid_client);
+	// Disconnect IN/OUT Port
+	err_sts = MIDIPortDisconnectSource(mid_port, mid_endpoint);
+	if (err_sts != noErr) p6logd("Disconnect err\n");
 
-	// Dispose the endpoint
-	MIDIEndpointDispose(mid_endpoint);
+	// Dispose Port
+	err_sts = MIDIPortDispose(mid_port);
+	if (err_sts != noErr) p6logd("Dispose Port err\n");
+
+	// Dispose endpoint
+	err_sts = MIDIEndpointDispose(mid_endpoint);
+	if (err_sts != noErr) p6logd("Dispose Endpoint err\n");
+
+	// Dispose Client
+	err_sts = MIDIClientDispose(mid_client);
+	if (err_sts != noErr) p6logd("Dispose Client err\n");
 
 	return MMSYSERR_NOERROR;
 }
@@ -142,23 +152,21 @@ midiOutShortMsg(HMIDIOUT hmo, uint32_t msg)
 	messg[2] =  (msg >> 16) & 0xff;
 	messg[3] =  (msg >> 24) & 0xff;
 
-	// Acquire a MIDIPacketList
-	uint8_t packetBuf[MIDBUF_SIZE];
-	MIDIPacketList *packetList = (MIDIPacketList *)packetBuf;
+	// initialize MIDIPacketList
 	mid_Packet = MIDIPacketListInit(packetList);
 
 	// length of msg
 	uint32_t len;
 	switch(messg[0] & 0xf0){
-		case 0xc0:
-		case 0xd0:
+		case 0xc0://prog. chg
+		case 0xd0://chnnel press.
 			len = 2;
 			break;
-		case 0x80:
-		case 0x90:
-		case 0xa0:
-		case 0xb0:
-		case 0xe0:
+		case 0x80://note on
+		case 0x90://     off
+		case 0xa0://key press.
+		case 0xb0://cont.chg
+		case 0xe0://pitch wheel chg
 			len = 3;
 			break;
 		case 0xf0:
@@ -166,13 +174,14 @@ midiOutShortMsg(HMIDIOUT hmo, uint32_t msg)
 			break;
 		default:
 			len = 0; //ありえないハズ
+			break;
 	}
 
-	// Add msg to the MIDIPacketList
+	// 電文とタイムスタンプ入れてPacketList更新
 	MIDITimeStamp midiTime = mach_absolute_time();
 	MIDIPacketListAdd(packetList, (ByteCount)sizeof(packetBuf), mid_Packet, (MIDITimeStamp)midiTime, len, messg);
 
-	// Send the MIDIPacketList
+	// PacketList送信
 	MIDISend(mid_port,mid_endpoint,packetList);
 
 	return MMSYSERR_NOERROR;
@@ -187,21 +196,16 @@ midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh)
 	(void)hmo;
 	(void)cbmh;
 
-	// Acquire a MIDIPacketList
-	uint8_t packetBuf[MIDBUF_SIZE];
-	uint32_t pos=0;
-	MIDIPacketList *packetList = (MIDIPacketList *)packetBuf;
+	// initialize MIDIPacketList
 	mid_Packet = MIDIPacketListInit(packetList);
 
-	// Add msg to the MIDIPacketList
+	// 電文とタイムスタンプ入れてPacketList更新
 	MIDITimeStamp midiTime = mach_absolute_time();
 	MIDIPacketListAdd(packetList, (ByteCount)sizeof(packetBuf), mid_Packet, 
 				(MIDITimeStamp)midiTime, pmh->dwBufferLength, (uint8_t *)pmh->lpData);
 
-	// Send the MIDIPacketList
+	// PacketList送信
 	MIDISend(mid_port,mid_endpoint,packetList);
-
-	MIDI_EXCVWAIT = 1;
 
 	return MMSYSERR_NOERROR;
 }

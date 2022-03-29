@@ -211,7 +211,7 @@ WinX68k_SCSICheck()
 	else{
 		fp = File_OpenCurDir((char *)CZ6BS1IPLFILE);/*ExSCSI-IPL*/
 		if (fp == 0) {
-			printf("NO-SCSI-IPL for CZ-6BS1.\n");// No CZ-6BS1-IPL
+			//printf("NO-SCSI-IPL for CZ-6BS1.\n");// No CZ-6BS1-IPL
 			memset(SCSIIPL, 0, 0x02000);		// clear
 			memcpy(&SCSIIPL[0x20], EX_SCSIIMG, sizeof(EX_SCSIIMG));	// Dummy-SCSI BIOS Load
 		}
@@ -223,32 +223,17 @@ WinX68k_SCSICheck()
 			File_Close(fp);
 			memset(&SCSIIPL[0x000440], 0, (0x2000-0x440));
 			memcpy( &SCSIIPL[0x000440], EX_SCSIIOCS, sizeof(EX_SCSIIOCS));//IOCS Patch
-		}
 
-		for (i = 0; i < 0x02000; i += 2) {
-			tmp = SCSIIPL[i];
-			SCSIIPL[i] = SCSIIPL[i + 1];
-			SCSIIPL[i + 1] = tmp;
+			for (i = 0; i < 0x02000; i += 2) {
+			 tmp = SCSIIPL[i];
+			 SCSIIPL[i] = SCSIIPL[i + 1];
+			 SCSIIPL[i + 1] = tmp;
+			}
 		}
 
 	}
 
  return;
-}
-
-/*= thread for Little-endian guy =*/
-void *Chg_endian(void *para)
-{
-	int32_t i;
-	uint8_t tmp;
-	struct chdata *endch = (struct chdata *)para;
-
-	for (i = 0; i < endch->num; i += 2){
-		tmp = endch->addr[i];
-		  endch->addr[i] = endch->addr[i + 1];
-		  endch->addr[i + 1] = tmp;
-	}
-return NULL;
 }
 
 /* Load IPL,cg-rom and SCSI-IPL */
@@ -349,9 +334,6 @@ WinX68k_Init(void)
 {
 	int32_t ret= FALSE;
 
-	pthread_t th[3];
-	struct chdata zero[3];
-
 	IPL = (uint8_t*)malloc(0x40000 + 100);
 	MEM = (uint8_t*)malloc(0xc00000 + 100);
 	FONT = (uint8_t*)malloc(0xc0000 + 100);
@@ -362,10 +344,10 @@ WinX68k_Init(void)
 
 	if (MEM && FONT && IPL) {
 	  	m68000_init();  
-		ret = TRUE;
+		return TRUE;
 	}
 
-return ret;
+	return FALSE;
 }
 
 void
@@ -742,10 +724,10 @@ int32_t main(int32_t argc, char *argv[])
 
 	StatBar_Show(Config.WindowFDDStat);
 	WinGetRootSize();
-	WinDraw_StartupScreen();
 	WinDraw_ChangeSize();
 	WinDraw_ChangeMode(FALSE);
 	WinUI_Init();
+	WinDraw_StartupScreen();
 
 	if (!WinX68k_Init()) {
 		WinX68k_Cleanup();
