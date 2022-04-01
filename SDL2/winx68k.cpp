@@ -332,7 +332,6 @@ WinX68k_Reset(void)
 int32_t
 WinX68k_Init(void)
 {
-	int32_t ret= FALSE;
 
 	IPL = (uint8_t*)malloc(0x40000 + 100);
 	MEM = (uint8_t*)malloc(0xc00000 + 100);

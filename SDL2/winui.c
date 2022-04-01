@@ -262,17 +262,23 @@ WinUI_Init(void)
 
 
 #if defined(ANDROID)
-#define CUR_DIR_STR winx68k_dir
+	char CUR_DIR_STR[] = {"winx68k_dir"};
 #elif TARGET_OS_IPHONE && TARGET_IPHONE_SIMULATOR == 0
-#define CUR_DIR_STR "/var/mobile/px68k/"
+	char CUR_DIR_STR[] = {"/var/mobile/px68k/"};
 #else
-#define CUR_DIR_STR "./"
+	char CUR_DIR_STR[MAX_PATH];
+	strcpy(CUR_DIR_STR, getenv("HOME"));
 #endif
 
 	if (filepath[0]!='\0') {
 		strcpy(cur_dir_str, filepath);
+#ifdef _WIN32
+		if (cur_dir_str[strlen(cur_dir_str)-1]!='\')
+			strcat(cur_dir_str, "\");
+#else
 		if (cur_dir_str[strlen(cur_dir_str)-1]!='/')
 			strcat(cur_dir_str, "/");
+#endif
 	}
 	else{
 			strcpy(cur_dir_str, CUR_DIR_STR);
@@ -613,11 +619,20 @@ static void shortcut_dir(int32_t drv)
 		p--;
 	}
 
+#ifdef _WIN32
+	if (found && strcmp(p, "\\..\\")) {
+		*(p + 1) = '\0';
+	} else {
+		strcat(mfl.dir[drv], "..\\");
+	}
+#else
 	if (found && strcmp(p, "/../")) {
 		*(p + 1) = '\0';
 	} else {
 		strcat(mfl.dir[drv], "../");
 	}
+#endif
+
 }
 
 /*=== PF12 Menu ===*/
@@ -817,7 +832,11 @@ int32_t WinUI_Menu(int32_t first)
 					shortcut_dir(drv);
 				} else {
 					strcat(mfl.dir[drv], mfl.name[y]);
+#ifdef _WIN32
+					strcat(mfl.dir[drv], "\\");
+#else
 					strcat(mfl.dir[drv], "/");
+#endif
 				}
 				menu_func[mkey_y].func(0);
 				mfile_redraw = 1;

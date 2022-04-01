@@ -65,14 +65,14 @@ midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
 	}
 
 	// Create Source for client
-	err_sts = MIDISourceCreate(mid_client, CFSTR("px68k MIDI Source"),
-				&mid_endpoint);
+	//err_sts = MIDISourceCreate(mid_client, CFSTR("px68k MIDI Source"),
+	//			&mid_endpoint);
 
-	if (err_sts != noErr)
-	{
-		p6logd("MIDI:CoreMIDI: No Sorce created.");
-		return !MMSYSERR_NOERROR;
-	}
+	//if (err_sts != noErr)
+	//{
+	//	p6logd("MIDI:CoreMIDI: No Sorce created.");
+	//	return !MMSYSERR_NOERROR;
+	//}
 
 	// Create OutPort for client
 	err_sts = MIDIOutputPortCreate(mid_client, CFSTR("px68k MIDI Port"), &mid_port);
@@ -120,20 +120,20 @@ midiOutClose(HMIDIOUT hmo)
 	OSStatus err_sts;
 
 	// Disconnect IN/OUT Port
-	err_sts = MIDIPortDisconnectSource(mid_port, mid_endpoint);
-	if (err_sts != noErr) p6logd("Disconnect err\n");
+	//err_sts = MIDIPortDisconnectSource(mid_port, mid_endpoint);
+	//if (err_sts != noErr) p6logd("Disconnect MIDI-Source err\n");
 
 	// Dispose Port
 	err_sts = MIDIPortDispose(mid_port);
-	if (err_sts != noErr) p6logd("Dispose Port err\n");
+	if (err_sts != noErr) p6logd("Dispose MIDI-Port err\n");
 
 	// Dispose endpoint
 	err_sts = MIDIEndpointDispose(mid_endpoint);
-	if (err_sts != noErr) p6logd("Dispose Endpoint err\n");
+	if (err_sts != noErr) p6logd("Dispose MIDI-Endpoint err\n");
 
 	// Dispose Client
 	err_sts = MIDIClientDispose(mid_client);
-	if (err_sts != noErr) p6logd("Dispose Client err\n");
+	if (err_sts != noErr) p6logd("Dispose MIDI-Client err\n");
 
 	return MMSYSERR_NOERROR;
 }

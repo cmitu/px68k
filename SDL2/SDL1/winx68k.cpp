@@ -170,6 +170,7 @@ WinX68k_SCSICheck(void)
 	int32_t scsi;
 	int32_t i;
 	FILEH fp;
+	uint8_t tmp;
 	static const char CZ6BS1IPLFILE[] = "scsiexrom.dat";
 	static const char SCSIINIPLFILE[] = "scsiinrom.dat";
 
@@ -328,7 +329,6 @@ WinX68k_Reset(void)
 int32_t
 WinX68k_Init(void)
 {
-	int32_t ret= FALSE;
 
 	IPL = (uint8_t*)malloc(0x40000 + 100);
 	MEM = (uint8_t*)malloc(0xc00000 + 100);
