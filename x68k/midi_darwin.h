@@ -93,15 +93,19 @@ midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
 		p6logd("No MIDI-port found.\n");
 		return !MMSYSERR_NOERROR;
 	}
-	destId = 0;// 最初のMIDI port固定
-	mid_endpoint = MIDIGetDestination(destId);
+
 	CFStringRef strRef;
 	char mididevicename[64];
-	MIDIObjectGetStringProperty(mid_endpoint, kMIDIPropertyName, &strRef);
-	CFStringGetCString(strRef, mididevicename, sizeof(mididevicename), 0);
+	for(uint32_t i = 0; i<destId; i++){
+		mid_endpoint = MIDIGetDestination(i);
+		MIDIObjectGetStringProperty(mid_endpoint, kMIDIPropertyName, &strRef);
+		CFStringGetCString(strRef, mididevicename, sizeof(mididevicename), 0);
+		p6logd("Find MIDI:Port%ld %s\n",i,mididevicename);
+	}
 	CFRelease(strRef);
-	p6logd("Find MIDI:%s\n",mididevicename);
 
+	destId = 0;// 最初のMIDI port固定
+	mid_endpoint = MIDIGetDestination(destId);
 
 	*phmo = (HANDLE)mid_name; //MIDI Active!(ダミーを代入しておく)
 

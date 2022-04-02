@@ -184,7 +184,8 @@ tags::
 mac::
 	-rm -rf "$(PROGRAM).app/"
 	mkdir "$(PROGRAM).app/"
-	cp -r "osx/Contents/" "$(PROGRAM).app/Contents"
+	mkdir "$(PROGRAM).app/Contents/"
 	mkdir "$(PROGRAM).app/Contents/MacOS"
+	cp -r "osx/Contents/" "$(PROGRAM).app/Contents"
 	cp $(PROGRAM) "$(PROGRAM).app/Contents/MacOS/px68k"
 
