@@ -13,5 +13,7 @@ void FASTCALL MIDI_Timer(int32_t clk);
 int32_t MIDI_SetMimpiMap(char *filename);
 int32_t MIDI_EnableMimpiDef(int32_t enable);
 void MIDI_DelayOut(uint32_t delay);
+void midOutChg(uint32_t mid_out_port);
+
 
 #endif

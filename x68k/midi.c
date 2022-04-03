@@ -3,6 +3,7 @@
 //                           Powered by ぷにゅさん〜
 // ---------------------------------------------------------------------------------------
 
+// 2022/3/21:Win/Mac/Linux 向け対応追加
 // 4/18 未明: エクスクルーシヴがうまく通らないのを修正
 // 4/18 朝　: レナムで鳴らなかったのを修正
 // 4/18 昼　: エクスクルーシヴ送信完了を完全に待つ事でドラキュラおっけー
@@ -24,6 +25,7 @@
 #include "x68kmemory.h"
 #include "irqh.h"
 #include "midi.h"
+#include "winui.h"
 #include "m68000.h"
 
 #ifdef _WIN32
@@ -327,15 +329,19 @@ void MIDI_Init(void) {
 	MIDI_EXCVWAIT = 0;
 
 	if (!hOut) {
+		strcpy(menu_items[8][0], "MIDI_MAPPER");//Win default message
+		strcpy(menu_items[8][1],"\0"); // Menu END 
 		if (midiOutOpen(&hOut, MIDI_MAPPER, 0, 0, CALLBACK_NULL)
 							== MMSYSERR_NOERROR) {
 			midiOutReset(hOut);
 		}
-		else
+		else{
+			strcpy(menu_items[8][0],"No Device found.");
 			hOut = 0;
+		}
 	}
-}
 
+}
 
 // -----------------------------------------------------------------------
 //   撤収〜
