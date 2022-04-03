@@ -314,8 +314,6 @@ void MIDI_Init(void) {
 	memset(DelayBuf, 0, sizeof(DelayBuf));
 	DBufPtrW = DBufPtrR = 0;
 
-	MIDI_Cleanup(); //もしOpen済みなら一旦clodeする。
-
 	MIDI_SetModule();
 	MIDI_RegHigh = 0;		// X68K
 	MIDI_Vector = 0;		// X68K
