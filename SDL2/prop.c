@@ -209,14 +209,19 @@ set_dir:
 			return 1;
 		}
 	} else {
-		if ((sb.st_mode & S_IFDIR) == 0) {
+		//if ((sb.st_mode & S_IFDIR) == 0) {
+		if(S_ISDIR(sb.st_mode)){
+			fprintf(stderr, "%s is directory.\n", path);
+		}
+		else{
 			fprintf(stderr, "%s isn't directory.\n", path);
 			return 1;
 		}
 	}
 	snprintf(winx68k_ini, sizeof(winx68k_ini), "%s/%s", path, "config");
 	if (stat(winx68k_ini, &sb) >= 0) {
-		if (sb.st_mode & S_IFDIR) {
+		//if (sb.st_mode & S_IFDIR) {
+		if(S_ISDIR(sb.st_mode)){
 			fprintf(stderr, "%s is directory.\n", winx68k_ini);
 			return 1;
 		}
@@ -227,7 +232,7 @@ set_dir:
 
 void LoadConfig(void)
 {
-	int_fast16_t	i, j;
+	//int_fast16_t	i, j;
 	char	buf[CFGLEN];
 	FILEH fp;
 
@@ -339,33 +344,33 @@ void LoadConfig(void)
 
 	Config.HwJoyHat = GetPrivateProfileInt((const char*)ini_title, "HwJoyHat", 0, winx68k_ini);
 
-	for (i = 0; i < 8; i++) {
+	for (int i = 0; i < 8; i++) {
 		sprintf(buf, "HwJoyBtn%d", i);
 		Config.HwJoyBtn[i] = GetPrivateProfileInt((const char*)ini_title, buf, i, winx68k_ini);
 	}
 
 	Config.NoWaitMode = GetPrivateProfileInt((const char*)ini_title, "NoWaitMode", 0, winx68k_ini);
 
-	for (i=0; i<2; i++)
+	for (int i=0; i<2; i++)
 	{
-		for (j=0; j<8; j++)
+		for (int j=0; j<8; j++)
 		{
 			sprintf(buf, "Joy%dButton%d", i+1, j+1);
 			Config.JOY_BTN[i][j] = GetPrivateProfileInt((const char*)ini_title, buf, j, winx68k_ini);
 		}
 	}
 
-	for (i = 0; i < 2; i++) {
+	for (int i = 0; i < 2; i++) {
 		sprintf(buf, "FDD%d", i);
 		GetPrivateProfileString((const char*)ini_title, buf, "", (char *)Config.FDDImage[i], MAX_PATH, winx68k_ini);
 	}
 
-	for (i=0; i<16; i++)
+	for (int i=0; i<16; i++)
 	{
 		sprintf(buf, "HDD%d", i);
 		GetPrivateProfileString((const char*)ini_title, buf, "", (char *)Config.HDImage[i], MAX_PATH, winx68k_ini);
 	}
-	for (i=0; i<8; i++)
+	for (int i=0; i<8; i++)
 	{
 		sprintf(buf, "SCSIEXHDD%02d", i);
 		GetPrivateProfileString((const char*)ini_title, buf, "", (char *)Config.SCSIEXHDImage[i], MAX_PATH, winx68k_ini);
@@ -386,7 +391,7 @@ extern BOOL WritePrivateProfileString(const char* , const char* , const char* , 
 
 void SaveConfig(void)
 {
-	int_fast16_t	i, j;
+	//int_fast16_t	i, j;
 	char	buf[CFGLEN], buf2[CFGLEN];
 	FILEH fp;
 
@@ -487,7 +492,7 @@ void SaveConfig(void)
 	wsprintf(buf, "%d", Config.HwJoyHat);
 	WritePrivateProfileString((const char*)ini_title, "HwJoyHat", buf, winx68k_ini);
 
-	for (i = 0; i < 8; i++) {
+	for (int i = 0; i < 8; i++) {
 		sprintf(buf, "HwJoyBtn%d", i);
 		sprintf(buf2, "%d", Config.HwJoyBtn[i]);
 		WritePrivateProfileString((const char*)ini_title, buf, buf2, winx68k_ini);
@@ -496,9 +501,9 @@ void SaveConfig(void)
 	wsprintf(buf, "%d", Config.NoWaitMode);
 	WritePrivateProfileString((const char*)ini_title, "NoWaitMode", buf, winx68k_ini);
 
-	for (i=0; i<2; i++)
+	for (int i=0; i<2; i++)
 	{
-		for (j=0; j<8; j++)
+		for (int j=0; j<8; j++)
 		{
 			sprintf(buf, "Joy%dButton%d", i+1, j+1);
 			wsprintf(buf2, "%d", Config.JOY_BTN[i][j]);
@@ -506,19 +511,19 @@ void SaveConfig(void)
 		}
 	}
 
-	for (i = 0; i < 2; i++)
+	for (int i = 0; i < 2; i++)
 	{
 		//printf("i: %d", i);
 		sprintf(buf, "FDD%d", i);
 		WritePrivateProfileString((const char*)ini_title, buf, (char *)Config.FDDImage[i], winx68k_ini);
 	}
 
-	for (i=0; i<16; i++)
+	for (int i=0; i<16; i++)
 	{
 		sprintf(buf, "HDD%d", i);
 		WritePrivateProfileString((const char*)ini_title, buf, (char *)Config.HDImage[i], winx68k_ini);
 	}
-	for (i=0; i<8; i++)
+	for (int i=0; i<8; i++)
 	{
 		sprintf(buf, "SCSIEXHDD%02d", i);
 		WritePrivateProfileString((const char*)ini_title, buf, (char *)Config.SCSIEXHDImage[i], winx68k_ini);

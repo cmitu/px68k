@@ -61,3 +61,8 @@ midiOutReset(HMIDIOUT hmo)
 	return MMSYSERR_NOERROR;
 }
 
+void
+midOutChg(uint32_t port_no)
+{
+}
+

@@ -534,7 +534,7 @@ if(adr == 0xe9f810){ //SCSI 起動
 		for(j=0; j<SCSI_BlockSize; j++){
 		  Memory_WriteB(0x02000+j,SCSI_Buf[j]);
 		}
-		if((Memory_ReadD(0x02000) != 'X68S')||(Memory_ReadD(0x02004) != 'CSI1')){ /*check X68SCSI1*/
+		if((Memory_ReadB(0x02000) != 'X')||(Memory_ReadB(0x02001) != '6')){ /*check X68SCSI1*/
 		 printf("0");return;
 		}
 	}
@@ -584,7 +584,7 @@ if(adr == 0xe9f820){ //Human 起動
 		for(j=0; j<SCSI_BlockSize; j++){
 		  Memory_WriteB(0x02000+j,SCSI_Buf[j]);
 		}
-		if(Memory_ReadD(0x02000) != 'X68S'){ /*check X68SCSI1*/
+		if(Memory_ReadB(0x02000) != 'X'){ /*check X68SCSI1*/
 		 return;
 		}
 	}

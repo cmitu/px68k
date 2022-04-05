@@ -283,8 +283,8 @@ WinUI_Init(void)
 	}
 
 #ifdef _WIN32
-		if (cur_dir_str[strlen(cur_dir_str)-1]!='\')
-			strcat(cur_dir_str, "\");
+		if (cur_dir_str[strlen(cur_dir_str)-1]!='\\')
+			strcat(cur_dir_str, "\\");
 #else
 		if (cur_dir_str[strlen(cur_dir_str)-1]!='/')
 			strcat(cur_dir_str, "/");

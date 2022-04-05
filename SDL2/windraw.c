@@ -2052,7 +2052,7 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 		} else {
 			draw_str(menu_items[i + mkey_pos][mval_y[i + mkey_pos]],1);
 			/* Real Time Show change HwJoy Setting */
-			if((i + mkey_pos)==10) 
+			if((i + mkey_pos)==11) 
 			{
 				switch(mval_y[i + mkey_pos])/*Axis0,1,Hat,Button0,1*/
 				{
