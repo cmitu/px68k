@@ -556,23 +556,23 @@ Memory_SetSCSIMode(int32_t mode)/*1:Ex-SCSI 2:In-SCSI*/
 	Memory_WriteB(0xe8e00d, 0x31);	/* Allow SRAM Access(91byte)*/
 	switch(mode){/*SRAM SCSI set*/
 		case 0:/*No-SCSI*/
+			Memory_WriteB(0xe8e06f, 0x00);	/*No SCSI*/
+			Memory_WriteB(0xe8e070, 0x07);	/*Set ID=7*/
+			Memory_WriteB(0xe8e071, 0x00);	/*SASI flag all 0*/
 			break;
 		case 1:/*SCSI EX*/
-			if(Memory_ReadB(0xed006f)!='V'){
 			Memory_WriteB(0xe8e06f, 'V');	/*Activate SCSI*/
 			Memory_WriteB(0xe8e070, 0x0f);	/*ExternalSCSI Set ID=7*/
-			}
+			Memory_WriteB(0xe8e071, 0x00);	/*SASI flag all 0*/
 			break;
 		case 2:/*SCSI IN*/
-			if(Memory_ReadB(0xed006f)!='V'){
 			Memory_WriteB(0xe8e06f, 'V');	/*Activate SCSI*/
 			Memory_WriteB(0xe8e070, 0x07);	/*InternalSCSI Set ID=7*/
-			}
+			Memory_WriteB(0xe8e071, 0x00);	/*SASI flag all 0*/
 			break;
 		default:
 			break;
 	}
-	Memory_WriteB(0xe8e071, 0x00);/*emurate SASI*/
 
 	return;
 }
