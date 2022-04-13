@@ -1,16 +1,12 @@
 // JOYSTICK.C - joystick support for WinX68k
 
-#ifdef PSP
-#include <pspctrl.h>
-#endif
-
 #include "common.h"
 #include "prop.h"
 #include "joystick.h"
 #include "winui.h"
 #include "keyboard.h"
 
-#if defined(ANDROID) || TARGET_OS_IPHONE || defined(PSP)
+#if defined(ANDROID) || TARGET_OS_IPHONE
 #include "mouse.h"
 #endif
 
@@ -37,12 +33,6 @@ uint8_t MouseDownState0;
 uint8_t JoyUpState0;
 uint8_t MouseUpState0;
 
-#ifdef PSP
-uint32_t JoyDownStatePSP;
-uint8_t JoyAnaPadX;
-uint8_t JoyAnaPadY;
-static void mouse_update_psp(SceCtrlData psppad);
-#endif
 uint8_t JoyPortData[2];
 
 #if defined(ANDROID) || TARGET_OS_IPHONE
@@ -150,15 +140,12 @@ uint8_t Joystick_get_vbtn_state(uint16_t n)
 
 #endif
 
-#ifndef PSP
 SDL_Joystick *sdl_joy;
-#endif
 
 void Joystick_Init(void)
 {
-#ifndef PSP
 	int32_t i, nr_joys, nr_axes, nr_btns, nr_hats;
-#endif
+
 
 	joy[0] = 1;  // active only one
 	joy[1] = 0;
@@ -176,7 +163,6 @@ void Joystick_Init(void)
 	Joystick_Vbtn_Update(WinUI_get_vkscale());
 #endif
 
-#ifndef PSP
 	sdl_joy = 0;
 
 	SDL_InitSubSystem(SDL_INIT_JOYSTICK);
@@ -209,12 +195,11 @@ void Joystick_Init(void)
 			p6logd("can't open joy %d\n", i);
 		}
 	}
-#endif
 }
 
 void Joystick_Cleanup(void)
 {
-#ifndef PSP
+
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	if (SDL_JoystickGetAttached(sdl_joy)) {
 		SDL_JoystickClose(sdl_joy);
@@ -222,7 +207,7 @@ void Joystick_Cleanup(void)
 #else
 	SDL_JoystickClose(sdl_joy);
 #endif
-#endif
+
 }
 
 uint8_t FASTCALL Joystick_Read(uint8_t num)
@@ -255,73 +240,15 @@ void FASTCALL Joystick_Write(uint8_t num, uint8_t data)
 	if ( (num==0)||(num==1) ) JoyPortData[num] = data;
 }
 
-#ifdef PSP
-void FASTCALL Joystick_Update(int32_t is_menu)
-#else
 void FASTCALL Joystick_Update(int32_t is_menu, SDL_Keycode key)
-#endif
 {
 	uint8_t ret0 = 0xff, ret1 = 0xff;
 	uint8_t mret0 = 0xff, mret1 = 0xff;
 	int32_t num = 0; //xxx only joy1
 	static uint8_t pre_ret0 = 0xff, pre_mret0 = 0xff;
-#if defined(PSP)
-	static uint32_t button_down = 0;
-	uint32_t button_changing;
-
-	SceCtrlData psppad;
-	sceCtrlPeekBufferPositive(&psppad, 1);
-
-	if (is_menu || !Config.JoyOrMouse || Keyboard_IsSwKeyboard()) {
-		if (psppad.Buttons & PSP_CTRL_LEFT) {
-			ret0 ^= JOY_LEFT;
-		}
-		if (psppad.Buttons & PSP_CTRL_RIGHT) {
-			ret0 ^= JOY_RIGHT;
-		}
-		if (psppad.Buttons & PSP_CTRL_UP) {
-			ret0 ^= JOY_UP;
-		}
-		if (psppad.Buttons & PSP_CTRL_DOWN) {
-			ret0 ^= JOY_DOWN;
-		}
-		if (psppad.Buttons & PSP_CTRL_CIRCLE) {
-			ret0 ^= JOY_TRG1;
-		}
-		if (psppad.Buttons & PSP_CTRL_CROSS) {
-			ret0 ^= JOY_TRG2;
-		}
-	} else {
-		if (psppad.Buttons & PSP_CTRL_CIRCLE) {
-			mret0 ^= JOY_TRG1;
-		}
-		if (psppad.Buttons & PSP_CTRL_CROSS) {
-			mret0 ^= JOY_TRG2;
-		}
-	}
-
-	JoyDownState0 = ~(ret0 ^ pre_ret0) | ret0;
-	JoyUpState0 = (ret0 ^ pre_ret0) & ret0;
-	pre_ret0 = ret0;
-
-	MouseDownState0 = ~(mret0 ^ pre_mret0) | mret0;
-	MouseUpState0 = (mret0 ^ pre_mret0) & mret0;
-	pre_mret0 = mret0;
-
-	// up the bits which changed the states
-	button_changing = psppad.Buttons ^ button_down;
-	// first down = changing the state & down now
-	JoyDownStatePSP = button_changing & psppad.Buttons;
-	// invert the bits which changed the states
-	button_down ^= button_changing;
-
-	// save the states of Analog pad
-	JoyAnaPadX = psppad.Lx;
-	JoyAnaPadY = psppad.Ly;
-
-#else //defined(PSP)
 	int32_t x, y;
 	uint8_t hat;
+
 #if defined(ANDROID) || TARGET_OS_IPHONE
 	SDL_Finger *finger;
 	SDL_FingerID fid;
@@ -404,7 +331,7 @@ void FASTCALL Joystick_Update(int32_t is_menu, SDL_Keycode key)
 
 skip_vpad:
 
-#endif //defined(ANDROID) || TARGET_OS_IPHONE
+#endif // ANDROID || TARGET_OS_IPHONE
 
 	// Hardware Joystick
 	if (sdl_joy) {
@@ -510,14 +437,13 @@ skip_vpad:
 	MouseUpState0 = (mret0 ^ pre_mret0) & mret0;
 	pre_mret0 = mret0;
 
-#endif //defined(PSP)
 	// disable Joystick when software keyboard is active
 	if (!is_menu && !Keyboard_IsSwKeyboard()) {
 		JoyState0[num] = ret0;
 		JoyState1[num] = ret1;
 	}
 
-#if defined(USE_OGLES11) || defined(PSP)
+#if defined(USE_OGLES11)
 	// update the states of the mouse buttons
 	if (!(MouseDownState0 & JOY_TRG1) | (MouseUpState0 & JOY_TRG1)) {
 		printf("mouse btn1 event\n");
@@ -527,10 +453,6 @@ skip_vpad:
 		printf("mouse btn2 event\n");
 		Mouse_Event(2, (MouseUpState0 & JOY_TRG2)? 0 : 1.0, 0);
 	}
-#ifdef PSP
-	mouse_update_psp(psppad);
-#endif
-
 #endif
 }
 
@@ -550,84 +472,4 @@ void reset_joy_upstate(void)
 {
 	JoyUpState0 = 0x00;
 }
-
-#ifdef PSP
-uint32_t Joystick_get_downstate_psp(uint32_t ctrl_bit)
-{
-	return (JoyDownStatePSP & ctrl_bit);
-}	  
-void Joystick_reset_downstate_psp(uint32_t ctrl_bit)
-{
-	JoyDownStatePSP ^= ctrl_bit;
-}	  
-
-void Joystatic_reset_anapad_psp(void)
-{
-	JoyAnaPadX = JoyAnaPadY = 128;
-}
-
-void _get_anapad_sub(uint8_t av, int32_t *v, int32_t max)
-{
-	// accelerate accroding to an angle of the stick
-	if (av > 255 / 2 + 32) {
-		(*v)++; // move a little bit
-		if (av > 255 - 5) {
-			(*v)++; // accelerate
-			if (av == 255) {
-				*v += 2; // more accelerate
-			}
-		}
-		if (*v > max) {
-			*v = max;
-		}
-	}
-	if (av < 255 / 2 - 32) {
-		(*v)--;
-		if (av < 5) {
-			(*v)--;
-			if (av == 0) {
-				*v -= 2;
-			}
-		}
-		if (*v < 0) {
-			*v = 0;
-		}
-	}
-}
-
-void Joystick_mv_anapad_psp(void)
-{
-	_get_anapad_sub(JoyAnaPadX, &kbd_x, 450);
-	_get_anapad_sub(JoyAnaPadY, &kbd_y, 250);
-
-}
-static void mouse_update_psp(SceCtrlData psppad)
-{
-	int32_t x = 128, y = 128; // origin is 128
-
-	_get_anapad_sub(JoyAnaPadX, &x, 255);
-	_get_anapad_sub(JoyAnaPadY, &y, 255);
-	
-	x -= 128; //x,y:(-4..4)
-	y -= 128;
-
-	if (psppad.Buttons & PSP_CTRL_LEFT) {
-		x--;
-	}
-	if (psppad.Buttons & PSP_CTRL_RIGHT) {
-		x++;
-	}
-	if (psppad.Buttons & PSP_CTRL_UP) {
-		y--;
-	}
-	if (psppad.Buttons & PSP_CTRL_DOWN) {
-		y++;
-	}
-
-	if (x != 0 || y != 0) {
-		printf("mouse x: %d y: %d", x, y);
-		Mouse_Event(0, (float)x * 0.1 * Config.MouseSpeed, (float)y * 0.1 * Config.MouseSpeed);
-	}
-}
-#endif
 

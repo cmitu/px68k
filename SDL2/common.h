@@ -32,13 +32,6 @@
 #define	LABEL
 #define	__stdcall
 
-#ifdef PSP
-#ifdef MAX_PATH
-#undef MAX_PATH
-#endif
-#define MAX_PATH 320
-#endif
-
 typedef uint8_t	UINT8;
 typedef uint16_t	UINT16;
 typedef uint32_t	UINT32;

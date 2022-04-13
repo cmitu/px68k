@@ -30,12 +30,6 @@
 #include <SDL/SDL_opengles.h>
 #endif
 
-#ifdef PSP
-#include <pspkernel.h>
-#include <pspdisplay.h>
-#include <pspgu.h>
-#endif
-
 #include "winx68k.h"
 #include "winui.h"
 
@@ -56,13 +50,9 @@
 
 extern int32_t Debug_Text, Debug_Grp, Debug_Sp;
 
-#ifdef PSP
-uint16_t *ScrBufL = 0, *ScrBufR = 0;
-#else
 uint16_t *ScrBuf = 0;
-#endif
 
-#if defined(PSP) || defined(USE_OGLES11)
+#if defined(USE_OGLES11)
 uint16_t *menu_buffer;
 uint16_t *kbd_buffer;
 #endif
@@ -80,6 +70,7 @@ uint32_t winh = 0, winw = 0; /*window width hight*/
 uint32_t root_width, root_height; /*primary screen size*/
 uint16_t FrameCount = 0;
 int32_t  SplashFlag = 0;
+
 
 uint16_t WinDraw_Pal16B, WinDraw_Pal16R, WinDraw_Pal16G;
 
@@ -295,63 +286,6 @@ void WinDraw_HideSplash(void)
 {
 }
 
-#ifdef PSP
-
-/*
-          <----- 512byte ------>
-0x04000000+--------------------+
-          |                    |A
-          | draw/disp 0 buffer ||272*2byte (16bit color)
-          |                    |V
-0x04044000+--------------------+
-          |                    |A
-          | draw/disp 1 buffer ||272*2byte
-          |                    |V
-0x04088000+--------------------+
-          |                    |A
-          | z bufer            ||272*2byte
-          |                    |V
-0x040cc000+--------------------+
-          |                    |A
-          | ScrBufL (left)     ||512*2byte (x68k screen size: 756x512)
-          |                    |V
-0x0414c000+----------+---------+
-          |<- 256B ->|A
-          |  ScrBufR ||512*2byte (x68k screen size: 756x512)
-          |  (right) |V
-0x0418c000+----------+---------+A
-          |仮想キーボード用    || 512*256*2byte
-          |    に使うかも領域  |V
-0x041cc000+--------------------+
-          |                    |
-          | Virtexes           |
-          |                    |
-          +--------------------+
-*/
-
-static unsigned int __attribute__((aligned(16))) list[262144];
-
-void *fbp0, *fbp1, *zbp;
-struct Vertexes {
-	unsigned short u, v;   // Texture (sx, sy)
-	unsigned short color;
-	short x, y, z;         // Screen (sx, sy, sz)
-	unsigned short u2, v2; // Texture (ex, ey)
-	unsigned short color2;
-	short x2, y2, z2;      // Screen (ex, ey, ez)
-};
-
-struct Vertexes *vtxl = (struct Vertexes *)0x41cc000;
-struct Vertexes *vtxr = (struct Vertexes *)(0x41cc000 + sizeof(struct Vertexes));
-struct Vertexes *vtxm = (struct Vertexes *)(0x41cc000 + sizeof(struct Vertexes) * 2);
-struct Vertexes *vtxk = (struct Vertexes *)(0x41cc000 + sizeof(struct Vertexes) * 3);
-
-#define PSP_BUF_WIDTH (512)
-#define PSP_SCR_WIDTH (480)
-#define PSP_SCR_HEIGHT (272)
-
-#endif // PSP
-
 static void draw_kbd_to_tex(void);
 
 int32_t WinDraw_Init(void)
@@ -368,17 +302,11 @@ int32_t WinDraw_Init(void)
 		return FALSE;
 	}
 
-
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	WinDraw_Pal16R = 0xf800;
-	WinDraw_Pal16G = 0x07e0;
-	WinDraw_Pal16B = 0x001f;
-#else
+	// SDL1 Color Table
 	WinDraw_Pal16R = sdl_surface->format->Rmask;
 	WinDraw_Pal16G = sdl_surface->format->Gmask;
 	WinDraw_Pal16B = sdl_surface->format->Bmask;
 	//printf("R: %x, G: %x, B: %x\n", WinDraw_Pal16R, WinDraw_Pal16G, WinDraw_Pal16B);
-#endif
 
 
 #if defined(USE_OGLES11)
@@ -446,38 +374,7 @@ int32_t WinDraw_Init(void)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1024, 1024, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, kbd_buffer);
 
-#elif defined(PSP)
-
-	fbp0 = 0; // offset 0
-	fbp1 = (void *)((unsigned int)fbp0 + PSP_BUF_WIDTH * PSP_SCR_HEIGHT * 2);
-	zbp = (void *)((unsigned int)fbp1 + PSP_BUF_WIDTH * PSP_SCR_HEIGHT * 2);
-
-	sceGuInit();
-
-	sceGuStart(GU_DIRECT,list);
-	sceGuDrawBuffer(GU_PSM_5650, fbp0, PSP_BUF_WIDTH);
-	sceGuDispBuffer(PSP_SCR_WIDTH, PSP_SCR_HEIGHT, fbp1, PSP_BUF_WIDTH);
-	sceGuDepthBuffer(zbp, PSP_BUF_WIDTH);
-	sceGuOffset(2048 - (PSP_SCR_WIDTH/2), 2048 - (PSP_SCR_HEIGHT/2));
-	sceGuViewport(2048, 2048, PSP_SCR_WIDTH, PSP_SCR_HEIGHT);
-	sceGuDepthRange(65535, 0);
-	sceGuScissor(0, 0, PSP_SCR_WIDTH, PSP_SCR_HEIGHT);
-	sceGuEnable(GU_SCISSOR_TEST);
-	sceGuFrontFace(GU_CW);
-	sceGuEnable(GU_TEXTURE_2D);
-	sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
-	sceGuFinish();
-	sceGuSync(0, 0);
-
-	sceDisplayWaitVblankStart();
-	sceGuDisplay(GU_TRUE);
-
-	ScrBufL = (uint16_t *)0x040cc000;
-	ScrBufR = (uint16_t *)0x0414c000;
-	kbd_buffer = (uuint16_t *)0x418c000;
-
-	draw_kbd_to_tex();
-#else // PSP end
+#else // OPEN_GL ES end
 
 	/* X68000 Drawing Area */
 	sdl_x68screen = SDL_CreateRGBSurface(0, 800, 600, 16, WinDraw_Pal16R, WinDraw_Pal16G, WinDraw_Pal16B, 0);
@@ -635,86 +532,7 @@ WinDraw_Draw(void)
 
 	SDL_GL_SwapWindow(sdl_window);
 
-#elif defined(PSP)
-	sceGuStart(GU_DIRECT, list);
-
-	sceGuClearColor(0);
-	sceGuClearDepth(0);
-	sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
-
-	// 左半分
-	vtxl->u = 0;
-	vtxl->v = 0;
-	vtxl->color = 0;
-	vtxl->x = (480 - (272 * 1.33333)) / 2; // 1.3333 = 4 : 3
-	vtxl->y = 0;
-	vtxl->z = 0;
-	vtxl->u2 = (TextDotX >= 512)? 512 : TextDotX;
-	vtxl->v2 = TextDotY;
-	vtxl->color2 = 0;
-	vtxl->x2 = (TextDotX >= 512)?
-		vtxl->x + 272 * 1.33333 * (512.0 / TextDotX) :
-		vtxl->x + 272 * 1.33333;
-	vtxl->y2 = 272;
-	vtxl->z2 = 0;
-
-	sceGuTexMode(GU_PSM_5650, 0, 0, 0);
-	sceGuTexImage(0, 512, 512, 512, ScrBufL);
-	sceGuTexFunc(GU_TFX_REPLACE, GU_TCC_RGB);
-	sceGuTexFilter(GU_LINEAR, GU_LINEAR);
-
-	sceGuDrawArray(GU_SPRITES, GU_TEXTURE_16BIT|GU_COLOR_5650|GU_VERTEX_16BIT|GU_TRANSFORM_2D, 2, 0, vtxl);
-
-	if (TextDotX > 512) {
-		// 右半分
-		vtxr->u = 0;
-		vtxr->v = 0;
-		vtxr->color = 0;
-		vtxr->x = vtxl->x2;
-		vtxr->y = 0;
-		vtxr->z = 0;
-		vtxr->u2 = TextDotX - 512;
-		vtxr->v2 = TextDotY;
-		vtxr->color2 = 0;
-		vtxr->x2 = vtxl->x + 272 * 1.33333;
-		vtxr->y2 = 272;
-		vtxr->z2 = 0;
-
-		sceGuTexMode(GU_PSM_5650, 0, 0, 0);
-		sceGuTexImage(0, 256, 512, 256, ScrBufR);
-		sceGuTexFunc(GU_TFX_REPLACE, GU_TCC_RGB);
-		sceGuTexFilter(GU_LINEAR, GU_LINEAR);
-
-		sceGuDrawArray(GU_SPRITES, GU_TEXTURE_16BIT|GU_COLOR_5650|GU_VERTEX_16BIT|GU_TRANSFORM_2D, 2, 0, vtxr);
-	}
-
-	if (Keyboard_IsSwKeyboard()) {
-		vtxk->u = 0;
-		vtxk->v = 0;
-		vtxk->color = 0;
-		vtxk->x = kbd_x;
-		vtxk->y = kbd_y;
-		vtxk->z = 0;
-		vtxk->u2 = kbd_w;
-		vtxk->v2 = kbd_h;
-		vtxk->color2 = 0;
-		vtxk->x2 = kbd_x + kbd_w;
-		vtxk->y2 = kbd_y + kbd_h;
-		vtxk->z2 = 0;
-
-		sceGuTexImage(0, 512, 256, 512, kbd_buffer);
-		sceGuTexFunc(GU_TFX_REPLACE, GU_TCC_RGB);
-		sceGuTexFilter(GU_LINEAR, GU_LINEAR);
-
-		sceGuDrawArray(GU_SPRITES, GU_TEXTURE_16BIT|GU_COLOR_5650|GU_VERTEX_16BIT|GU_TRANSFORM_2D, 2, 0, vtxk);
-	}
-
-	sceGuFinish();
-	sceGuSync(0, 0);
-
-	sceGuSwapBuffers();
-
-#else // OpenGL ES 未使用
+#else // OpenGL ES end.
 
 	/* ====SDL1 Drawing====*/
 	int32_t Bpp;
@@ -756,7 +574,6 @@ WinDraw_Draw(void)
 
 #endif	// OpenGL ES END
 
-
 	FrameCount++;
 	if (!Draw_DrawFlag/* && is_installed_idle_process()*/)
 		return;
@@ -766,58 +583,17 @@ WinDraw_Draw(void)
 		WinDraw_ShowSplash();
 }
 
-#ifdef PSP
-#ifdef FULLSCREEN_WIDTH
-#undef FULLSCREEN_WIDTH
-#endif
-//PSPのテクスチャは一辺が最大512なので、X68000の768x512画面を
-//512x512と256x512の左右二つに分ける。
-//以下のDrawLine系の関数処理もPSPは左右のテクスチャを別々に
-//処理しなければならない。
-//ということで、以下のdefineは左側テクスチャの横幅を表している。
-#define FULLSCREEN_WIDTH 512
-#endif
 
-#ifdef PSP
-#define WD_MEMCPY(src)						\
-{								\
-	if (TextDotX > 512) {					\
-		memcpy(&ScrBufL[adr], (src), 512 * 2);		\
-		adr = VLINE * 256;				\
-		memcpy(&ScrBufR[adr], (uint16_t *)(src) + 512, TextDotX * 2 - 512 * 2); \
-	} else {						\
-		memcpy(&ScrBufL[adr], (src), TextDotX * 2);	\
-	}							\
-}
-#else
 #define WD_MEMCPY(src) memcpy(&ScrBuf[adr], (src), TextDotX * 2)
-#endif
 
-#ifdef PSP
-#define WD_LOOP(startL, end, sub)				\
-{								\
-	if (TextDotX > 512) {					\
-		for (i = (startL); i < 512 + (startL); i++, adr++) {	\
-			sub(L);						\
-		}							\
-		adr = VLINE * 256;					\
-		for (i = 512 + (startL); i < (end); i++, adr++) {	\
-			sub(R);						\
-		}							\
-	} else {							\
-		for (i = (startL); i < (end); i++, adr++) {		\
-			sub(L);						\
-		}							\
-	}								\
-}
-#else
+
 #define WD_LOOP(startA, end, sub)			\
 { 							\
 	for (i = (startA); i < (end); i++, adr++) {	\
 		sub();					\
 	}						\
 }
-#endif
+
 
 #define WD_SUB(SUFFIX, src)			\
 {						\
@@ -1464,17 +1240,8 @@ void WinDraw_DrawLine(void)
 		if(VLINE < 0) return;
 		adr = VLINE*FULLSCREEN_WIDTH;
 
-#ifdef PSP
-		if (TextDotX > 512) {
-			memset(&ScrBufL[adr], 0 ,TextDotX * 2);
-			adr = VLINE * 256;
-			memset(&ScrBufR[adr], 0, (TextDotX - 512) * 2);
-		} else {
-			memset(&ScrBufL[adr], 0, TextDotX * 2);
-		}
-#else
 		memset(&ScrBuf[adr], 0, TextDotX * 2);
-#endif
+
 	}
 }
 
@@ -1490,7 +1257,7 @@ struct _px68k_menu {
 	int32_t mfs; // menu font size;
 } p6m;
 
-#if !defined(PSP) && !defined(USE_OGLES11)
+#if !defined(USE_OGLES11)
 SDL_Surface *menu_surface;
 #endif
 
@@ -1533,10 +1300,8 @@ static uint16_t jis2idx(uint16_t jc)
 }
 
 #define isHankaku(s) ((s) >= 0x20 && (s) <= 0x80 || (s) >= 0xa0 && (s) <= 0xdf)
-#if defined(PSP)
-// display width 480, buffer width 512
-#define MENU_WIDTH 512
-#elif defined(ANDROID)
+
+#if defined(ANDROID)
 // display width 800, buffer width 1024 だけれど 800 にしないとだめ
 #define MENU_WIDTH 800
 #else
@@ -1812,16 +1577,7 @@ return flg;
 
 int32_t WinDraw_MenuInit(void)
 {
-#if defined(PSP)
-	// menuは速度遅くて良いのでメインメモリからmalloc()
-	menu_buffer = malloc(512 * 512 * 2 + 1200);
-	if (menu_buffer == NULL) {
-		return FALSE;
-	}
-	set_sbp(menu_buffer);
-	// 使用フォントの変更 24 or 16
-	set_mfs(16);
-#elif defined(USE_OGLES11)
+#if defined(USE_OGLES11)
 	//
 	menu_buffer = malloc(1024 * 1024 * 2 + 2000);
 	if (menu_buffer == NULL) {
@@ -1834,12 +1590,12 @@ int32_t WinDraw_MenuInit(void)
 	/*SDL1 menu-surface */
 	menu_surface = SDL_GetVideoSurface();
 
-
 	if (!menu_surface)
 		return FALSE;
 	set_sbp((uint16_t *)(menu_surface->pixels));
 	set_mfs(24);
 #endif
+
 	set_mcolor(0xffff);
 	set_mbcolor(0);
 
@@ -1848,45 +1604,6 @@ int32_t WinDraw_MenuInit(void)
 
 // #include "menu_str_sjis.txt"
 #include "menu_str_utf8.txt"
-
-#ifdef PSP
-static void psp_draw_menu(void)
-{
-	sceKernelDcacheWritebackAll();
-
-	sceGuStart(GU_DIRECT, list);
-
-	sceGuClearColor(0);
-	sceGuClearDepth(0);
-	sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
-
-	// 左半分
-	vtxm->u = 0;
-	vtxm->v = 0;
-	vtxm->color = 0;
-	vtxm->x = 0;
-	vtxm->y = 0;
-	vtxm->z = 0;
-	vtxm->u2 = 480;
-	vtxm->v2 = 272;
-	vtxm->color2 = 0;
-	vtxm->x2 = 480;
-	vtxm->y2 = 272;
-	vtxm->z2 = 0;
-
-	sceGuTexMode(GU_PSM_5650, 0, 0, 0);
-	sceGuTexImage(0, 512, 512, 512, menu_buffer);
-	sceGuTexFunc(GU_TFX_REPLACE, GU_TCC_RGB);
-	//sceGuTexFilter(GU_LINEAR, GU_LINEAR);
-
-	sceGuDrawArray(GU_SPRITES, GU_TEXTURE_16BIT|GU_COLOR_5650|GU_VERTEX_16BIT|GU_TRANSFORM_2D, 2, 0, vtxm);
-
-	sceGuFinish();
-	sceGuSync(0, 0);
-
-	sceGuSwapBuffers();
-}
-#endif
 
 #ifdef USE_OGLES11
 static void ogles11_draw_menu(void)
@@ -1934,7 +1651,7 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 	char tmp[256];
 
 // ソフトウェアキーボード描画時にset_sbp(kbd_buffer)されているので戻す
-#if defined(PSP) || defined(USE_OGLES11)
+#if defined(USE_OGLES11)
 	set_sbp(menu_buffer);
 #endif
 // ソフトウェアキーボード描画時にset_mfs(16)されているので戻す
@@ -2111,15 +1828,13 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 	  if(Config.MenuLanguage == 0){draw_str(item_cap2_JPN[mkey_y],1);}
 	  else						{draw_str(item_cap2_US[mkey_y],1);}
 	}
-#if defined(PSP)
-	psp_draw_menu();
-#elif defined(USE_OGLES11)
+
+#if defined(USE_OGLES11)
 	ogles11_draw_menu();
 #else
 
 /*画面更新(SDL1)*/
 	SDL_UpdateRect(menu_surface, 0, 0, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT);
-
 
 #endif
 }
@@ -2163,24 +1878,19 @@ void WinDraw_DrawMenufile(struct menu_flist *mfl)
 
 	set_mbcolor(0x0); // 透過モードに戻しておく
 
-#if defined(PSP)
-	psp_draw_menu();
-#elif defined(USE_OGLES11)
+#if defined(USE_OGLES11)
 	ogles11_draw_menu();
 #else
 
 /*画面更新(SDL1)*/
 	SDL_UpdateRect(menu_surface, 0, 0, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT);
 
-
 #endif
 }
 
 void WinDraw_ClearMenuBuffer(void)
 {
-#if defined(PSP)
-	memset(menu_buffer, 0, 512*272*2);
-#elif defined(USE_OGLES11)
+#if defined(USE_OGLES11)
 	memset(menu_buffer, 0, 800*600*2);
 #else
 	SDL_FillRect(menu_surface, NULL, 0);
@@ -2190,15 +1900,9 @@ void WinDraw_ClearMenuBuffer(void)
 
 /********** ソフトウェアキーボード描画 **********/
 
-#if defined(PSP) || defined(USE_OGLES11)
-
-#if defined(PSP)
-// display width 480, buffer width 512
-#define KBDBUF_WIDTH 512
-#elif defined(USE_OGLES11)
+#if defined(USE_OGLES11)
 // display width 800, buffer width 1024 だけれど 800 にしないとだめ
 #define KBDBUF_WIDTH 800
-#endif
 
 #define KBD_FS 16 // keyboard font size : 16
 
@@ -2251,32 +1955,6 @@ static void draw_kbd_to_tex()
 	kbd_key[96].s = rarw;
 	kbd_key[101].s = hi;
 	kbd_key[108].s = zen;
-#ifdef PSP
-	kbd_key[0].s = "BK";
-	kbd_key[1].s = "CP";
-	kbd_key[15].s = "CA";
-	kbd_key[18].s = "HP";
-	kbd_key[19].s = "EC";
-	kbd_key[34].s = "HM";
-	kbd_key[35].s = "IN";
-	kbd_key[36].s = "DL";
-	kbd_key[37].s = "CL";
-	kbd_key[55].s = "";
-	kbd_key[56].s = "RU";
-	kbd_key[57].s = "RD";
-	kbd_key[58].s = "UD";
-	kbd_key[63].s = "CTR";
-	kbd_key[81].s = "";
-	kbd_key[93].s = "";
-	kbd_key[100].s = "";
-	kbd_key[102].s = "X1";
-	kbd_key[103].s = "X2";
-	kbd_key[105].s = "X3";
-	kbd_key[106].s = "X4";
-	kbd_key[107].s = "X5";
-	kbd_key[109].s = "OP1";
-	kbd_key[110].s = "OP2";
-#endif
 
 	set_sbp(kbd_buffer);
 	set_mfs(KBD_FS);

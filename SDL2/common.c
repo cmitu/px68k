@@ -38,8 +38,6 @@ void p6logd(const char *fmt, ...)
 
 #if defined(ANDROID)
 	__android_log_write(ANDROID_LOG_DEBUG, "Tag", p6l_buf);
-#elif defined(PSP)
-	printf("%s", p6l_buf);
 #else
 	printf("%s", p6l_buf);
 #endif

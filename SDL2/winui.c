@@ -671,7 +671,6 @@ int32_t WinUI_Menu(int32_t first)
 	joy = get_joy_downstate();
 	reset_joy_downstate();
 
-#ifndef PSP
 	/* GamePad setting */
 	if (menu_state == ms_hwjoy_set && sdl_joy) {
 		int32_t y;
@@ -713,7 +712,6 @@ int32_t WinUI_Menu(int32_t first)
 			}
 		}
 	}
-#endif
 
 	if (!(joy & JOY_UP)) {
 		switch (menu_state) {

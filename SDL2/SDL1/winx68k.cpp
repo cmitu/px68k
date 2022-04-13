@@ -144,21 +144,22 @@ WinX68k_SCSICheck(void)
 // XVI/Compact/030の内蔵SCSI ROM
 	static const uint8_t IN_SCSIIMG[] = {
 		0x00, 0xfc, 0x00, 0x14,			// $fc0000 SCSI起動用のエントリアドレス
-		0x00, 0xfc, 0x00, 0x16,			// $fc0004 IOCSベクタ設定のエントリアドレス(必ず"Human"の8バイト前)
-		0x00, 0x00, 0x00, 0x00,			// $fc0008 ?
-		0x48, 0x75, 0x6d, 0x61,			// $fc000c ↓
-		0x6e, 0x36, 0x38, 0x6b,			// $fc0010 ID "Human68k"	(必ず起動エントリポイントの直前)
-		0x4e, 0x75,				// $fc0014 "rts"		(起動エントリポイント)
-		0x23, 0xfc, 0x00, 0xfc, 0x00, 0x2a,	// $fc0016 ↓		(IOCSベクタ設定エントリポイント)
-		0x00, 0x00, 0x07, 0xd4,			// $fc001c "move.l #$fc002a, $7d4.l"
-		0x74, 0xff,				// $fc0020 "moveq #-1, d2"
-		0x4e, 0x75,				// $fc0022 "rts"
-//		0x53, 0x43, 0x53, 0x49, 0x49, 0x4e,	// $fc0024 ID "SCSIIN"
+		0x00, 0xfc, 0x00, 0x32,			// $fc0004 Human-Loader(必ず"Human68k"の8バイト前)
+		0x00, 0xfc, 0x00, 0x2a,			// $fc0008 SCSI IOCSエントリアドレス
+		0x48, 0x75, 0x6d, 0x61,0x6e, 0x36, 0x38, 0x6b,	// $fc000c ↓"Human68k"	(必ず起動エントリポイントの直前)
+		0x13, 0xc1, 0x00, 0xe9, 0xf8, 0x10,	// $fc0014 "move.b d1, $e9f810"	 (SCSI 起動エントリポイント)
+		0x0c, 0x11, 0x00, 0x60,				// $fc001a "cmp.b #$60,(a1)"
+		0x66, 0x02,							// $fc001e "bne $(pc+2)"
+		0x4e, 0x91,							// $fc0020 "jsr(a1)"
+		0x4e, 0x75,							// $fc0022 "rts"
+//		0x53, 0x43, 0x53, 0x49, 0x49, 0x4e,	// $fc0024 ID "SCSIIN"		(SCSIカードのID)
 // 内蔵SCSIをONにすると、SASIは自動的にOFFになっちゃうらしい…
 // よって、IDはマッチしないようにしておく…
 		0x44, 0x55, 0x4d, 0x4d, 0x59, 0x20,	// $fc0024 ID "DUMMY "
-		0x70, 0xff,				// $fc002a "moveq #-1, d0"	(SCSI IOCSコールエントリポイント)
-		0x4e, 0x75,				// $fc002c "rts"
+		0x13, 0xc1, 0x00, 0xe9, 0xf8, 0x00,	// $fc002a "move.b d1, $e9f800"	(SCSI IOCSコールエントリポイント)
+		0x4e, 0x75,							// $fc0030 "rts"
+		0x13, 0xc1, 0x00, 0xe9, 0xf8, 0x20,	// $fc0032 "move.b d1, $e9f820"	(Human 起動エントリポイント)
+		0x4e, 0x75,							// $fc0038 "rts"
 	};
 
 	static const uint8_t EX_SCSIIOCS[] = {
@@ -221,7 +222,7 @@ WinX68k_SCSICheck(void)
 			File_Close(fp);
 			memset(&SCSIIPL[0x000440], 0, (0x2000-0x440));
 			memcpy( &SCSIIPL[0x000440], EX_SCSIIOCS, sizeof(EX_SCSIIOCS));//IOCS Patch
-
+			// for little endian 
 			for (i = 0; i < 0x02000; i += 2) {
 			 tmp = SCSIIPL[i];
 			 SCSIIPL[i] = SCSIIPL[i + 1];
@@ -263,6 +264,7 @@ WinX68k_LoadROMs(void)
 
 	WinX68k_SCSICheck();	// SCSI IPLなら、$fc0000～にSCSI BIOSを置く
 
+	// for little endian 
 	for (i = 0; i < 0x40000; i += 2) {
 		tmp = IPL[i];
 		IPL[i] = IPL[i + 1];
@@ -514,11 +516,8 @@ void WinX68k_Exec(void)
 		}
 	}
 
-#ifdef PSP
-	Joystick_Update(FALSE);
-#else
 	Joystick_Update(FALSE, SDLK_UNKNOWN);
-#endif
+
 	FDD_SetFDInt();
 	if ( !DispFrame )
 		WinDraw_Draw();
@@ -535,60 +534,11 @@ void WinX68k_Exec(void)
 //
 // main
 //
-#ifdef PSP
-
-#include <pspmoduleinfo.h>
-#include <psppower.h>
-#include <pspctrl.h>
-#include <pspkernel.h>
-#include <pspgu.h>
-
-int32_t exit_flag = 0;
-
-int32_t exit_callback(int32_t arg1, int32_t arg2, void *common)
-{
-	exit_flag = 1;
-
-	return 0;
-}
-
-int32_t CallbackThread(SceSize args, void *argp)
-{
-	int32_t cbid;
-
-	cbid = sceKernelCreateCallback("Exit Callback", exit_callback, NULL);
-	sceKernelRegisterExitCallback(cbid); //SetExitCallback(cbid);
-
-	sceKernelSleepThreadCB(); //KernelPollCallbacks();
-
-	return 0;
-}
-
-int32_t SetupCallbacks(void)
-{
-	int32_t thid;
-
-	thid = sceKernelCreateThread("update_thread", CallbackThread,
-				     0x11, 0xFA0, 0, 0);
-	if (thid >= 0) {
-		sceKernelStartThread(thid, 0, 0);
-	}
-
-	return thid;
-}
-
-PSP_HEAP_SIZE_KB(-1024);
-
-extern "C" int
-SDL_main(int32_t argc, char *argv[])
-#else
 int32_t main(int32_t argc, char *argv[])
-#endif
 {
-#ifndef PSP
 	SDL_Event ev;
 	SDL_Keycode menu_key_down;
-#endif
+
 #if defined(ANDROID) || TARGET_OS_IPHONE
 	int32_t vk_cnt = -1;
 	int32_t menu_cnt = -1;
@@ -597,14 +547,6 @@ int32_t main(int32_t argc, char *argv[])
 	int32_t sdlaudio = -1;
 	enum {menu_out, menu_enter, menu_in};
 	int32_t menu_mode = menu_out;
-
-#ifdef PSP
-	SetupCallbacks();
-	scePowerSetClockFrequency(333, 333, 166);
-
-	sceCtrlSetSamplingCycle(0);
-	sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
-#endif
 
 	p6logd("PX68K Ver.%s\n", PX68KVERSTR);
 
@@ -647,13 +589,9 @@ int32_t main(int32_t argc, char *argv[])
 #if !SDL_VERSION_ATLEAST(2, 0, 0)
 	strcat(window_title," SDL");
 	SDL_WM_SetCaption(APPNAME" SDL", NULL);
-#ifndef PSP
-		/*SDL1*/
-        if (SDL_SetVideoMode(FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, 16, SDL_SWSURFACE) == NULL) {
-#else
-		/*SDL1 for PSP*/
-        if (SDL_SetVideoMode(480, 272, 16, SDL_SWSURFACE) == NULL) {
-#endif
+
+	/*SDL1*/
+	if (SDL_SetVideoMode(FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, 16, SDL_SWSURFACE) == NULL) {
 		puts("SDL_SetVideoMode() failed");
 		return 1;
 	}
@@ -678,7 +616,7 @@ int32_t main(int32_t argc, char *argv[])
 	sdl_window = SDL_CreateWindow(window_title, 0, 0, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, SDL_WINDOW_OPENGL|SDL_WINDOW_SHOWN);
 #endif
 #else
-	/*only SDL2*/
+	/* SDL2 for GPU */
 	strcat(window_title," SDL2");
 	sdl_window = SDL_CreateWindow(window_title, winx, winy, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 #endif
@@ -822,7 +760,7 @@ int32_t main(int32_t argc, char *argv[])
 					WinDraw_HideSplash();
 			}
 		}
-#ifndef PSP
+
 		menu_key_down = SDLK_UNKNOWN;
 
 		while (SDL_PollEvent(&ev)) {
@@ -947,32 +885,7 @@ int32_t main(int32_t argc, char *argv[])
 				break;
 			}
 		}
-#endif //PSP
 
-#ifdef PSP
-		if (Joystick_get_downstate_psp(PSP_CTRL_START)) {
-			if (menu_mode == menu_out) { 
-				menu_mode = menu_enter;
-				DSound_Stop();
-			} else {
-				DSound_Play();
-				menu_mode = menu_out;
-			}
-		}
-
-		if (menu_mode == menu_out
-		    && Joystick_get_downstate_psp(PSP_CTRL_SELECT)) {
-			Keyboard_ToggleSkbd();
-			// 2度読み除け
-			Joystick_reset_downstate_psp(PSP_CTRL_SELECT);
-		}
-
-		if (menu_mode == menu_out && Keyboard_IsSwKeyboard()) {
-			Joystick_mv_anapad_psp();
-			Joystatic_reset_anapad_psp();
-			Keyboard_skbd();
-		}
-#endif
 
 #if defined(ANDROID) || TARGET_OS_IPHONE
 
@@ -1007,11 +920,8 @@ int32_t main(int32_t argc, char *argv[])
 		if (menu_mode != menu_out) {
 			int32_t ret; 
 
-#ifdef PSP
-			Joystick_Update(TRUE);
-#else
 			Joystick_Update(TRUE, menu_key_down);
-#endif
+
 			ret = WinUI_Menu(menu_mode == menu_enter);
 			menu_mode = menu_in;
 			if (ret == WUM_MENU_END) {
@@ -1021,11 +931,6 @@ int32_t main(int32_t argc, char *argv[])
 				goto end_loop;
 			}
 		}
-#ifdef PSP
-		if (exit_flag) {
-			goto end_loop;
-		}
-#endif
 
 #if defined(ANDROID) || TARGET_OS_IPHONE
 
@@ -1075,10 +980,7 @@ end_loop:
 
 	SaveConfig();
 
-#if defined(PSP)
-	puts("before end");
-	sceKernelExitGame();
-#elif defined(ANDROID) || TARGET_OS_IPHONE
+#if defined(ANDROID) || TARGET_OS_IPHONE
 	exit(0);
 #endif
 	return 0;

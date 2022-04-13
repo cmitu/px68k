@@ -48,7 +48,7 @@ struct keyboard_key kbd_key[] = {
 
 extern uint8_t traceflag;
 
-#if defined(PSP) || defined(ANDROID) || TARGET_OS_IPHONE
+#if defined(ANDROID) || TARGET_OS_IPHONE
 // キーボードの座標
 int32_t kbd_x = 800, kbd_y = 0, kbd_w = 766, kbd_h = 218;
 #endif
@@ -62,21 +62,7 @@ Keyboard_Init(void)
 	memset(KeyBuf, 0, KeyBufSize);
 	KeyEnable = 1;
 	KeyIntFlag = 0;
-#ifdef PSP
-	// 全てのサイズを半分にする
-	int32_t i = 0;
 
-	kbd_x = kbd_y = 0; // PSPは初期位置0
-	kbd_w /= 2, kbd_h /= 2;
-
-	while (kbd_key[i].x != -1) {
-		kbd_key[i].x /= 2;
-		kbd_key[i].y /= 2;
-		kbd_key[i].w /= 2;
-		kbd_key[i].h /= 2;
-		i++;
-	}
-#endif
 }
 
 // ----------------------------------
@@ -455,7 +441,7 @@ static int32_t get_x68k_keycode(uint32_t wp)
 		return 0x3b;
 	case SDLK_RIGHT:/*→*/
 		return 0x3d;
-#ifndef PSP
+
 #if !SDL_VERSION_ATLEAST(2, 0, 0)
 #define SDLK_KP_0 SDLK_KP0
 #define SDLK_KP_1 SDLK_KP1
@@ -469,6 +455,7 @@ static int32_t get_x68k_keycode(uint32_t wp)
 #define SDLK_KP_9 SDLK_KP9
 #define SDLK_NUMLOCKCLEAR SDLK_NUMLOCK
 #endif
+
 	case SDLK_KP_0:/*10key-0*/
 		return 0x4f;
 	case SDLK_KP_1:/*     -1*/
@@ -491,7 +478,7 @@ static int32_t get_x68k_keycode(uint32_t wp)
 		return 0x45;
 	case SDLK_NUMLOCKCLEAR:
 		return 0x3f;
-#endif
+
 	case SDLK_F1:
 		return 0x63;
 	case SDLK_F2:
@@ -724,7 +711,7 @@ Keyboard_Int(void)
 
 /********** ソフトウェアキーボード **********/
 
-#if defined(PSP) || defined(USE_OGLES11)
+#if defined(USE_OGLES11)
 
 // 選択しているキーの座標 (初期値'Q')
 int32_t  kbd_kx = 1, kbd_ky = 2;
@@ -950,13 +937,11 @@ void Keyboard_ToggleSkbd(void)
 	skbd_mode = (skbd_mode == TRUE)? FALSE : TRUE;
 }
 
-#endif //defined(PSP) || defined(USE_OGLES11)
+#endif //(USE_OGLES11)
 
 int32_t Keyboard_IsSwKeyboard(void)
 {
-#if defined(PSP)
-	return skbd_mode;
-#elif defined(USE_OGLES11)
+#if defined(USE_OGLES11)
 	if (kbd_x < 700) {
 		return TRUE;
 	} else {

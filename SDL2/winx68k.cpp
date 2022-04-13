@@ -224,7 +224,7 @@ WinX68k_SCSICheck()
 			File_Close(fp);
 			memset(&SCSIIPL[0x000440], 0, (0x2000-0x440));
 			memcpy( &SCSIIPL[0x000440], EX_SCSIIOCS, sizeof(EX_SCSIIOCS));//IOCS Patch
-
+			// for little endian 
 			for (i = 0; i < 0x02000; i += 2) {
 			 tmp = SCSIIPL[i];
 			 SCSIIPL[i] = SCSIIPL[i + 1];
@@ -266,6 +266,7 @@ WinX68k_LoadROMs(void)
 
 	WinX68k_SCSICheck();	// Load SCSI IPL in:$fc0000～ ex:ea0000
 
+	// for little endian 
 	for (i = 0; i < 0x40000; i += 2) {
 		tmp = IPL[i];
 		IPL[i] = IPL[i + 1];
@@ -518,11 +519,8 @@ void WinX68k_Exec(void)
 		}
 	}
 
-#ifdef PSP
-	Joystick_Update(FALSE);
-#else
 	Joystick_Update(FALSE, SDLK_UNKNOWN);
-#endif
+
 	FDD_SetFDInt();
 	if ( !DispFrame )
 		WinDraw_Draw();
@@ -539,60 +537,11 @@ void WinX68k_Exec(void)
 //
 // main
 //
-#ifdef PSP
-
-#include <pspmoduleinfo.h>
-#include <psppower.h>
-#include <pspctrl.h>
-#include <pspkernel.h>
-#include <pspgu.h>
-
-int32_t exit_flag = 0;
-
-int32_t exit_callback(int32_t arg1, int32_t arg2, void *common)
-{
-	exit_flag = 1;
-
-	return 0;
-}
-
-int32_t CallbackThread(SceSize args, void *argp)
-{
-	int32_t cbid;
-
-	cbid = sceKernelCreateCallback("Exit Callback", exit_callback, NULL);
-	sceKernelRegisterExitCallback(cbid); //SetExitCallback(cbid);
-
-	sceKernelSleepThreadCB(); //KernelPollCallbacks();
-
-	return 0;
-}
-
-int32_t SetupCallbacks(void)
-{
-	int32_t thid;
-
-	thid = sceKernelCreateThread("update_thread", CallbackThread,
-				     0x11, 0xFA0, 0, 0);
-	if (thid >= 0) {
-		sceKernelStartThread(thid, 0, 0);
-	}
-
-	return thid;
-}
-
-PSP_HEAP_SIZE_KB(-1024);
-
-extern "C" int
-SDL_main(int32_t argc, char *argv[])
-#else
 int32_t main(int32_t argc, char *argv[])
-#endif
 {
-#ifndef PSP
 	SDL_Event ev;
 	SDL_Keycode menu_key_down;
-#endif
+
 #if defined(ANDROID) || TARGET_OS_IPHONE
 	int32_t vk_cnt = -1;
 	int32_t menu_cnt = -1;
@@ -601,14 +550,6 @@ int32_t main(int32_t argc, char *argv[])
 	int32_t sdlaudio = -1;
 	enum {menu_out, menu_enter, menu_in};
 	int32_t menu_mode = menu_out;
-
-#ifdef PSP
-	SetupCallbacks();
-	scePowerSetClockFrequency(333, 333, 166);
-
-	sceCtrlSetSamplingCycle(0);
-	sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
-#endif
 
 	p6logd("PX68K Ver.%s\n", PX68KVERSTR);
 
@@ -651,13 +592,9 @@ int32_t main(int32_t argc, char *argv[])
 #if !SDL_VERSION_ATLEAST(2, 0, 0)
 	strcat(window_title," SDL");
 	SDL_WM_SetCaption(window_title, NULL);
-#ifndef PSP
-		/*SDL1*/
-        if (SDL_SetVideoMode(FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, 16, SDL_SWSURFACE) == NULL) {
-#else
-		/*SDL1 for PSP*/
-        if (SDL_SetVideoMode(480, 272, 16, SDL_SWSURFACE) == NULL) {
-#endif
+
+	/*SDL1*/
+	if (SDL_SetVideoMode(FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, 16, SDL_SWSURFACE) == NULL) {
 		puts("SDL_SetVideoMode() failed");
 		return 1;
 	}
@@ -828,7 +765,7 @@ int32_t main(int32_t argc, char *argv[])
 					WinDraw_HideSplash();
 			}
 		}
-#ifndef PSP
+
 		menu_key_down = SDLK_UNKNOWN;
 
 		while (SDL_PollEvent(&ev)) {
@@ -954,32 +891,6 @@ int32_t main(int32_t argc, char *argv[])
 				break;
 			}
 		}
-#endif //PSP
-
-#ifdef PSP
-		if (Joystick_get_downstate_psp(PSP_CTRL_START)) {
-			if (menu_mode == menu_out) { 
-				menu_mode = menu_enter;
-				DSound_Stop();
-			} else {
-				DSound_Play();
-				menu_mode = menu_out;
-			}
-		}
-
-		if (menu_mode == menu_out
-		    && Joystick_get_downstate_psp(PSP_CTRL_SELECT)) {
-			Keyboard_ToggleSkbd();
-			// 2度読み除け
-			Joystick_reset_downstate_psp(PSP_CTRL_SELECT);
-		}
-
-		if (menu_mode == menu_out && Keyboard_IsSwKeyboard()) {
-			Joystick_mv_anapad_psp();
-			Joystatic_reset_anapad_psp();
-			Keyboard_skbd();
-		}
-#endif
 
 #if defined(ANDROID) || TARGET_OS_IPHONE
 
@@ -1014,11 +925,8 @@ int32_t main(int32_t argc, char *argv[])
 		if (menu_mode != menu_out) {
 			int32_t ret; 
 
-#ifdef PSP
-			Joystick_Update(TRUE);
-#else
 			Joystick_Update(TRUE, menu_key_down);
-#endif
+
 			ret = WinUI_Menu(menu_mode == menu_enter);
 			menu_mode = menu_in;
 			if (ret == WUM_MENU_END) {
@@ -1028,11 +936,6 @@ int32_t main(int32_t argc, char *argv[])
 				goto end_loop;
 			}
 		}
-#ifdef PSP
-		if (exit_flag) {
-			goto end_loop;
-		}
-#endif
 
 #if defined(ANDROID) || TARGET_OS_IPHONE
 
@@ -1082,10 +985,7 @@ end_loop:
 
 	SaveConfig();
 
-#if defined(PSP)
-	puts("before end");
-	sceKernelExitGame();
-#elif defined(ANDROID) || TARGET_OS_IPHONE
+#if defined(ANDROID) || TARGET_OS_IPHONE
 	exit(0);
 #endif
 	return 0;
