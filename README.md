@@ -6,11 +6,13 @@
 ・画面解像度の最適化(sdl-gfx不要)[完了]<br>
 ・F11でFullScreenモード対応(SDL2)[SDL1が未]<br>
 ・SCSIサポート(HDSイメージからのBoot)[完了]<br>
-・SCSI-IPLの機能もEmu側で実装する？<br>
+・SCSI-IPLの機能もEmu側で実装する？(未)<br>
+・MIDIサポート(内蔵音源/MT32エミュ/実機器)[60%]<br>
 ・変数をstdint形式に変更(なるべく)[完了]<br>
-・File名のutf8/sjis表示自動判別[完了]<br>
+・File名のutf8/sjis自動判別表示[完了]<br>
 ・Mac用SDL1/2.frameworkでのbuildスクリプト添付[完了]<br>
 ・Mac用単独アプリ化ラッパー追加[完了]<br>
+・PSPサポート削除(32bit-ASM削除につき)<br>
 ・macOS/Linux/MinGW で動作確認<br>
 <br>
 $ make       (SDL2でLINK Linux/macOS/MinGW)<br>
