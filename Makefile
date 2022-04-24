@@ -181,7 +181,7 @@ clean::
 tags::
 	find . -name "*.h" -o -name "*.c" -o -name "*.cpp" | $(TAGS) -
 
-mac::
+mac:: $(PROGRAM)
 	-rm -rf "$(PROGRAM).app/"
 	mkdir "$(PROGRAM).app/"
 	mkdir "$(PROGRAM).app/Contents/"
