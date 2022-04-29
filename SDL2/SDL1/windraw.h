@@ -14,7 +14,7 @@ extern	int32_t	WindowX;
 extern	int32_t	WindowY;
 extern	int32_t	kbd_x, kbd_y, kbd_w, kbd_h;
 
-void WinDraw_InitWindowSize(void);
+
 void WinDraw_ChangeMode(int32_t flg);
 
 void WinDraw_Cleanup(void);

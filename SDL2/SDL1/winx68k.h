@@ -48,7 +48,7 @@ extern int32_t realdisp_w, realdisp_h;
 #endif
 
 int32_t WinX68k_Reset(void);
-void WinDraw_InitWindowSize(void);
+void WinDraw_InitWindowSize(uint32_t ScreenX, uint32_t ScreenY, uint32_t StartX, uint32_t StartY);
 
 #ifndef	winx68k_gtkwarpper_h
 #define	winx68k_gtkwarpper_h

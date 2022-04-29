@@ -70,7 +70,7 @@ uint32_t winh = 0, winw = 0; /*window width hight*/
 uint32_t root_width, root_height; /*primary screen size*/
 uint16_t FrameCount = 0;
 int32_t  SplashFlag = 0;
-
+int32_t  ScreenClearFlg = 0;
 
 uint16_t WinDraw_Pal16B, WinDraw_Pal16R, WinDraw_Pal16G;
 
@@ -93,59 +93,67 @@ int32_t conv_utf8tosjis();
 
 #define	APPNAME	"Keropi"
 
-static int32_t oldtextx = -1, oldtexty = -1, ScreenChangeX = 0;
 static uint32_t drawW=0,drawH=0; /*start X ,Y*/
 static uint32_t surfaceW=800,surfaceH=600; /*width Hight*/
-static uint32_t TextDotXD,TextDotYD; /*ScreenDrawArea*/
-
+static uint32_t HLINE_TOTAL_1,CRTC_HSTART_1,CRTC_HEND_1;/*Store*/
+static uint32_t VLINE_TOTAL_1,CRTC_VSTART_1,CRTC_VEND_1,CRTC_VStep_1;
 
 /* X68 change screen size (Call from CRTC) */
-/* jadgment change or not.  */
+/* Clear -> ChangeScreen -> Clear  */
 int32_t WinDraw_ChangeSize(void)
 {
-
+	ScreenClearFlg=1;
+	return TRUE;
+}
+/* X68 change screen size (Delayed Change) */
+/* jadgment change or not.  */
+int32_t WinDraw_ChangeSizeGO(void)
+{
 	Mouse_ChangePos();	/*nothing do....*/
 
-	if((TextDotX<80) || (TextDotY<80)) return FALSE; 	/*DrawArea check*/
-	if((TextDotX==TextDotXD) && (TextDotY==TextDotYD))  return FALSE;	/* No change check */
+	if((HLINE_TOTAL<100) || (HLINE_TOTAL>1200)) return FALSE; 	/*H-DrawArea check*/
+	if((VLINE_TOTAL<100) || (VLINE_TOTAL>700)) return FALSE; 	/*V-DrawArea check*/
 
-
-	int32_t x,y;
-	int32_t absx,absy;
-	ScreenChangeX = 0;
-	static const int32_t ChkScreenX[] = {768, 640, 512, 456, 384, 320, 256, 128 ,0};
-	static const int32_t ChkScreenY[] = {512, 480, 400, 256, 240, 224, 200, 128, 0};
-
-	/*Check Screen Size*/
-	for(x = 0; ChkScreenX[x]!=0; x++){
-	 for(y = 0; ChkScreenY[y]!=0; y++){
-		if(((ChkScreenX[x]-10)<=TextDotX)&&((ChkScreenX[x]+10)>=TextDotX)){ /*check X*/
-		 if(((ChkScreenY[y]-10)<=TextDotY)&&((ChkScreenY[y]+10)>=TextDotY)){ /*check Y*/
-			/*change Screen Size?*/
-			if(ChkScreenX[x]>=ChkScreenY[y]){
-			absx=abs(oldtextx - TextDotX);
-			absy=abs(oldtexty - TextDotY);
-			 if ((absx > 65) || (absy > 65)) {
-			  oldtextx = TextDotX;
-			  oldtexty = TextDotY;
-			  ScreenChangeX = 1;
-
-			 }
-			break;
-			}
-		 }
-		}
-	 }
+	/* No change check */
+	if((HLINE_TOTAL==HLINE_TOTAL_1) && (CRTC_HSTART==CRTC_HSTART_1) && (CRTC_HEND==CRTC_HEND_1) &&
+		(VLINE_TOTAL==VLINE_TOTAL_1) && (CRTC_VSTART==CRTC_VSTART_1) && (CRTC_VEND==CRTC_VEND_1)&&(CRTC_VStep==CRTC_VStep_1)){
+	return FALSE;
 	}
 
-	if (ScreenChangeX==0)
-		return FALSE;
+	int32_t VLINE_TOTAL2,VSTART2;
 
-	//if((TextDotX!=TextDotXD) || (TextDotY!=TextDotYD)){p6logd("TextDotX:Y %d:%d\n",TextDotX,TextDotY);}
+	//垂直解像度補正(2Line描画)
+	switch(CRTC_VStep){
+		case 1:		VLINE_TOTAL2 = VLINE_TOTAL/2; VSTART2 = CRTC_VSTART / 2;
+		  break;
+		case 4:		VLINE_TOTAL2 = VLINE_TOTAL*2; VSTART2 = CRTC_VSTART * 2;
+		  break;
+		default:	VLINE_TOTAL2 = VLINE_TOTAL;  VSTART2 = CRTC_VSTART;
+		  break;
+	}
 
-	/*=== Change X68000 Screen Size ===*/
-	if(ScreenChangeX == 1)
-		WinDraw_InitWindowSize();
+	// Screen Size は総数から非表示部分を取り除いて求める(TextDotX/Yは実際のCRTの表示範囲ではない)
+	uint32_t ScreenX = HLINE_TOTAL  * 0.69; ScreenX /=32; ScreenX++; ScreenX *=32;
+	uint32_t ScreenY = VLINE_TOTAL2 * 0.90; ScreenY /=32; ScreenY++; ScreenY *=32;
+
+	// 表示範囲がオーバースキャンの場合
+	if(ScreenX<TextDotX) TextDotX=ScreenX;
+	if(ScreenY<TextDotY) TextDotY=ScreenX;
+
+	//printf("TOTAL %d:%d ScrenXY %d:%d TdotXY %d:%d StartXY %d:%d\n",HLINE_TOTAL,VLINE_TOTAL2,ScreenX,ScreenY,
+	//	TextDotX,TextDotY,CRTC_HSTART*8, VSTART2);
+
+	/*=== Do Change X68000 Screen Size ===*/
+	WinDraw_InitWindowSize(ScreenX, ScreenY, CRTC_HSTART*8, VSTART2);
+
+	// 保存
+	HLINE_TOTAL_1=HLINE_TOTAL;
+	CRTC_HSTART_1=CRTC_HSTART;
+	CRTC_HEND_1=CRTC_HEND;
+	VLINE_TOTAL_1=VLINE_TOTAL;
+	CRTC_VSTART_1=CRTC_VSTART;
+	CRTC_VEND_1=CRTC_VEND;
+	CRTC_VStep_1=CRTC_VStep;
 
 	/*nothing do....*/
 	StatBar_Show(Config.WindowFDDStat);
@@ -154,60 +162,70 @@ int32_t WinDraw_ChangeSize(void)
 	return TRUE;
 }
 
-/*Change Screen Size!*/
-void WinDraw_InitWindowSize(void)
+/*Do Change Screen Size!*/
+void
+WinDraw_InitWindowSize(uint32_t ScreenX, uint32_t ScreenY, uint32_t StartX, uint32_t StartY)
 {
 
-	/* 768x512は左右に帯つけてdotbydot表示*/
-	if(TextDotX > 700){       /*768x512(400/200)*/
-		drawW=(800-TextDotX)/2; surfaceW=800;
-		 if(TextDotY <= 320){
-		  drawH=(320-TextDotY)/2; surfaceH=320; /*768x200*/
-		 }
-		 else if(TextDotY <= 400){
-		  drawH=(400-TextDotY)/2; surfaceH=400; /*768x400*/
-		 } else {
-		  drawH=(600-TextDotY)/2; surfaceH=600;
-		 }
-	}
-	else{
-		if((TextDotX>384)&&(TextDotX<=512)){ /*512x512(256)*/
-		drawW=(512-TextDotX)/2; surfaceW=512;
-		 if(TextDotY <= 256){
-		  drawH=(256-TextDotY)/2; surfaceH=256;
-		 }
-		 else{
-		  drawH=(512-TextDotY)/2; surfaceH=512;
-		 }
-		}
-		if((TextDotX>320)&&(TextDotX<=384)){ /*384x256(240)*/
-		drawW=(384-TextDotX)/2; surfaceW=384;
-		 if(TextDotY <= 240){
-		  drawH=(240-TextDotY)/2; surfaceH=240;
-		 }
-		 else {
-		  drawH=(256-TextDotY)/2; surfaceH=256;
-		 }
-		}
-		if((TextDotX>256)&&(TextDotX<=320)){ /*320x320(200)*/
-		drawW=(320-TextDotX)/2; surfaceW=320;
-		 if(TextDotY <= 200){
-		  drawH=(200-TextDotY)/2; surfaceH=200;
-		 }
-		 else {
-		  drawH=(320-TextDotY)/2; surfaceH=320;
-		 }
-		}
-		if( (TextDotX<=256) ){              /*256x256以下*/
-		drawW=(256-TextDotX)/2; surfaceW=256;
-		drawH=(256-TextDotY)/2; surfaceH=256;
-		}
+	
 
+	switch(ScreenX){
+	  case 513 ... 800: //====768x512/256 640x480/400/240/200====
+		switch(ScreenY){
+		 case 401 ... 600: // dot2dot
+		   surfaceW=800; drawW=StartX-224+((800-TextDotX)/2);
+		   surfaceH=600; drawH=StartY-40+((600-TextDotY)/2);
+		  break;
+		 case 257 ... 400:
+		   surfaceW=ScreenX; drawW=StartX-224+((800-TextDotX)/2);
+		   surfaceH=ScreenY; drawH=StartY-40+((400-TextDotY)/2);
+		  break;
+		 case 000 ... 256:
+		   surfaceW=ScreenX; drawW=StartX-224+((800-TextDotX)/2);
+		   surfaceH=ScreenY; drawH=StartY-20+((256-TextDotY)/2);
+		  break;
+		}
+	   break;
+	  case 420 ... 512: //====512x512/256====
+	   surfaceW=ScreenX; surfaceH=ScreenY; drawW=StartX-136;
+		switch(ScreenY){
+		 case 257 ... 600:
+		   drawH=StartY-40;
+		  break;
+		 case 000 ... 256:
+		   drawH=StartY-20;
+		  break;
+		}
+	   break;
+	  case 257 ... 419: //====416x256 384x256====
+	   surfaceW=ScreenX; surfaceH=ScreenY; drawW=StartX-88;
+		switch(ScreenY){
+		 case 257 ... 600:
+		   drawH=StartY-40;
+		  break;
+		 case 000 ... 256:
+		   drawH=StartY-20;
+		  break;
+		}
+	   break;
+	  case 000 ... 256: //====256x256以下====
+	   surfaceW=256; surfaceH=256; drawW=StartX-48;
+		switch(ScreenY){
+		 case 257 ... 600:
+		   drawH=StartY-40;
+		  break;
+		 case 000 ... 256:
+		   drawH=StartY-20;
+		   break;
+		}
+	   break;
 	}
 
-	ScreenChangeX = 0;
-	TextDotXD=TextDotX;
-	TextDotYD=TextDotY;
+	//printf("XY %d:%d %d:%d\n",surfaceW,surfaceH,drawW,drawH);
+
+	if(drawW<0){ drawW=0; }
+	if(drawH<0){ drawH=0; }
+
 
 	return;
 }
@@ -534,6 +552,12 @@ WinDraw_Draw(void)
 
 #else // OpenGL ES end.
 
+	if(ScreenClearFlg != 0){ 			/*change screen*/
+	  WinDraw_ChangeSizeGO();
+	  //if(ScreenClearFlg++>2){ ScreenClearFlg=0; }
+	  ScreenClearFlg=0;
+	}
+
 	/* ====SDL1 Drawing====*/
 	int32_t Bpp;
 	uint16_t *p, *dst16;
@@ -552,13 +576,13 @@ WinDraw_Draw(void)
 			for (x = 0; x < 800; x++) {
 				xk=(surfaceW*x)/800;
 				if  (Bpp == 4) {
-					if(yk>=drawH && yk<(TextDotYD+drawH) && xk>=(drawW) && xk<(TextDotXD+(drawW))){
+					if(yk>=drawH && yk<(TextDotY+drawH) && xk>=(drawW) && xk<(TextDotX+(drawW))){
 					dat32 = (uint32_t)(*(p+xk) & 0xf800) << 8 | (*(p+xk) & 0x07e0) << 5 | (*(p+xk) & 0x001f) << 3;
 					*dst32++ = dat32;
 					}
 					else{*dst32++ = 0; }
 				} else if (Bpp == 2) {
-					if(yk>=drawH && yk<(TextDotYD+drawH) && xk>=(drawW) && xk<(TextDotXD+(drawW))){
+					if(yk>=drawH && yk<(TextDotY+drawH) && xk>=(drawW) && xk<(TextDotX+(drawW))){
 					*dst16++ = *(p+xk);
 					}
 					else{*dst16++ = 0; }
@@ -920,6 +944,8 @@ void WinDraw_DrawLine(void)
 			{
 				if ( ((VCReg2[0]&0x1e)==0x1e)&&(tron) )
 					Grp_DrawLine8TR(1, 1);
+				else if ( ((VCReg2[0]&0x1d)==0x1d)&&(tron) )
+					Grp_DrawLine8TR_GT(1, 1);
 				else
 					Grp_DrawLine8(1, 1);
 				opaq = 0;
@@ -945,6 +971,8 @@ void WinDraw_DrawLine(void)
 			{
 				if ( ((VCReg2[0]&0x1e)==0x1e)&&(tron) )
 					Grp_DrawLine8TR(0, 1);
+				else if ( ((VCReg2[0]&0x1d)==0x1d)&&(tron) )
+					Grp_DrawLine8TR_GT(0, 1);
 				else
 					Grp_DrawLine8(0, 1);
 				opaq = 0;
