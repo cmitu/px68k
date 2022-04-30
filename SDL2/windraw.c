@@ -98,7 +98,7 @@ int32_t conv_utf8tosjis();
 
 #define	APPNAME	"Keropi"
 
-static uint32_t drawW=0,drawH=0; /*start X ,Y*/
+static int32_t drawW=0,drawH=0; /*start X ,Y*/
 static uint32_t surfaceW=800,surfaceH=600; /*width Hight*/
 static uint32_t HLINE_TOTAL_1,CRTC_HSTART_1,CRTC_HEND_1;/*Store*/
 static uint32_t VLINE_TOTAL_1,CRTC_VSTART_1,CRTC_VEND_1,CRTC_VStep_1;
