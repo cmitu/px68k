@@ -126,7 +126,7 @@ int32_t WinDraw_ChangeSizeGO(void)
 	return FALSE;
 	}
 
-	int32_t VLINE_TOTAL2,VSTART2;
+	int32_t VLINE_TOTAL2,VSTART2,HSTART2=CRTC_HSTART*8;
 
 	//垂直解像度補正(2Line描画)
 	switch(CRTC_VStep){
@@ -143,14 +143,14 @@ int32_t WinDraw_ChangeSizeGO(void)
 	uint32_t ScreenY = VLINE_TOTAL2 * 0.90; ScreenY /=32; ScreenY++; ScreenY *=32;
 	
 	// 表示範囲がオーバースキャンの場合
-	if(ScreenX<TextDotX) TextDotX=ScreenX;
-	if(ScreenY<TextDotY) TextDotY=ScreenX;
+	if(ScreenX<TextDotX){ScreenX=TextDotX;HSTART2=0;}
+	if(ScreenY<TextDotY){ScreenY=TextDotY;VSTART2=0;}
 
 	//printf("TOTAL %d:%d ScrenXY %d:%d TdotXY %d:%d StartXY %d:%d\n",HLINE_TOTAL,VLINE_TOTAL2,ScreenX,ScreenY,
-	//	TextDotX,TextDotY,CRTC_HSTART*8, VSTART2);
+	//	TextDotX,TextDotY,HSTART2, VSTART2);
 
 	/*=== Do Change X68000 Screen Size ===*/
-	WinDraw_InitWindowSize(ScreenX, ScreenY, CRTC_HSTART*8, VSTART2);
+	WinDraw_InitWindowSize(ScreenX, ScreenY, HSTART2, VSTART2);
 
 	// 保存
 	HLINE_TOTAL_1=HLINE_TOTAL;
@@ -176,21 +176,19 @@ WinDraw_InitWindowSize(uint32_t ScreenX, uint32_t ScreenY, uint32_t StartX, uint
 	SDL_RenderClear(sdl_render);/*screen buffer clear*/
 
 	switch(ScreenX){
-	  case 513 ... 800: //====768x512/256 640x480/400/240/200====
-		switch(ScreenY){
-		 case 401 ... 600: // dot2dot
-		   surfaceW=800; drawW=StartX-224+((800-TextDotX)/2);
-		   surfaceH=600; drawH=StartY-40+((600-TextDotY)/2);
-		  break;
-		 case 257 ... 400:
-		   surfaceW=ScreenX; drawW=StartX-224+((800-TextDotX)/2);
-		   surfaceH=ScreenY; drawH=StartY-40+((400-TextDotY)/2);
+	  case 513 ... 900: //====768x512/256   640x480/400/240/200====
+		 switch(ScreenY){
+		 case 257 ... 511:
+		   surfaceW=ScreenX; drawW=StartX-224;
+		   surfaceH=ScreenY; drawH=StartY-40;
 		  break;
 		 case 000 ... 256:
-		   surfaceW=ScreenX; drawW=StartX-224+((800-TextDotX)/2);
-		   surfaceH=ScreenY; drawH=StartY-20+((256-TextDotY)/2);
+		   surfaceW=ScreenX; drawW=StartX-224;
+		   surfaceH=ScreenY; drawH=StartY-20;
 		  break;
-		}
+		 }
+		if(TextDotX==768){ surfaceW=800; drawW=StartX-224+((800-TextDotX)/2);}/*H-Dot2Dot*/
+		if(TextDotY==512){ surfaceH=600; drawH=StartY-40+((600-TextDotY)/2);}/*V-Dot2Dot*/
 	   break;
 	  case 420 ... 512: //====512x512/256====
 	   surfaceW=ScreenX; surfaceH=ScreenY; drawW=StartX-136;
