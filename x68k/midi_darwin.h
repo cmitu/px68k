@@ -1,6 +1,8 @@
 // macOS用CoreMIDI 対応の関数群
 // Win.のMIDI関数とコンパチ(winmm.lib)で置き換えてます。
-// LIST表示して選択するまでもないのでPort0決め打ち出力です。
+// CoreAudioのシンセサイザをdefault、CoreMIDIで検出された機器を
+// リストします。 SoundFontにも対応します。
+// MIMPIの音色変更FileはConfigで指定してください。
 // 
 // 2022/3/27  by kameya
 

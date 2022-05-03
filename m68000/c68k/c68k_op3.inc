@@ -1721,7 +1721,7 @@ OP_0x303A:
 {
 	u32 adr;
 	u32 res;
-	adr = (PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
+	adr = (u32)(PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
 	PC += 2;
 	PRE_IO
 	READ_WORD_F(adr, res)
@@ -1739,7 +1739,7 @@ OP_0x30BA:
 {
 	u32 adr;
 	u32 res;
-	adr = (PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
+	adr = (u32)(PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
 	PC += 2;
 	PRE_IO
 	READ_WORD_F(adr, res)
@@ -1758,7 +1758,7 @@ OP_0x30FA:
 {
 	u32 adr;
 	u32 res;
-	adr = (PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
+	adr = (u32)(PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
 	PC += 2;
 	PRE_IO
 	READ_WORD_F(adr, res)
@@ -1778,7 +1778,7 @@ OP_0x313A:
 {
 	u32 adr;
 	u32 res;
-	adr = (PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
+	adr = (u32)(PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
 	PC += 2;
 	PRE_IO
 	READ_WORD_F(adr, res)
@@ -1798,7 +1798,7 @@ OP_0x317A:
 {
 	u32 adr;
 	u32 res;
-	adr = (PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
+	adr = (u32)(PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
 	PC += 2;
 	PRE_IO
 	READ_WORD_F(adr, res)
@@ -1818,7 +1818,7 @@ OP_0x31BA:
 {
 	u32 adr;
 	u32 res;
-	adr = (PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
+	adr = (u32)(PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
 	PC += 2;
 	PRE_IO
 	READ_WORD_F(adr, res)
@@ -1838,7 +1838,7 @@ OP_0x31FA:
 {
 	u32 adr;
 	u32 res;
-	adr = (PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
+	adr = (u32)(PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
 	PC += 2;
 	PRE_IO
 	READ_WORD_F(adr, res)
@@ -1858,7 +1858,7 @@ OP_0x33FA:
 {
 	u32 adr;
 	u32 res;
-	adr = (PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
+	adr = (u32)(PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
 	PC += 2;
 	PRE_IO
 	READ_WORD_F(adr, res)
@@ -1878,7 +1878,7 @@ OP_0x3EFA:
 {
 	u32 adr;
 	u32 res;
-	adr = (PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
+	adr = (u32)(PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
 	PC += 2;
 	PRE_IO
 	READ_WORD_F(adr, res)
@@ -1898,7 +1898,7 @@ OP_0x3F3A:
 {
 	u32 adr;
 	u32 res;
-	adr = (PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
+	adr = (u32)(PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
 	PC += 2;
 	PRE_IO
 	READ_WORD_F(adr, res)
@@ -1918,7 +1918,7 @@ OP_0x303B:
 {
 	u32 adr;
 	u32 res;
-	adr = PC - CPU->BasePC;
+	adr = (u32)(PC - CPU->BasePC);
 	DECODE_EXT_WORD
 	PRE_IO
 	READ_WORD_F(adr, res)
@@ -1936,7 +1936,7 @@ OP_0x30BB:
 {
 	u32 adr;
 	u32 res;
-	adr = PC - CPU->BasePC;
+	adr = (u32)(PC - CPU->BasePC);
 	DECODE_EXT_WORD
 	PRE_IO
 	READ_WORD_F(adr, res)
@@ -1955,7 +1955,7 @@ OP_0x30FB:
 {
 	u32 adr;
 	u32 res;
-	adr = PC - CPU->BasePC;
+	adr = (u32)(PC - CPU->BasePC);
 	DECODE_EXT_WORD
 	PRE_IO
 	READ_WORD_F(adr, res)
@@ -1975,7 +1975,7 @@ OP_0x313B:
 {
 	u32 adr;
 	u32 res;
-	adr = PC - CPU->BasePC;
+	adr = (u32)(PC - CPU->BasePC);
 	DECODE_EXT_WORD
 	PRE_IO
 	READ_WORD_F(adr, res)
@@ -1995,7 +1995,7 @@ OP_0x317B:
 {
 	u32 adr;
 	u32 res;
-	adr = PC - CPU->BasePC;
+	adr = (u32)(PC - CPU->BasePC);
 	DECODE_EXT_WORD
 	PRE_IO
 	READ_WORD_F(adr, res)
@@ -2015,7 +2015,7 @@ OP_0x31BB:
 {
 	u32 adr;
 	u32 res;
-	adr = PC - CPU->BasePC;
+	adr = (u32)(PC - CPU->BasePC);
 	DECODE_EXT_WORD
 	PRE_IO
 	READ_WORD_F(adr, res)
@@ -2035,7 +2035,7 @@ OP_0x31FB:
 {
 	u32 adr;
 	u32 res;
-	adr = PC - CPU->BasePC;
+	adr = (u32)(PC - CPU->BasePC);
 	DECODE_EXT_WORD
 	PRE_IO
 	READ_WORD_F(adr, res)
@@ -2055,7 +2055,7 @@ OP_0x33FB:
 {
 	u32 adr;
 	u32 res;
-	adr = PC - CPU->BasePC;
+	adr = (u32)(PC - CPU->BasePC);
 	DECODE_EXT_WORD
 	PRE_IO
 	READ_WORD_F(adr, res)
@@ -2075,7 +2075,7 @@ OP_0x3EFB:
 {
 	u32 adr;
 	u32 res;
-	adr = PC - CPU->BasePC;
+	adr = (u32)(PC - CPU->BasePC);
 	DECODE_EXT_WORD
 	PRE_IO
 	READ_WORD_F(adr, res)
@@ -2095,7 +2095,7 @@ OP_0x3F3B:
 {
 	u32 adr;
 	u32 res;
-	adr = PC - CPU->BasePC;
+	adr = (u32)(PC - CPU->BasePC);
 	DECODE_EXT_WORD
 	PRE_IO
 	READ_WORD_F(adr, res)
@@ -2808,7 +2808,7 @@ OP_0x307A:
 {
 	u32 adr;
 	u32 res;
-	adr = (PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
+	adr = (u32)(PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
 	PC += 2;
 	PRE_IO
 	READSX_WORD_F(adr, res)
@@ -2822,7 +2822,7 @@ OP_0x307B:
 {
 	u32 adr;
 	u32 res;
-	adr = PC - CPU->BasePC;
+	adr = (u32)(PC - CPU->BasePC);
 	DECODE_EXT_WORD
 	PRE_IO
 	READSX_WORD_F(adr, res)

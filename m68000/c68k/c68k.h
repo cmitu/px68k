@@ -137,8 +137,8 @@ typedef struct {
     
     u32 USP;
 
-    uintptr_t PC;         // 32 bytes aligned
-    uintptr_t BasePC;
+    pointer PC;         // 32 bytes aligned
+    pointer BasePC;
     u32 Status;
     s32 IRQLine;
     
@@ -156,7 +156,7 @@ typedef struct {
     C68K_INT_CALLBACK *Interrupt_CallBack;  // 16 bytes aligned
     C68K_RESET_CALLBACK *Reset_CallBack;
 
-	uintptr_t Fetch[C68K_FETCH_BANK];             // 32 bytes aligned
+	pointer Fetch[C68K_FETCH_BANK];             // 32 bytes aligned
 } c68k_struc;
 
 
@@ -185,7 +185,7 @@ s32     FASTCALL C68k_Get_CycleDone(c68k_struc *cpu);
 void    FASTCALL C68k_Release_Cycle(c68k_struc *cpu);
 void    FASTCALL C68k_Add_Cycle(c68k_struc *cpu, s32 cycle);
 
-void    C68k_Set_Fetch(c68k_struc *cpu, u32 low_adr, u32 high_adr, uintptr_t fetch_adr);
+void    C68k_Set_Fetch(c68k_struc *cpu, u32 low_adr, u32 high_adr, pointer fetch_adr);
 
 void    C68k_Set_ReadB(c68k_struc *cpu, C68K_READ *Func);
 void    C68k_Set_ReadW(c68k_struc *cpu, C68K_READ *Func);

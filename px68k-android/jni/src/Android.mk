@@ -11,7 +11,7 @@ PX68K_PATH := ../../..
 NDK_PATH := /Users/hissorii/Development/android-ndk-r9b
 
 LOCAL_C_INCLUDES := $(NDK_PATH)/platforms/android-18/arch-arm/usr/include $(LOCAL_PATH)/$(SDL_PATH)/include $(NDK_PATH)/sources/android/support/include \
-	$(PX68K_PATH)/x68k $(PX68K_PATH)/m68000 $(PX68K_PATH)/fmgen $(PX68K_PATH)/x11 $(PX68K_PATH)/win32api
+	$(PX68K_PATH)/x68k $(PX68K_PATH)/m68000 $(PX68K_PATH)/fmgen $(PX68K_PATH)/SDL2 $(PX68K_PATH)/win32api
 
 CPUSRCS= \
 	$(PX68K_PATH)/x68k/d68k.c \
@@ -53,28 +53,28 @@ FMGENSRCS= \
 	$(PX68K_PATH)/fmgen/opna.cpp \
 	$(PX68K_PATH)/fmgen/psg.cpp
 
-X11SRCS= \
-	$(PX68K_PATH)/x11/joystick.c \
-	$(PX68K_PATH)/x11/juliet.c \
-	$(PX68K_PATH)/x11/keyboard.c \
-	$(PX68K_PATH)/x11/mouse.c \
-	$(PX68K_PATH)/x11/prop.c \
-	$(PX68K_PATH)/x11/status.c \
-	$(PX68K_PATH)/x11/timer.c \
-	$(PX68K_PATH)/x11/dswin.c \
-	$(PX68K_PATH)/x11/windraw.c \
-	$(PX68K_PATH)/x11/winui.c \
-	$(PX68K_PATH)/x11/about.c \
-	$(PX68K_PATH)/x11/common.c
+SDLSRCS= \
+	$(PX68K_PATH)/SDL2/joystick.c \
+	$(PX68K_PATH)/SDL2/juliet.c \
+	$(PX68K_PATH)/SDL2/keyboard.c \
+	$(PX68K_PATH)/SDL2/mouse.c \
+	$(PX68K_PATH)/SDL2/prop.c \
+	$(PX68K_PATH)/SDL2/status.c \
+	$(PX68K_PATH)/SDL2/timer.c \
+	$(PX68K_PATH)/SDL2/dswin.c \
+	$(PX68K_PATH)/SDL2/windraw.c \
+	$(PX68K_PATH)/SDL2/winui.c \
+	$(PX68K_PATH)/SDL2/about.c \
+	$(PX68K_PATH)/SDL2/common.c
 
-X11CXXSRCS= $(PX68K_PATH)/x11/winx68k.cpp
+SDLCXXSRCS= $(PX68K_PATH)/SDL2/winx68k.cpp
 
 WIN32APISRCS= \
 	$(PX68K_PATH)/win32api/dosio.c \
 	$(PX68K_PATH)/win32api/fake.c \
 	$(PX68K_PATH)/win32api/peace.c
 
-PX68KSRCS = $(CPUSRCS) $(X68KSRCS) $(FMGENSRCS) $(X11SRCS) $(X11CXXSRCS) $(WIN32APISRCS)
+PX68KSRCS = $(CPUSRCS) $(X68KSRCS) $(FMGENSRCS) $(SDLSRCS) $(SDLCXXSRCS) $(WIN32APISRCS)
 
 # Add your application source files here...
 LOCAL_SRC_FILES := $(SDL_PATH)/src/main/android/SDL_android_main.c $(PX68KSRCS)

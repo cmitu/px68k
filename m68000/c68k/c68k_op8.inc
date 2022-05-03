@@ -167,7 +167,7 @@ OP_0x803A:
 	u32 adr;
 	u32 res;
 	pointer src;
-	adr = (PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
+	adr = (u32)(PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
 	PC += 2;
 	PRE_IO
 	READ_BYTE_F(adr, src)
@@ -188,7 +188,7 @@ OP_0x803B:
 	u32 adr;
 	u32 res;
 	pointer src;
-	adr = PC - CPU->BasePC;
+	adr = (u32)(PC - CPU->BasePC);
 	DECODE_EXT_WORD
 	PRE_IO
 	READ_BYTE_F(adr, src)
@@ -430,7 +430,7 @@ OP_0x807A:
 	u32 adr;
 	u32 res;
 	pointer src;
-	adr = (PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
+	adr = (u32)(PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
 	PC += 2;
 	PRE_IO
 	READ_WORD_F(adr, src)
@@ -451,7 +451,7 @@ OP_0x807B:
 	u32 adr;
 	u32 res;
 	pointer src;
-	adr = PC - CPU->BasePC;
+	adr = (u32)(PC - CPU->BasePC);
 	DECODE_EXT_WORD
 	PRE_IO
 	READ_WORD_F(adr, src)
@@ -693,7 +693,7 @@ OP_0x80BA:
 	u32 adr;
 	u32 res;
 	pointer src;
-	adr = (PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
+	adr = (u32)(PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
 	PC += 2;
 	PRE_IO
 	READ_LONG_F(adr, src)
@@ -714,7 +714,7 @@ OP_0x80BB:
 	u32 adr;
 	u32 res;
 	pointer src;
-	adr = PC - CPU->BasePC;
+	adr = (u32)(PC - CPU->BasePC);
 	DECODE_EXT_WORD
 	PRE_IO
 	READ_LONG_F(adr, src)
@@ -1513,7 +1513,7 @@ OP_0x80C0:
 		res = C68K_ZERO_DIVIDE_EX;
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -1525,8 +1525,8 @@ OP_0x80C0:
 	{
 		u32 q, r;
 
-		q = dst / src;
-		r = dst % src;
+		q = (u32)dst / (u32)src;
+		r = (u32)dst % (u32)src;
 
 		if (q & 0xFFFF0000)
 		{
@@ -1565,7 +1565,7 @@ OP_0x80D0:
 	POST_IO
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -1577,8 +1577,8 @@ OP_0x80D0:
 	{
 		u32 q, r;
 
-		q = dst / src;
-		r = dst % src;
+		q = (u32)dst / (u32)src;
+		r = (u32)dst % (u32)src;
 
 		if (q & 0xFFFF0000)
 		{
@@ -1618,7 +1618,7 @@ OP_0x80D8:
 	POST_IO
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -1630,8 +1630,8 @@ OP_0x80D8:
 	{
 		u32 q, r;
 
-		q = dst / src;
-		r = dst % src;
+		q = (u32)dst / (u32)src;
+		r = (u32)dst % (u32)src;
 
 		if (q & 0xFFFF0000)
 		{
@@ -1671,7 +1671,7 @@ OP_0x80E0:
 	POST_IO
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -1683,8 +1683,8 @@ OP_0x80E0:
 	{
 		u32 q, r;
 
-		q = dst / src;
-		r = dst % src;
+		q = (u32)dst / (u32)src;
+		r = (u32)dst % (u32)src;
 
 		if (q & 0xFFFF0000)
 		{
@@ -1724,7 +1724,7 @@ OP_0x80E8:
 	POST_IO
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -1736,8 +1736,8 @@ OP_0x80E8:
 	{
 		u32 q, r;
 
-		q = dst / src;
-		r = dst % src;
+		q = (u32)dst / (u32)src;
+		r = (u32)dst % (u32)src;
 
 		if (q & 0xFFFF0000)
 		{
@@ -1777,7 +1777,7 @@ OP_0x80F0:
 	POST_IO
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -1789,8 +1789,8 @@ OP_0x80F0:
 	{
 		u32 q, r;
 
-		q = dst / src;
-		r = dst % src;
+		q = (u32)dst / (u32)src;
+		r = (u32)dst % (u32)src;
 
 		if (q & 0xFFFF0000)
 		{
@@ -1830,7 +1830,7 @@ OP_0x80F8:
 	POST_IO
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -1842,8 +1842,8 @@ OP_0x80F8:
 	{
 		u32 q, r;
 
-		q = dst / src;
-		r = dst % src;
+		q = (u32)dst / (u32)src;
+		r = (u32)dst % (u32)src;
 
 		if (q & 0xFFFF0000)
 		{
@@ -1883,7 +1883,7 @@ OP_0x80F9:
 	POST_IO
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -1895,8 +1895,8 @@ OP_0x80F9:
 	{
 		u32 q, r;
 
-		q = dst / src;
-		r = dst % src;
+		q = (u32)dst / (u32)src;
+		r = (u32)dst % (u32)src;
 
 		if (q & 0xFFFF0000)
 		{
@@ -1920,7 +1920,7 @@ OP_0x80FA:
 	u32 res;
 	pointer dst;
 	pointer src;
-	adr = (PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
+	adr = (u32)(PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
 	PC += 2;
 	PRE_IO
 	READ_WORD_F(adr, src)
@@ -1936,7 +1936,7 @@ OP_0x80FA:
 	POST_IO
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -1948,8 +1948,8 @@ OP_0x80FA:
 	{
 		u32 q, r;
 
-		q = dst / src;
-		r = dst % src;
+		q = (u32)dst / (u32)src;
+		r = (u32)dst % (u32)src;
 
 		if (q & 0xFFFF0000)
 		{
@@ -1973,7 +1973,7 @@ OP_0x80FB:
 	u32 res;
 	pointer dst;
 	pointer src;
-	adr = PC - CPU->BasePC;
+	adr = (u32)(PC - CPU->BasePC);
 	DECODE_EXT_WORD
 	PRE_IO
 	READ_WORD_F(adr, src)
@@ -1989,7 +1989,7 @@ OP_0x80FB:
 	POST_IO
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -2001,8 +2001,8 @@ OP_0x80FB:
 	{
 		u32 q, r;
 
-		q = dst / src;
-		r = dst % src;
+		q = (u32)dst / (u32)src;
+		r = (u32)dst % (u32)src;
 
 		if (q & 0xFFFF0000)
 		{
@@ -2038,7 +2038,7 @@ OP_0x80FC:
 		res = C68K_ZERO_DIVIDE_EX;
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -2050,8 +2050,8 @@ OP_0x80FC:
 	{
 		u32 q, r;
 
-		q = dst / src;
-		r = dst % src;
+		q = (u32)dst / (u32)src;
+		r = (u32)dst % (u32)src;
 
 		if (q & 0xFFFF0000)
 		{
@@ -2091,7 +2091,7 @@ OP_0x80DF:
 	POST_IO
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -2103,8 +2103,8 @@ OP_0x80DF:
 	{
 		u32 q, r;
 
-		q = dst / src;
-		r = dst % src;
+		q = (u32)dst / (u32)src;
+		r = (u32)dst % (u32)src;
 
 		if (q & 0xFFFF0000)
 		{
@@ -2144,7 +2144,7 @@ OP_0x80E7:
 	POST_IO
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -2156,8 +2156,8 @@ OP_0x80E7:
 	{
 		u32 q, r;
 
-		q = dst / src;
-		r = dst % src;
+		q = (u32)dst / (u32)src;
+		r = (u32)dst % (u32)src;
 
 		if (q & 0xFFFF0000)
 		{
@@ -2192,7 +2192,7 @@ OP_0x81C0:
 		res = C68K_ZERO_DIVIDE_EX;
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -2252,7 +2252,7 @@ OP_0x81D0:
 	POST_IO
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -2313,7 +2313,7 @@ OP_0x81D8:
 	POST_IO
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -2374,7 +2374,7 @@ OP_0x81E0:
 	POST_IO
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -2435,7 +2435,7 @@ OP_0x81E8:
 	POST_IO
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -2496,7 +2496,7 @@ OP_0x81F0:
 	POST_IO
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -2557,7 +2557,7 @@ OP_0x81F8:
 	POST_IO
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -2618,7 +2618,7 @@ OP_0x81F9:
 	POST_IO
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -2663,7 +2663,7 @@ OP_0x81FA:
 	u32 res;
 	pointer dst;
 	pointer src;
-	adr = (PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
+	adr = (u32)(PC - CPU->BasePC) + (s32)(s16)FETCH_WORD;
 	PC += 2;
 	PRE_IO
 	READSX_WORD_F(adr, src)
@@ -2679,7 +2679,7 @@ OP_0x81FA:
 	POST_IO
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -2724,7 +2724,7 @@ OP_0x81FB:
 	u32 res;
 	pointer dst;
 	pointer src;
-	adr = PC - CPU->BasePC;
+	adr = (u32)(PC - CPU->BasePC);
 	DECODE_EXT_WORD
 	PRE_IO
 	READSX_WORD_F(adr, src)
@@ -2740,7 +2740,7 @@ OP_0x81FB:
 	POST_IO
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -2797,7 +2797,7 @@ OP_0x81FC:
 		res = C68K_ZERO_DIVIDE_EX;
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -2858,7 +2858,7 @@ OP_0x81DF:
 	POST_IO
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
@@ -2919,7 +2919,7 @@ OP_0x81E7:
 	POST_IO
 	CCnt -= c68k_exception_cycle_table[res];
 	PRE_IO
-		PUSH_32_F(PC - CPU->BasePC)
+		PUSH_32_F((u32)(PC - CPU->BasePC))
 		PUSH_16_F(GET_SR)
 		CPU->flag_S = C68K_SR_S;
 		READ_LONG_F(res * 4, PC)
