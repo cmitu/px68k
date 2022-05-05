@@ -2,7 +2,7 @@
 
 	m68000.c
 
-	M68000 CPU¥¤¥ó¥¿¥Õ¥§¡¼¥¹´Ø¿ô
+	M68000 CPUã‚¤ãƒ³ã‚¿ãƒ•ã‚§ãƒ¼ã‚¹é–¢æ•°
 
 ******************************************************************************/
 
@@ -11,7 +11,7 @@
 
 #include "c68k/c68k.h"
 
-// MAME¸ß´¹¤Î¥ì¥¸¥¹¥¿ÈÖ¹æ (°ìÉôÌ¤ÂĞ±ş)
+// MAMEäº’æ›ã®ãƒ¬ã‚¸ã‚¹ã‚¿ç•ªå· (ä¸€éƒ¨æœªå¯¾å¿œ)
 enum
 {
 	/* NOTE: M68K_SP fetches the current SP, be it USP, ISP, or MSP */
@@ -24,18 +24,12 @@ enum
 void m68000_init(void);
 void m68000_reset(void);
 void m68000_exit(void);
-int  m68000_execute(int cycles);
-#if (EMU_SYSTEM == NCDZ)
-void m68000_execute2(UINT32 start_pc, UINT32 break_point);
-#endif
-void m68000_set_irq_line(int irqline, int state);
-void m68000_set_irq_callback(int (*callback)(int irqline));
-UINT32  m68000_get_reg(int regnum);
-void m68000_set_reg(int regnum, UINT32 val);
+int32_t  m68000_execute(int32_t cycles);
 
-#if (EMU_SYSTEM == CPS2)
-void m68000_set_encrypted_range(UINT32 start, UINT32 end, void *decrypted_rom);
-#endif
+void m68000_set_irq_line(int32_t irqline, int32_t state);
+void m68000_set_irq_callback(int32_t (*callback)(int32_t irqline));
+uint32_t  m68000_get_reg(int32_t regnum);
+void m68000_set_reg(int32_t regnum, uint32_t val);
 
 #ifdef SAVE_STATE
 STATE_SAVE( m68000 );

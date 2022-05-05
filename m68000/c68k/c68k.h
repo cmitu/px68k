@@ -33,7 +33,7 @@ extern "C" {
 #endif
 
 #include "core.h"
-#include "common.h"
+//#include "common.h"
 
 // setting
 ///////////
