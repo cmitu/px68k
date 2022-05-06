@@ -52,8 +52,8 @@ DEPEND	 = gccmakedep
 DEPEND_DEFINES =
 
 # for debug
-CDEBUGFLAGS += -g -O0 -fno-strict-aliasing
-# CDEBUGFLAGS += -Os  -fstrict-aliasing
+# CDEBUGFLAGS += -g -O0 -fno-strict-aliasing
+# CDEBUGFLAGS += -O0  -fstrict-aliasing
 
 #
 # disable sound

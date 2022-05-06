@@ -1,3 +1,5 @@
+/* utf8 to sjis convert table
+ for X68000       by kameya */
 static const uint32_t conv_unicode[][4] = {
  
 /* JIS    SJIS    UTF8      UTF16BE        字*/
