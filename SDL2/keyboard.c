@@ -72,7 +72,8 @@ Keyboard_Init(void)
 #define	NC	0
 #define KEYTABLE_MAX 512
 
-
+// 2022/5/8  XKBは削除 SDL1/2専用テーブルに作り換え
+// SDL1/2共通キーコード 0~177(0xB1)変換テーブル
 uint8_t KeyTable[KEYTABLE_MAX] = {
 	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x00
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
@@ -114,8 +115,8 @@ uint8_t KeyTable[KEYTABLE_MAX] = {
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    ,   		; 0x98
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,   ¥,    ,    		; 0xa0(JIS Keyboard)
-		  NC,  NC,  NC,  NC,  NC,0x0e,  NC,  NC,
+	//	    ,   ¥,    ,    ,    ,   ¥,    ,    		; 0xa0(JIS Keyboard)
+		  NC,0x0e,  NC,  NC,  NC,0x0e,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    ,   		; 0xa8
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    ,    		; 0xb0
@@ -139,75 +140,79 @@ uint8_t KeyTable[KEYTABLE_MAX] = {
 	//	    ,    ,    ,    ,    ,    ,    ,    		; 0xf8
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 
-	//							;0x100
 
-	//	    ,    ,    ,    ,    ,    ,    ,  		; 0x00
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	  BS, TAB,  LF, CLR,    , RET,    ,   		; 0x08
-		0x0f,0x10,0x1d,  NC,  NC,0x1d,  NC,  NC,
-	//	    ,  ↑,  ↓,  →,  ←,SYSQ,    ,  		; 0x10
-		  NC,0x3c,0x3e,0x3d,0x3b,  NC,  NC,  NC,
-	//	    ,    ,    , ESC,    ,    ,    ,   		; 0x18
-		  NC,  NC,0x63,0x01,  NC,  NC,  NC,  NC,
-	//	    ,KANJ,MUHE,HENM,HENK,RONM,HIRA,KATA		; 0x20
-		  NC,  NC,0x56,  NC,  NC,  NC,  NC,  NC,
-	//	HIKA,ZENK,HANK,ZNHN,    ,KANA,    ,   		; 0x28
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	SFTL,    ,    ,    ,    ,    ,    ,    		; 0x30
-		0x70,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,ZKOU,MKOU,   		; 0x38
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x40
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    ,   		; 0x48
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	HOME,  ←,  ↑,  →,  ↓,RLDN,RLUP, END		; 0x50
-		0x36,0x3b,0x3c,0x3d,0x3e,0x39,0x38,0x3a,
-	//	    ,    ,    ,    ,    ,    ,    ,   		; 0x58
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,PRNT, INS,    ,    ,    ,    ,    		; 0x60
-		  NC,  NC,0x5e,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,BREA,    ,    ,    ,   		; 0x68
-		  NC,  NC,  NC,0x61,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x70
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x78
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	<SPC,    ,    ,    ,    ,    ,    ,    		; 0x80
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,<TAB,    ,    ,    ,<ENT,    ,  		; 0x88
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,<HOM,<←>,<↑>		; 0x90
-		  NC,  NC,  NC,  NC,  NC,0x36,0x3b,0x3c,
-	//	<→>,<↓>,<RDN,<RUP,<END,    ,<INS,<DEL		; 0x98
-		0x3d,0x3e,0x39,0x38,0x3a,  NC,0x5e,0x37,
-	//	    ,    ,    ,    ,    ,    ,    ,    		; 0xa0
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    , <*>, <+>, <,>, <->, <.>, </>		; 0xa8
-		  NC,  NC,0x41,0x46,  NC,0x42,0x51,0x40,
-	//	 <0>, <1>, <2>, <3>, <4>, <5>, <6>, <7>		; 0xb0
+	// ==== 以下SDL1専用 特殊キー・テーブル
+
+	//	   0,   1,   2,   3,   4,   5,   6,   7		; 0x100 (10key)
 		0x4f,0x4b,0x4c,0x4d,0x47,0x48,0x49,0x43,
-	//	 <8>, <9>,    ,    ,    ,    , f.1, f.2		; 0xb8
-		0x44,0x45,  NC,  NC,  NC,  NC,0x63,0x64,
-	//	 f.3, f.4, f.5, f.6, f.7, f.8, f.9,f.10		; 0xc0
-		0x65,0x66,0x67,0x68,0x69,0x6a,0x6b,0x6c,
-	//	f.11,f.12,f.13,f.14,f.15,    ,    ,   		; 0xc8
+	//	   8,   9,   .,   /,   *,   -,   +, ent		; 0x108
+		0x44,0x45,0x51,0x40,0x41,0x42,0x46,0x4e,
+	//	   =,  ⬆︎,   ⬇︎,  ➡︎,  ⬅︎,    ,    ,   		; 0x110
+		0x4a,0x3c,0x3e,0x3d,0x3b,  NC,  NC,  NC,
+	//	    ,    ,  F1,  F2,  F3,  F4,  F5, F6		; 0x118
+		  NC,  NC,0x63,0x64,0x65,0x66,0x67,0x68,
+	//	  F7,  F8,  F9, F10, F11, F12,    ,    		; 0x120
+		0x69,0x6a,0x6b,0x6c,0x5a,0x5c,  NC,  NC,
+	//	    ,    ,    ,    ,    ,CAPS,    , RFTL	; 0x128
+		  NC,  NC,  NC,  NC,  NC,0x5d,  NC, 0x70,
+	//	SFTL,    ,CTRL,    , ALT,RCMD,LCMD,    		; 0x130
+		0x70,  NC,0x71,  NC,0x55,0x72,0x5f,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,   		; 0x138
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    ,    		; 0xd0
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x140
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    ,   		; 0xd8
+	//	    ,    ,    ,    ,    ,    ,    ,   		; 0x148
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,SFTL,SFTR,CTLL,CTLR,CAPS,    ,METL		; 0xe0
-		  NC,0x70,0x70,0x71,0x71,0x5d,  NC,0x55,
-	//	METR,ALTL,ALTR,    ,    ,    ,    ,    		; 0xe8
-		0x55,0x55,0x55,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    ,    		; 0xf0
+	//	    ,    ,    ,    ,    ,    ,    ,   		; 0x150
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    , DEL		; 0xf8
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,0x37
+	//	    ,    ,    ,    ,    ,    ,    ,   		; 0x158
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x160
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,   		; 0x168
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x170
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x178
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x180
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,  		; 0x188
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x190
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,     	; 0x198
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x1a0
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x1a8
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x1b0
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x1b8
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x1c0
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x1c8
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x1d0
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,   		; 0x1d8
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,   		; 0x1e0
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,   		; 0x1e8
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x1f0
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x1f8
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC
 };
 
-uint8_t KeyTableMaster[KEYTABLE_MAX] = {
+#define KEYTABLE_MAX2 240
+
+//SDL2専用  特殊キー・テーブル 0x40000000~(0x400000E7)までの変換テーブル
+uint8_t KeyTable4[KEYTABLE_MAX2] = {
 	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x00
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x08
@@ -216,32 +221,32 @@ uint8_t KeyTableMaster[KEYTABLE_MAX] = {
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x18
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	 SPC,  ! ,  " ,  # ,  $ ,  % ,  & ,  '		; 0x20
-		0x35,0x02,0x03,0x04,0x05,0x06,0x07,0x08,
-	//	  ( ,  ) ,  * ,  + ,  , ,  - ,  . ,  /		; 0x28
-		0x09,0x0a,0x28,0x27,0x31,0x0c,0x32,0x33,
-	//	  0 ,  1 ,  2 ,  3 ,  4 ,  5 ,  6 ,  7		; 0x30
-		0x0b,0x02,0x03,0x04,0x05,0x06,0x07,0x08,
-	//	  8 ,  9 ,  ; ,  : ,  < ,  = ,  > ,  ? 		; 0x38
-		0x09,0x0a,0x28,0x27,0x31,0x0c,0x32,0x33,
-	//	  @ ,  A ,  B ,  C ,  D ,  E ,  F ,  G		; 0x40
-		0x1b,0x1e,0x2e,0x2c,0x20,0x13,0x21,0x22,
-	//	  H ,  I ,  J ,  K ,  L ,  M ,  N ,  O		; 0x48
-		0x23,0x18,0x24,0x25,0x26,0x30,0x2f,0x10,
-	//	  P ,  Q ,  R ,  S ,  T ,  U ,  V ,  W		; 0x50
-		0x1a,0x11,0x14,0x1f,0x15,0x17,0x2d,0x12,
-	//	  X ,  Y ,  Z ,  [ ,  \ ,  ] ,  ^ ,  _		; 0x58
-		0x2b,0x16,0x2a,0x1c,0x0e,0x29,0x0d,0x34,
-	//	  ` ,  a ,  b ,  c ,  d ,  e ,  f ,  g		; 0x60
-		0x1b,0x1e,0x2e,0x2c,0x20,0x13,0x21,0x22,
-	//	  h ,  i ,  j ,  k ,  l ,  m ,  n ,  o		; 0x68
-		0x23,0x18,0x24,0x25,0x26,0x30,0x2f,0x19,
-	//	  p ,  q ,  r ,  s ,  t ,  u ,  v ,  w		; 0x70
-		0x1a,0x11,0x14,0x1f,0x15,0x17,0x2d,0x12,
-	//	  x ,  y ,  z ,  { ,  | ,  } ,  ~ ,   		; 0x78
-		0x2b,0x16,0x2a,0x1c,0x0e,0x29,0x0d,  NC,
-	//	    ,    ,    ,    ,    ,    ,    ,  		; 0x80
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x20
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x28
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x30
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,CAPS,  F1,  F2,  F3,  F4,  F5,  F6		; 0x38
+		  NC,0x5d,0x63,0x64,0x65,0x66,0x67,0x68,
+	//	  F7,  F8,  F9, F10, F11, F12,PSCR,SCRL		; 0x40
+		0x69,0x6a,0x6b,0x6c,0x5a,0x5b,0x62,0x53,
+	//	PAUS, INS,HOME, PUP,    , END,PDWN,  ➡︎	; 0x48
+		0x61,0x5e,0x36,0x38,  NC,0x3a,0x39,0x3d,
+	//	  ⬅︎,  ⬇︎,  ⬆︎, NUM,   /,   *,   -,   +		; 0x50(10key)
+		0x3b,0x3e,0x3c,0x3f,0x40,0x41,0x42,0x46,
+	//	 ENT,   1,   2,   3,   4,   5,   6,   7		; 0x58
+		0x4e,0x4b,0x4c,0x4d,0x47,0x48,0x49,0x43,
+	//	   8,   9,   0,   .,    ,    ,    ,   =		; 0x60
+		0x44,0x45,0x4f,0x51,  NC,  NC,  NC,0x4a,
+	//	 F13, F14, F15,    ,    ,    ,    ,    		; 0x68
+		0x5c,0x52,0x54,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x70
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x78
+		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	    ,    ,    ,    ,    ,   ,,    ,    		; 0x80
+		  NC,  NC,  NC,  NC,  NC,0x50,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    ,   		; 0x88
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    ,  		; 0x90
@@ -254,92 +259,22 @@ uint8_t KeyTableMaster[KEYTABLE_MAX] = {
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    ,    		; 0xb0
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    ,   		; 0xb8
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0xb8
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    ,    		; 0xc0
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    ,   		; 0xc8
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0xc8
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    ,    		; 0xd0
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    ,   		; 0xd8
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0xd8
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    ,    		; 0xe0
+	//	CTRL, SFT, ALT, CMD,CTRL, SFT, ALT, CMD 	; 0xe0
+		0x71,0x70,0x55,0x5f,0x71,0x70,0x59,0x72,
+	//	    ,    ,    ,    ,    ,    ,    ,    		; 0xe8
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    ,   		; 0xe8
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    ,    		; 0xf0
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    ,    		; 0xf8
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-
-	//							;0x100
-
-	//	    ,    ,    ,    ,    ,    ,    ,  		; 0x00
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	  BS, TAB,  LF, CLR,    , RET,    ,   		; 0x08
-		0x0f,0x10,0x1d,  NC,  NC,0x1d,  NC,  NC,
-	//	    ,    ,    ,PAUS,SCRL,SYSQ,    ,  		; 0x10
-		  NC,  NC,  NC,0x61,  NC,  NC,  NC,  NC,
-	//	    ,    ,    , ESC,    ,    ,    ,   		; 0x18
-		  NC,  NC,0x63,0x01,  NC,  NC,  NC,  NC,
-	//	    ,KANJ,MUHE,HENM,HENK,RONM,HIRA,KATA		; 0x20
-		  NC,  NC,0x56,  NC,  NC,  NC,  NC,  NC,
-	//	HIKA,ZENK,HANK,ZNHN,    ,KANA,    ,   		; 0x28
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	ALNU,    ,    ,    ,    ,    ,    ,    		; 0x30
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,ZKOU,MKOU,   		; 0x38
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x40
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    ,   		; 0x48
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	HOME,  ←,  ↑,  →,  ↓,RLDN,RLUP, END		; 0x50
-		0x36,  NC,  NC,  NC,  NC,0x39,0x38,0x3a,
-	//	    ,    ,    ,    ,    ,    ,    ,   		; 0x58
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,PRNT, INS,    ,    ,    ,    ,    		; 0x60
-		  NC,  NC,0x5e,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,BREA,    ,    ,    ,   		; 0x68
-		  NC,  NC,  NC,0x61,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x70
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    ,    		; 0x78
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	<SPC,    ,    ,    ,    ,    ,    ,    		; 0x80
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,<TAB,    ,    ,    ,<ENT,    ,  		; 0x88
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,<HOM,<←>,<↑>		; 0x90
-		  NC,  NC,  NC,  NC,  NC,0x36,  NC,  NC,
-	//	<→>,<↓>,<RDN,<RUP,<END,    ,<INS,<DEL		; 0x98
-		  NC,  NC,0x39,0x38,0x3a,  NC,0x5e,0x37,
-	//	    ,    ,    ,    ,    ,    ,    ,    		; 0xa0
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    , <*>, <+>, <,>, <->, <.>, </>		; 0xa8
-		  NC,  NC,0x41,0x46,  NC,0x42,  NC,0x40,
-	//	 <0>, <1>, <2>, <3>, <4>, <5>, <6>, <7>		; 0xb0
-		0x4f,0x4b,0x4c,0x4d,0x47,0x48,0x49,0x43,
-	//	 <8>, <9>,    ,    ,    ,    , f.1, f.2		; 0xb8
-		0x44,0x45,  NC,  NC,  NC,  NC,0x63,0x64,
-	//	 f.3, f.4, f.5, f.6, f.7, f.8, f.9,f.10		; 0xc0
-		0x65,0x66,0x67,0x68,0x69,0x6a,0x6b,0x6c,
-	//	f.11,f.12,f.13,f.14,f.15,    ,    ,   		; 0xc8
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    ,    		; 0xd0
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    ,   		; 0xd8
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,SFTL,SFTR,CTLL,CTLR,CAPS,    ,METL		; 0xe0
-		  NC,0x70,0x70,0x71,0x71,0x5d,  NC,0x55,
-	//	METR,ALTL,ALTR,    ,    ,    ,    ,    		; 0xe8
-		0x55,0x55,0x55,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    ,    		; 0xf0
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,    ,    ,    ,    , DEL		; 0xf8
-		  NC,  NC,  NC,  NC,  NC,  NC,  NC,0x37
 };
+
 
 // P6K: PX68K_KEYBOARD
 //      ~ ~   ~
@@ -424,110 +359,30 @@ static int32_t get_x68k_keycode(uint32_t wp)
 			return 0x08;						/*'*/
 		  }
 		break;
+	 case SDLK_BACKQUOTE:/*`*/
+		  if(shiftdown==1)	 return 0x0d;		/*~*/
+		  else{
+			send_keycode(0x70, P6K_DOWN);
+			return 0x1b;						/*`*/
+		  }
+		break;
 	 }
 	}
 
 
-	if (wp < KEYTABLE_MAX) {
+	if (wp < KEYTABLE_MAX) { 		//SDL1/2キーコード (SDL1:0x100~)
 		return KeyTable[wp];
 	}
 
-	switch (wp) {
-	case SDLK_UP:/*↑*/
-		return 0x3c;
-	case SDLK_DOWN:/*↓*/
-		return 0x3e;
-	case SDLK_LEFT:/*←*/
-		return 0x3b;
-	case SDLK_RIGHT:/*→*/
-		return 0x3d;
-
-#if !SDL_VERSION_ATLEAST(2, 0, 0)
-#define SDLK_KP_0 SDLK_KP0
-#define SDLK_KP_1 SDLK_KP1
-#define SDLK_KP_2 SDLK_KP2
-#define SDLK_KP_3 SDLK_KP3
-#define SDLK_KP_4 SDLK_KP4
-#define SDLK_KP_5 SDLK_KP5
-#define SDLK_KP_6 SDLK_KP6
-#define SDLK_KP_7 SDLK_KP7
-#define SDLK_KP_8 SDLK_KP8
-#define SDLK_KP_9 SDLK_KP9
-#define SDLK_NUMLOCKCLEAR SDLK_NUMLOCK
-#endif
-
-	case SDLK_KP_0:/*10key-0*/
-		return 0x4f;
-	case SDLK_KP_1:/*     -1*/
-		return 0x4b;
-	case SDLK_KP_2:/*     -2*/
-		return 0x4c;
-	case SDLK_KP_3:/*     -3*/
-		return 0x4d;
-	case SDLK_KP_4:/*     -4*/
-		return 0x47;
-	case SDLK_KP_5:/*     -5*/
-		return 0x48;
-	case SDLK_KP_6:/*     -6*/
-		return 0x49;
-	case SDLK_KP_7:/*     -7*/
-		return 0x43;
-	case SDLK_KP_8:/*     -8*/
-		return 0x44;
-	case SDLK_KP_9:/*     -9*/
-		return 0x45;
-	case SDLK_NUMLOCKCLEAR:
-		return 0x3f;
-
-	case SDLK_F1:
-		return 0x63;
-	case SDLK_F2:
-		return 0x64;
-	case SDLK_F3:
-		return 0x65;
-	case SDLK_F4:
-		return 0x66;
-	case SDLK_F5:
-		return 0x67;
-	case SDLK_F6:
-		return 0x68;
-	case SDLK_F7:
-		return 0x69;
-	case SDLK_F8:
-		return 0x6a;
-	case SDLK_F9:
-		return 0x6b;
-	case SDLK_F10:
-		return 0x6c;
-	case SDLK_LSHIFT:
-	case SDLK_RSHIFT:
-		return 0x70;
-	case SDLK_LCTRL:
-	case SDLK_RCTRL:
-		return 0x71;
-	case SDLK_KP_DIVIDE:/*     -/*/
-		return 0x40;
-	case SDLK_KP_MULTIPLY:/*     -X*/
-		return 0x41;
-	case SDLK_KP_MINUS:/*     --*/
-		return 0x42;
-	case SDLK_KP_PLUS:/*     -+*/
-		return 0x46;
-	case SDLK_KP_ENTER:/*     -Enter*/
-		return 0x4e;
-	case SDLK_INSERT:/*     -ins*/
-		return 0x5e;
-	case SDLK_HOME:/*     -home*/
-		return 0x36;
-	case SDLK_END:/*     -End*/
-		return 0x3a;
-	case SDLK_PAGEUP:
-		return 0x38;
-	case SDLK_PAGEDOWN:
-		return 0x39;
-	default:
-		return -1;
+	if((wp & 0x40000000) != 0){
+	  uint32_t wp2 = (wp & 0x000001FF); //SDL2キーコード 0x40000000以上
+		if(wp2 < KEYTABLE_MAX2){
+		  return KeyTable4[wp2];
+		}
 	}
+
+return -1;
+
 }
 
 // ----------------------------------
@@ -577,7 +432,7 @@ Keyboard_KeyDown(uint32_t wp)
 
 	switch (wp) {
 	case SDLK_UP:
-		puts("key up");
+		//puts("key up");
 		if (!(JoyKeyState&JOY_DOWN))
 			JoyKeyState |= JOY_UP;
 		break;
@@ -598,7 +453,7 @@ Keyboard_KeyDown(uint32_t wp)
 		break;
 
 	case SDLK_z:
-		puts("key z");
+		//puts("key z");
 		if (Config.JoyKeyReverse)
 			JoyKeyState |= JOY_TRG2;
 		else
@@ -606,7 +461,7 @@ Keyboard_KeyDown(uint32_t wp)
 		break;
 
 	case SDLK_x:
-		puts("key x");
+		//puts("key x");
 		if (Config.JoyKeyReverse)
 			JoyKeyState |= JOY_TRG1;
 		else

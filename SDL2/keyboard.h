@@ -8,8 +8,7 @@
 extern	uint8_t	KeyBuf[KeyBufSize];
 extern	uint8_t	KeyBufWP;
 extern	uint8_t	KeyBufRP;
-extern	uint8_t	KeyTable[512];
-extern	uint8_t	KeyTableMaster[512];
+extern	uint8_t	KeyTable[];
 extern	uint8_t	KeyEnable;
 extern	uint8_t	KeyIntFlag;
 
