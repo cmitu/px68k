@@ -108,7 +108,9 @@ void SRAM_Cleanup(void)
 uint8_t FASTCALL SRAM_Read(uint32_t adr)
 {
 	adr &= 0xffff;
+#ifndef C68K_BIG_ENDIAN
 	adr ^= 1;
+#endif
 	if (adr<0x4000)
 		return SRAM[adr];
 	else
@@ -140,7 +142,9 @@ void FASTCALL SRAM_Write(uint32_t adr, uint8_t data)
 			}
 		}
 		adr &= 0xffff;
+#ifndef C68K_BIG_ENDIAN
 		adr ^= 1;
+#endif
 		SRAM[adr] = data;
 	}
 }

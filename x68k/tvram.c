@@ -73,7 +73,9 @@ void TVRAM_Cleanup(void)
 uint8_t FASTCALL TVRAM_Read(uint32_t adr)
 {
 	adr &= 0x7ffff;
+#ifndef C68K_BIG_ENDIAN
 	adr ^= 1;
+#endif
 	return TVRAM[adr];
 }
 
@@ -112,7 +114,9 @@ INLINE void TVRAM_WriteByteMask(int32_t adr, uint8_t data)
 void FASTCALL TVRAM_Write(uint32_t adr, uint8_t data)
 {
 	adr &= 0x7ffff;
+#ifndef C68K_BIG_ENDIAN
 	adr ^= 1;
+#endif
 	if (CRTC_Regs[0x2a]&1)			// 同時アクセス
 	{
 		adr &= 0x1ffff;
