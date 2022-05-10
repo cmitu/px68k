@@ -64,12 +64,14 @@ void SRAM_Init(void)
 		File_Read(fp, SRAM, 0x4000);
 		File_Close(fp);
 		/*for little endian guys!*/
+#ifndef C68K_BIG_ENDIAN
 		for (i=0; i<0x4000; i+=2)
 		{
 			tmp = SRAM[i];
 			SRAM[i] = SRAM[i+1];
 			SRAM[i+1] = tmp;
 		}
+#endif
 	}
 }
 

@@ -61,11 +61,6 @@ DEPEND_DEFINES =
 # CDEBUGFLAGS+= -DNO_SOUND
 
 #
-# Big endian (PowerPC...) not support
-#
-# CDEBUGFLAGS+= -D__BIG_ENDIAN__
-
-#
 # disable mercury unit
 #
 # CDEBUGFLAGS+= -DNO_MERCURY
@@ -74,6 +69,13 @@ DEPEND_DEFINES =
 # enable RFMDRV
 #
 # CDEBUGFLAGS+= -DRFMDRV
+
+#
+# c68k (68000 Emurator) option 
+#
+# CDEBUGFLAGS+= -DC68K_NO_JUMP_TABLE
+# CDEBUGFLAGS+= -DC68K_BIG_ENDIAN
+
 
 #
 # for Opt.
@@ -114,6 +116,11 @@ ifeq "$(PLATFORM)" "Linux"
 else
 # Cygwin for MIDI (winmm.lib)
 LDLIBS+= -lwinmm
+ifdef SDL
+PROGRAM = px68k.sdl.exe
+else
+PROGRAM = px68k.sdl2.exe
+endif
 endif
 endif
 
@@ -125,8 +132,6 @@ CFLAGS= $(MOPT) $(CDEBUGFLAGS) $(EXTRA_INCLUDES)
 CXXFLAGS= $(MOPT) $(CXXDEBUGFLAGS) $(EXTRA_INCLUDES)
 CXXLDOPTIONS= $(CXXDEBUGFLAGS)
 
-# CFLAGS   += -DC68K_NO_JUMP_TABLE
-# CFLAGS   += -DC68K_CONST_JUMP_TABLE
 
 CPUOBJS= x68k/d68k.o m68000/m68000.o
 C68KOBJS= m68000/c68k/c68k.o m68000/c68k/c68kexec.o
@@ -189,3 +194,10 @@ mac:: $(PROGRAM)
 	cp -r "osx/Contents/" "$(PROGRAM).app/Contents"
 	cp $(PROGRAM) "$(PROGRAM).app/Contents/MacOS/px68k"
 
+c68k::
+	-rm -rf ./m68000/c68k/gen68k
+	-rm -rf ./m68000/c68k/gen68k.exe
+	-rm -rf ./m68000/c68k/CMakeCache.txt
+	-rm -rf ./m68000/c68k/CMakeFiles
+	cmake $(C68KFLAGS) -S ./m68000/c68k -B ./m68000/c68k
+	cmake --build ./m68000/c68k

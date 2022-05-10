@@ -67,6 +67,13 @@ extern uint8_t joybtnnum[2];
 
 #define CFGLEN MAX_PATH
 
+#ifdef _WIN32
+char slash = '\\';
+#else
+char slash = '/';
+#endif
+
+
 #if 0
 static int32_t solveHEX(char *str) {
 
@@ -198,7 +205,7 @@ set_dir:
 	if (homepath == 0)
 		homepath = (char *)".";
 
-	snprintf((char *)path, len, "%s/%s", homepath, ".keropi");
+	snprintf((char *)path, len, "%s%c%s", homepath, slash, ".keropi");
 	if (stat((char *)path, &sb) < 0) {
 #ifdef _WIN32
 		if (mkdir((char *)path) < 0) {
@@ -218,7 +225,7 @@ set_dir:
 			return 1;
 		}
 	}
-	snprintf(winx68k_ini, sizeof(winx68k_ini), "%s/%s", path, "config");
+	snprintf(winx68k_ini, sizeof(winx68k_ini), "%s%c%s", path, slash, "config");
 	if (stat(winx68k_ini, &sb) >= 0) {
 		//if (sb.st_mode & S_IFDIR) {
 		if(S_ISDIR(sb.st_mode)){
