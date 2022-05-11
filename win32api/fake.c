@@ -161,9 +161,9 @@ WritePrivateProfileString(const char* sect, const char* key, const char* str, co
 	int32_t delta;
 
 	if (stat(inifile, &sb) == 0)
-		fp = fopen(inifile, "r+");
+		fp = fopen(inifile, "rb+");
 	else
-		fp = fopen(inifile, "w+");
+		fp = fopen(inifile, "wb+");
 	if (!fp)
 		return FALSE;
 
@@ -271,7 +271,7 @@ _WritePrivateProfileString_subr(FILE **fp, int32_t pos, int32_t nowpos,
 		goto out;
 	fclose(*fp);
 
-	*fp = fopen(file, "w+");
+	*fp = fopen(file, "wb+");
 	if (*fp == NULL)
 		goto out;
 	if (fwrite(p, pos, 1, *fp) < 1)

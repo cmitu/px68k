@@ -375,7 +375,7 @@ GetPrivateProfileString(const char* sect, const char* key, const char* defvalue,
 
 	memset(buf, 0, len);
 
-	fp = fopen(inifile, "r");
+	fp = fopen(inifile, "rb");
 	if (fp == NULL)
 		goto nofile;
 	while (!feof(fp)) {
@@ -425,7 +425,7 @@ GetPrivateProfileInt(const char* sect, const char* key, int32_t defvalue, const 
 	 || inifile == NULL)
 		return 0;
 
-	fp = fopen(inifile, "r");
+	fp = fopen(inifile, "rb");
 	if (fp == NULL)
 		goto nofile;
 	while (!feof(fp)) {
