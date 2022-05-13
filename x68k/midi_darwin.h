@@ -309,8 +309,8 @@ midiOutClose(HMIDIOUT hmo)
 	if (err_sts != noErr) p6logd("Dispose MIDI-Port err\n");
 
 	// Dispose endpoint
-	err_sts = MIDIEndpointDispose(mid_endpoint);
-	if (err_sts != noErr) p6logd("Dispose MIDI-Endpoint err\n");
+	//err_sts = MIDIEndpointDispose(mid_endpoint);
+	//if (err_sts != noErr) p6logd("Dispose MIDI-Endpoint err\n");
 
 	// Dispose Client
 	err_sts = MIDIClientDispose(mid_client);
