@@ -33,6 +33,8 @@ typedef	HMIDIOUT *	LPHMIDIOUT;
 #define	MIDI_MAPPER		-1
 #define	CALLBACK_NULL		0x00000000L
 
+uint32_t midiOutShortMsg(HMIDIOUT , uint32_t );
+
 	// for CoreMIDI 
 	MIDIPortRef mid_port;
 	MIDIClientRef mid_client;
@@ -260,6 +262,12 @@ void midOutChg(uint32_t port_no)
 {
 	OSStatus err_sts;
 	uint32_t coremid_port = port_no;
+
+	// All note off
+	HMIDIOUT hmo;
+	for (uint32_t msg=0x7bb0; msg<0x7bc0; msg++) {
+		midiOutShortMsg(hmo, msg);
+	}
 
 	if(strcmp(menu_items[8][0],synth_name) == 0){// CoreAudio Synth chk
 		if(port_no == 0){

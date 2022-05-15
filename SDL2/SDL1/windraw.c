@@ -182,8 +182,8 @@ WinDraw_InitWindowSize(uint32_t ScreenX, uint32_t ScreenY, uint32_t StartX, uint
 		   surfaceH=ScreenY; drawH=StartY-20;
 		  break;
 		 }
-		if(TextDotX==768){ surfaceW=800; drawW=StartX-224+((800-TextDotX)/2);}/*H-Dot2Dot*/
-		if(TextDotY==512){ surfaceH=600; drawH=StartY-40+((600-TextDotY)/2);}/*V-Dot2Dot*/
+		if(TextDotX==768){ surfaceW=800; drawW=((800-TextDotX)/2);}/*H-Dot2Dot*/
+		if(TextDotY==512){ surfaceH=600; drawH=((600-TextDotY)/2);}/*V-Dot2Dot*/
 	   break;
 	  case 420 ... 512: //====512x512/256====
 	   surfaceW=ScreenX; surfaceH=ScreenY; drawW=StartX-136;
@@ -222,9 +222,13 @@ WinDraw_InitWindowSize(uint32_t ScreenX, uint32_t ScreenY, uint32_t StartX, uint
 
 	//printf("XY %d:%d %d:%d\n",surfaceW,surfaceH,drawW,drawH);
 
+	//clippng...
 	if(drawW<0){ drawW=0; }
 	if(drawH<0){ drawH=0; }
 
+	//nealy full screen...
+	if((surfaceW - TextDotX)<30){surfaceW=TextDotX;drawW=0;}
+	if((surfaceH - TextDotY)<16){surfaceH=TextDotY;drawH=0;}
 
 	return;
 }
