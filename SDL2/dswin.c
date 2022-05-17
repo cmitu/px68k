@@ -93,7 +93,7 @@ DSound_Init(uint32_t rate, uint32_t buflen)
 	fmt.userdata = NULL;
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-	audio_dev = SDL_OpenAudioDevice(NULL, 0, &fmt, NULL, SDL_AUDIO_ALLOW_ANY_CHANGE);
+	audio_dev = SDL_OpenAudioDevice(NULL, 0, &fmt, 0);
 	if (audio_dev == 0) {
 		return FALSE;
 	}
