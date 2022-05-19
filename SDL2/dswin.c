@@ -93,13 +93,14 @@ DSound_Init(uint32_t rate, uint32_t buflen)
 	fmt.userdata = NULL;
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-	audio_dev = SDL_OpenAudioDevice(NULL, 0, &fmt, 0);
+	audio_dev = SDL_OpenAudioDevice(NULL, 0, &fmt, NULL, 0);
 	if (audio_dev == 0) {
 		return FALSE;
 	}
-	SDL_PauseAudioDevice(audio_dev, 0); 
+	if(fmt.size == 0){ fmt.size = fmt.samples * fmt.channels * 8; }//自動計算しない場合用
 	deviceFormat=fmt.format; //保存
-	audio_fd = 1;
+	SDL_PauseAudioDevice(audio_dev, 0); //Start!
+	audio_fd = 1; //flag
 #else
 	audio_fd = SDL_OpenAudio(&fmt, NULL);
 	if (audio_fd < 0) {
