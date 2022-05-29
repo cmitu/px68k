@@ -125,7 +125,7 @@ endif
 else
 ifeq "$(PLATFORM)" "Linux"
 ifdef FLUID
-FLUID_LIB=  -llibfluidsynth1
+FLUID_LIB=  -lfluidsynth
 endif
 # 
 else
