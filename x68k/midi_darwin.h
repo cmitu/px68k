@@ -57,9 +57,6 @@ uint32_t midiOutShortMsg(HMIDIOUT , uint32_t );
 	const char mid_name[] = {"px68k-MIDI"};
 	const char synth_name[] = {"DLSSynth(CoreAudio)"};
 
-	// SoundFont URL (MT-32:bank 0)
-	const char sf_conf[] = {"Phoenix_MT-32.sf2"};
-
 // ------------------------------------------
 //   Load SoundFont file
 // ------------------------------------------
@@ -71,7 +68,8 @@ load_soundfont(char *sf_name)
 	if (sf_name[0]) {
 
 			//Sound Font URL
-			soundfont = file_getcd(sf_name);
+			//soundfont = file_getcd(sf_name);
+			soundfont = sf_name;
 
 			// SoundFont allocate
 			CFURLRef url = CFURLCreateFromFileSystemRepresentation(
@@ -153,7 +151,7 @@ mid_synth_open()
 	AUGraphNodeInfo(mid_auGraph, synthNode, NULL, &mid_synth);
 
 	// load a soundfont (if needed)
-	load_soundfont((char *)sf_conf);
+	load_soundfont((char *)Config.SoundFontFile);
 
 	// Start the graph
 	err_sts = AUGraphStart(mid_auGraph);
@@ -336,10 +334,10 @@ midiOutShortMsg(HMIDIOUT hmo, uint32_t msg)
 	uint8_t messg[4];
 
 	// (uint32)msg を 4byte に分解
-	messg[0] =   msg       & 0xff;
-	messg[1] =  (msg >> 8) & 0xff;
-	messg[2] =  (msg >> 16) & 0xff;
-	messg[3] =  (msg >> 24) & 0xff;
+	messg[0] =   msg       & 0xff; //status byte
+	messg[1] =  (msg >> 8) & 0xff; //note No.
+	messg[2] =  (msg >> 16) & 0xff;//velocity
+	messg[3] =  (msg >> 24) & 0xff;// none
 
 	// Send the MIDI-Packet(CoreAudio)
 	if(set_midout == 0){
@@ -357,8 +355,8 @@ midiOutShortMsg(HMIDIOUT hmo, uint32_t msg)
 		case 0xd0://chnnel press.
 			len = 2;
 			break;
-		case 0x80://note on
-		case 0x90://     off
+		case 0x80://note off
+		case 0x90://     on
 		case 0xa0://key press.
 		case 0xb0://cont.chg
 		case 0xe0://pitch wheel chg

@@ -32,10 +32,18 @@
 #include "midi_win.h"
 #endif
 #ifdef __unix__
+#ifdef FLUID
+#include "midi_fluid.h"
+#else
 #include "midi_alsa.h"
 #endif
+#endif
 #ifdef __MACH__
+#ifdef FLUID
+#include "midi_fluid.h"
+#else
 #include "midi_darwin.h"
+#endif
 #endif
 
 #define MIDIBUFFERS 1024			// 1024は流石に越えないでしょう^_^;

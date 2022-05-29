@@ -283,7 +283,6 @@ void LoadConfig(void)
 	GetPrivateProfileString((const char*)ini_title, "MIDI_Reset", "0", buf, CFGLEN, winx68k_ini);
 	Config.MIDI_Reset = solveBOOL(buf);
 	Config.MIDI_Type = GetPrivateProfileInt((const char*)ini_title, "MIDI_Type", 1, winx68k_ini);
-
 	GetPrivateProfileString((const char*)ini_title, "JoySwap", "0", buf, CFGLEN, winx68k_ini);
 	Config.JoySwap = solveBOOL(buf);
 
@@ -327,6 +326,12 @@ void LoadConfig(void)
 		strcpy((char *)Config.ToneMapFile, buf);
 	else
 		Config.ToneMapFile[0] = 0;
+
+	GetPrivateProfileString((const char*)ini_title, "SoundFontFile", "", buf, MAX_PATH, winx68k_ini);
+	if (buf[0] != 0)
+		strcpy((char *)Config.SoundFontFile, buf);
+	else
+		Config.SoundFontFile[0] = 0;
 
 	Config.MIDIDelay = GetPrivateProfileInt((const char*)ini_title, "MIDIDelay", Config.BufferSize*5, winx68k_ini);
 	Config.MIDIAutoDelay = GetPrivateProfileInt((const char*)ini_title, "MIDIAutoDelay", 1, winx68k_ini);
@@ -468,7 +473,7 @@ void SaveConfig(void)
 
 	WritePrivateProfileString((const char*)ini_title, "ToneMapping", makeBOOL((uint8_t)Config.ToneMap), winx68k_ini);
 	WritePrivateProfileString((const char*)ini_title, "ToneMapFile", (char *)Config.ToneMapFile, winx68k_ini);
-
+	WritePrivateProfileString((const char*)ini_title, "SoundFontFile", (char *)Config.SoundFontFile, winx68k_ini);
 	wsprintf(buf, "%d", Config.MIDIDelay);
 	WritePrivateProfileString((const char*)ini_title, "MIDIDelay", buf, winx68k_ini);
 	WritePrivateProfileString((const char*)ini_title, "MIDIAutoDelay", makeBOOL((uint8_t)Config.MIDIAutoDelay), winx68k_ini);

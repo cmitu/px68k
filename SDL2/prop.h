@@ -31,6 +31,7 @@ typedef struct
 	char SCSIEXHDImage[8][MAX_PATH];
 	int32_t ToneMap;
 	char ToneMapFile[MAX_PATH];
+	char SoundFontFile[MAX_PATH];
 	int32_t XVIMode;
 	int32_t JoySwap;
 	int32_t LongFileName;

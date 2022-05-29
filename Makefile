@@ -61,6 +61,13 @@ DEPEND_DEFINES =
 # CDEBUGFLAGS+= -DNO_SOUND
 
 #
+# enable libfluidsynth MIDI sound
+#
+ifdef FLUID
+CDEBUGFLAGS+= -DFLUID
+endif
+
+#
 # disable mercury unit
 #
 # CDEBUGFLAGS+= -DNO_MERCURY
@@ -111,8 +118,15 @@ LDLIBS = -lm -lpthread
 
 ifeq "$(PLATFORM)" "Darwin"
 LDLIBS+=  -framework Cocoa -framework CoreMIDI -framework AudioUnit -framework AudioToolbox -framework CoreAudio
+ifdef FLUID
+FLUID_INCLUDE=  -I/Library/Frameworks/FluidSynth.framework/Headers
+FLUID_LIB= -F/Library/Frameworks -framework FluidSynth
+endif
 else
 ifeq "$(PLATFORM)" "Linux"
+ifdef FLUID
+FLUID_LIB=  -llibfluidsynth1
+endif
 # 
 else
 # Cygwin for MIDI (winmm.lib)
@@ -125,7 +139,7 @@ endif
 endif
 endif
 
-EXTRA_INCLUDES= -I./SDL2 -I./x68k -I./fmgen -I./win32api $(SDL_INCLUDE)
+EXTRA_INCLUDES= -I./SDL2 -I./x68k -I./fmgen -I./win32api $(SDL_INCLUDE) $(FLUID_INCLUDE)
 
 CXXDEBUGFLAGS= $(CDEBUGFLAGS)
 
@@ -174,7 +188,7 @@ all:: $(PROGRAM)
 
 $(PROGRAM): $(OBJS)
 	$(RM) $@
-	$(CXXLINK) $(MOPT) -o $(PROGRAM) $(CXXLDOPTIONS) $(OBJS) $(SDL_LIB) $(LDLIBS)
+	$(CXXLINK) $(MOPT) -o $(PROGRAM) $(CXXLDOPTIONS) $(OBJS) $(LDLIBS) $(SDL_LIB) $(FLUID_LIB)
 
 depend::
 	$(DEPEND) -- $(CXXFLAGS) $(DEPEND_DEFINES) -- $(SRCS)
