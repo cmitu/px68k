@@ -148,7 +148,9 @@ midiOutShortMsg(HMIDIOUT hmo, uint32_t msg)
 			fluid_synth_noteon(synth, messg[0]&0x0f, messg[1], messg[2]);
 			break;
 		case 0xa0://key press.
+#ifndef __unix__
 			fluid_synth_key_pressure(synth, messg[0]&0x0f, messg[1], messg[2]);
+#endif
 			break;
 		case 0xb0://cont.chg
 			fluid_synth_cc(synth, messg[0]&0x0f, messg[1], messg[2]);
