@@ -69,10 +69,12 @@ midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
 	// Load SoundFont.sf2
 	//const char *soundfont;
 	//soundfont = file_getcd((char*)Config.SoundFontFile);//keropi-url
-    int32_t fluid_res = fluid_synth_sfload(synth, (char*)Config.SoundFontFile, 1);
-	if(fluid_res < 0){
-		fluid_synth_sfload(synth, sf_default, 1);
+	if(Config.SoundFontFile[0]){
+		int32_t fluid_res = fluid_synth_sfload(synth, (char*)Config.SoundFontFile, 1);
+	}
+	else{
 		p6logd("fluidsynth:%s can't load, use default.\n",(char*)Config.SoundFontFile);
+		fluid_synth_sfload(synth, sf_default, 1);
 	}
 
 	// menu 

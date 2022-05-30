@@ -130,7 +130,11 @@ endif
 # 
 else
 # Cygwin for MIDI (winmm.lib)
+ifdef FLUID
+FLUID_LIB=  -lfluidsynth
+else
 LDLIBS+= -lwinmm
+endif
 ifdef SDL
 PROGRAM = px68k.sdl.exe
 else

@@ -29,8 +29,13 @@
 #include "m68000.h"
 
 #ifdef _WIN32
+#ifdef FLUID
+#include "midi_fluid.h"
+#else
 #include "midi_win.h"
 #endif
+#endif
+
 #ifdef __unix__
 #ifdef FLUID
 #include "midi_fluid.h"
@@ -38,6 +43,7 @@
 #include "midi_alsa.h"
 #endif
 #endif
+
 #ifdef __MACH__
 #ifdef FLUID
 #include "midi_fluid.h"
