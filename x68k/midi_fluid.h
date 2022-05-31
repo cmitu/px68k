@@ -1,10 +1,10 @@
 // fluidsynth利用のMIDI出力ルーチン群
 // 要 framework版/共有ライブラリ版libfluidsynth
 // 要 SoundFont2(Configで指定)
-// libfluidsynth is under LGPL licence なんだけど
-// LINK(共有ライブラリ)するだけならその限りではありません。
+// libfluidsynth is under LGPLv2.1 licence なんだけど
+// LINK(共有ライブラリ)するだけならその限りではないそうです。
 //
-// 2022/5/29  by kameya
+// 2022/5/29  by kameya (このソースはご自由にご利用ください)
 //
 #include <fluidsynth.h>
 #include <stdint.h>
@@ -45,7 +45,7 @@ uint32_t midiOutShortMsg(HMIDIOUT , uint32_t );
 
 // -----------------------------------------------------------------------
 //   fluid_synth Open
-//   and Load SoundFont2 
+//   and Load SoundFont2 (Loadできないと音出ないよ)
 // -----------------------------------------------------------------------
 uint32_t
 midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
@@ -57,30 +57,37 @@ midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
 
 	uint32_t Device_num = 0;
 
-    settings = new_fluid_settings();
+	//==setting synth==
+	settings = new_fluid_settings();
+	//fluid_settings_setstr(settings, "audio.driver", "coreaudio");
 	fluid_settings_setint(settings, "synth.polyphony", 128);
+	fluid_settings_setint(settings, "synth.reverb.active", FALSE);
 
-    /* Set the synthesizer settings, if necessary */
+    /* ==Set in synthesizer ==*/
     synth = new_fluid_synth(settings);
-    //fluid_settings_setstr(settings, "audio.driver", "coreaudio");
     adriver = new_fluid_audio_driver(settings, synth);
 	sequencer = new_fluid_sequencer2(0);
 
-	// Load SoundFont.sf2
-	//const char *soundfont;
-	//soundfont = file_getcd((char*)Config.SoundFontFile);//keropi-url
+	// ++ Load SoundFont.sf2 ++
+	int32_t fluid_res;
 	if(Config.SoundFontFile[0]){
-		int32_t fluid_res = fluid_synth_sfload(synth, (char*)Config.SoundFontFile, 1);
+		fluid_res = fluid_synth_sfload(synth, (char*)Config.SoundFontFile, 1);
+		if(fluid_res > 0){
+		  p6logd("fluidsynth:Loading SoundFont %s OK\n",(char*)Config.SoundFontFile);
+		}
 	}
 	else{
-		p6logd("fluidsynth:%s can't load, use default.\n",(char*)Config.SoundFontFile);
-		fluid_synth_sfload(synth, sf_default, 1);
+		fluid_res = fluid_synth_sfload(synth, sf_default, 1);
+		if(fluid_res < 0){
+		  p6logd("fluidsynth:Can't load SoundFont...\n");
+		}
 	}
 
-	// menu 
+	//  set menu 
 	strcpy(menu_items[8][Device_num],synth_name);
 	Device_num ++;
 	strcpy(menu_items[8][Device_num],"\0"); // Menu END 
+
 
 	*phmo = (HANDLE)mid_name; //MIDI Active!(ダミーを代入しておく)
 
@@ -148,9 +155,7 @@ midiOutShortMsg(HMIDIOUT hmo, uint32_t msg)
 			fluid_synth_noteon(synth, messg[0]&0x0f, messg[1], messg[2]);
 			break;
 		case 0xa0://key press.
-#ifndef __unix__
-			fluid_synth_key_pressure(synth, messg[0]&0x0f, messg[1], messg[2]);
-#endif
+			fluid_synth_key_pressure(synth, messg[0]&0x0f, messg[1], messg[2]);//fluid v1.xx not implement
 			break;
 		case 0xb0://cont.chg
 			fluid_synth_cc(synth, messg[0]&0x0f, messg[1], messg[2]);
