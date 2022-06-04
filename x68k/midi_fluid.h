@@ -59,7 +59,9 @@ midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
 
 	//==setting synth==
 	settings = new_fluid_settings();
-	//fluid_settings_setstr(settings, "audio.driver", "coreaudio");
+	//fluid_settings_setstr(settings, "audio.driver", "dsound"); //win
+	//fluid_settings_setstr(settings, "audio.driver", "coreaudio"); //mac
+	//fluid_settings_setstr(settings, "audio.driver", "alsa"); //Linux
 	fluid_settings_setint(settings, "synth.polyphony", 128);
 	fluid_settings_setint(settings, "synth.reverb.active", FALSE);
 

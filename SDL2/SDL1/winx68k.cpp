@@ -542,6 +542,7 @@ int32_t main(int32_t argc, char *argv[])
 {
 	SDL_Event ev;
 	SDL_Keycode menu_key_down;
+	uint32_t sdl1_keycode;
 
 #if defined(ANDROID) || TARGET_OS_IPHONE
 	int32_t vk_cnt = -1;
@@ -880,12 +881,20 @@ int32_t main(int32_t argc, char *argv[])
 				if (menu_mode != menu_out) {
 					menu_key_down = ev.key.keysym.sym;
 				} else {
-					Keyboard_KeyDown(ev.key.keysym.sym);
+					sdl1_keycode = ev.key.keysym.scancode;
+					if (ev.key.keysym.sym > 0x128){
+						sdl1_keycode = ev.key.keysym.sym -(0x128 - 0xe0);
+					}
+					Keyboard_KeyDown(sdl1_keycode);//phisical code + α
 				}
 				break;
 			case SDL_KEYUP:
-				p6logd("keyup: 0x%x\n", ev.key.keysym.sym);
-				Keyboard_KeyUp(ev.key.keysym.sym);
+				sdl1_keycode = ev.key.keysym.scancode;
+				if (ev.key.keysym.sym > 0x128){
+					sdl1_keycode = ev.key.keysym.sym -(0x128 - 0xe0);
+				}
+				p6logd("keyup: 0x%x 0x%x\n", ev.key.keysym.sym,sdl1_keycode);
+				Keyboard_KeyUp(sdl1_keycode);//phisical code + α
 				break;
 			}
 		}

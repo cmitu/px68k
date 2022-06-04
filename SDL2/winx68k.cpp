@@ -886,12 +886,12 @@ int32_t main(int32_t argc, char *argv[])
 				if (menu_mode != menu_out) {
 					menu_key_down = ev.key.keysym.sym;
 				} else {
-					Keyboard_KeyDown(ev.key.keysym.sym);
+					Keyboard_KeyDown(ev.key.keysym.scancode);//phisical code
 				}
 				break;
 			case SDL_KEYUP:
-				p6logd("keyup: 0x%x\n", ev.key.keysym.sym);
-				Keyboard_KeyUp(ev.key.keysym.sym);
+				p6logd("keyup: 0x%x 0x%x\n", ev.key.keysym.sym,ev.key.keysym.scancode);
+				Keyboard_KeyUp(ev.key.keysym.scancode);//phisical code
 				break;
 			}
 		}
