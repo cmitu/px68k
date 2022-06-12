@@ -1,0 +1,35 @@
+00	02e	8c	=
+00	02f	1c	[
+00	030	29	]
+00	031	0e	\
+00	034	88	'(shift)
+00	035	9b	`(shift)
+00	0e2	5b	alt-L
+00	0e6	5f	alt-R
+00	0e7	60	cmd-R
+01	01f	9b	@(shift+2)
+01	023	8d	^(shift+2)
+01	024	07	&(shift+2)
+01	025	28	*(shift+2)
+01	026	09	((shift+2)
+01	027	0a	)(shift+2)
+01	02d	34	_
+01	02e	27	+
+01	02f	1c	{
+01	030	29	}
+01	031	0e	|
+01	033	a8	:(no-shift)
+01	034	03	"
+01	035	0d	~
+01	036	31	<
+01	037	32	>
+01	0e2	5b	alt-L
+01	0e6	5f	alt-R
+01	0e7	60	cmd-R
+02	end
+
+US-Keyboard Mapper
+[format]
+KeyShift:00 normal 01 with Shift
+SDK_ScanCode (KeyNO.)
+X68000 keycode
