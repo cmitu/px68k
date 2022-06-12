@@ -7,7 +7,7 @@
 ・F11でFullScreenモード対応(SDL2)[SDL1は未]<br>
 ・SCSIサポート(HDSイメージからのBoot)<br>
 ・SCSI-IPLの機能もEmu側で実装する？(未)<br>
-・MIDI演奏サポート(内蔵音源/MT32エミュ/fuluidsynth/実機器)<br>
+・MIDI演奏サポート(内蔵音源/MT32エミュ/fluidsynth/実機器)<br>
 ・変数をstdint形式に変更(なるべく)<br>
 ・File名のutf8/sjis自動判別表示<br>
 ・Mac用SDL1/2.frameworkでのbuildスクリプト添付<br>
