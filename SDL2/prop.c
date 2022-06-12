@@ -39,18 +39,11 @@
 #include "fileio.h"
 #include "prop.h"
 
-uint8_t	LastCode = 0;
-char	KEYCONFFILE[] = "xkeyconf.dat";
-
-int32_t	CurrentHDDNo = 0;
-
 char ini_title[] = "WinX68k";
 
 static const char MIDI_TYPE_NAME[4][3] = {
 	"LA", "GM", "GS", "XG"
 };
-
-uint8_t KeyTableBk[512];
 
 Win68Conf Config;
 Win68Conf ConfBk;
@@ -239,12 +232,10 @@ set_dir:
 
 void LoadConfig(void)
 {
-	//int_fast16_t	i, j;
+	int_fast16_t	i, j;
 	char	buf[CFGLEN];
-	FILEH fp;
 
 	Config.MenuLanguage = (int32_t)GetPrivateProfileInt((const char*)ini_title, "MenuLanguage", 0, winx68k_ini);
-	Config.KeyboardType = (int32_t)GetPrivateProfileInt((const char*)ini_title, "KeyboardType", 0, winx68k_ini);
 	Config.DisplayNo = (int32_t)GetPrivateProfileInt((const char*)ini_title, "DisplayNo", 0, winx68k_ini);
 	Config.WinPosX = (int32_t)GetPrivateProfileInt((const char*)ini_title, "WinPosX", 20, winx68k_ini);
 	Config.WinPosY = (int32_t)GetPrivateProfileInt((const char*)ini_title, "WinPosY", 20, winx68k_ini);
@@ -348,46 +339,38 @@ void LoadConfig(void)
 
 	Config.HwJoyHat = GetPrivateProfileInt((const char*)ini_title, "HwJoyHat", 0, winx68k_ini);
 
-	for (int i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++) {
 		sprintf(buf, "HwJoyBtn%d", i);
 		Config.HwJoyBtn[i] = GetPrivateProfileInt((const char*)ini_title, buf, i, winx68k_ini);
 	}
 
 	Config.NoWaitMode = GetPrivateProfileInt((const char*)ini_title, "NoWaitMode", 0, winx68k_ini);
 
-	for (int i=0; i<2; i++)
+	for (i=0; i<2; i++)
 	{
-		for (int j=0; j<8; j++)
+		for (j=0; j<8; j++)
 		{
 			sprintf(buf, "Joy%dButton%d", i+1, j+1);
 			Config.JOY_BTN[i][j] = GetPrivateProfileInt((const char*)ini_title, buf, j, winx68k_ini);
 		}
 	}
 
-	for (int i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++) {
 		sprintf(buf, "FDD%d", i);
 		GetPrivateProfileString((const char*)ini_title, buf, "", (char *)Config.FDDImage[i], MAX_PATH, winx68k_ini);
 	}
 
-	for (int i=0; i<16; i++)
+	for (i=0; i<16; i++)
 	{
 		sprintf(buf, "HDD%d", i);
 		GetPrivateProfileString((const char*)ini_title, buf, "", (char *)Config.HDImage[i], MAX_PATH, winx68k_ini);
 	}
-	for (int i=0; i<8; i++)
+	for (i=0; i<8; i++)
 	{
 		sprintf(buf, "SCSIEXHDD%02d", i);
 		GetPrivateProfileString((const char*)ini_title, buf, "", (char *)Config.SCSIEXHDImage[i], MAX_PATH, winx68k_ini);
 	}
 
-#if 0
-	fp = File_OpenCurDir(KEYCONFFILE);
-	if (fp)
-	{
-		File_Read(fp, KeyTable, 512);
-		File_Close(fp);
-	}
-#endif
 }
 
 
@@ -395,14 +378,11 @@ extern BOOL WritePrivateProfileString(const char* , const char* , const char* , 
 
 void SaveConfig(void)
 {
-	//int_fast16_t	i, j;
+	int_fast16_t	i, j;
 	char	buf[CFGLEN], buf2[CFGLEN];
-	FILEH fp;
 
 	wsprintf(buf, "%d", Config.MenuLanguage);
 	WritePrivateProfileString((const char*)ini_title, "MenuLanguage", buf, winx68k_ini);
-	wsprintf(buf, "%d", Config.KeyboardType);
-	WritePrivateProfileString((const char*)ini_title, "KeyboardType", buf, winx68k_ini);
 	wsprintf(buf, "%d", Config.DisplayNo);
 	WritePrivateProfileString((const char*)ini_title, "DisplayNo", buf, winx68k_ini);
 	wsprintf(buf, "%d", Config.WinPosX);
@@ -496,7 +476,7 @@ void SaveConfig(void)
 	wsprintf(buf, "%d", Config.HwJoyHat);
 	WritePrivateProfileString((const char*)ini_title, "HwJoyHat", buf, winx68k_ini);
 
-	for (int i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++) {
 		sprintf(buf, "HwJoyBtn%d", i);
 		sprintf(buf2, "%d", Config.HwJoyBtn[i]);
 		WritePrivateProfileString((const char*)ini_title, buf, buf2, winx68k_ini);
@@ -505,9 +485,9 @@ void SaveConfig(void)
 	wsprintf(buf, "%d", Config.NoWaitMode);
 	WritePrivateProfileString((const char*)ini_title, "NoWaitMode", buf, winx68k_ini);
 
-	for (int i=0; i<2; i++)
+	for (i=0; i<2; i++)
 	{
-		for (int j=0; j<8; j++)
+		for (j=0; j<8; j++)
 		{
 			sprintf(buf, "Joy%dButton%d", i+1, j+1);
 			wsprintf(buf2, "%d", Config.JOY_BTN[i][j]);
@@ -515,34 +495,24 @@ void SaveConfig(void)
 		}
 	}
 
-	for (int i = 0; i < 2; i++)
+	for (i = 0; i < 2; i++)
 	{
 		//printf("i: %d", i);
 		sprintf(buf, "FDD%d", i);
 		WritePrivateProfileString((const char*)ini_title, buf, (char *)Config.FDDImage[i], winx68k_ini);
 	}
 
-	for (int i=0; i<16; i++)
+	for (i=0; i<16; i++)
 	{
 		sprintf(buf, "HDD%d", i);
 		WritePrivateProfileString((const char*)ini_title, buf, (char *)Config.HDImage[i], winx68k_ini);
 	}
-	for (int i=0; i<8; i++)
+	for (i=0; i<8; i++)
 	{
 		sprintf(buf, "SCSIEXHDD%02d", i);
 		WritePrivateProfileString((const char*)ini_title, buf, (char *)Config.SCSIEXHDImage[i], winx68k_ini);
 	}
 
-#if 0
-	fp = File_OpenCurDir(KEYCONFFILE);
-	if (!fp)
-		fp = File_CreateCurDir(KEYCONFFILE, FTYPE_TEXT);
-	if (fp)
-	{
-		File_Write(fp, KeyTable, 512);
-		File_Close(fp);
-	}
-#endif
 }
 
 

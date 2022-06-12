@@ -195,13 +195,13 @@ WinX68k_SCSICheck()
 	if (scsi) {
 		fp = File_OpenCurDir((char *)SCSIINIPLFILE);/*InSCSI-IPL*/
 		if (fp == 0) {
-			printf("NO-SCSI-IPL for built-in.\n"); // No InSCSI-IPL
+			p6logd("NO-SCSI-IPL for built-in.\n"); // No InSCSI-IPL
 			memset(IPL, 0, 0x10000);		// clear
 			memcpy(IPL, IN_SCSIIMG, sizeof(IN_SCSIIMG));	// Dummy-SCSI BIOS Load
 		}
 		else{
 			strcat(window_title," SCSIin");
-			printf("SCSI-IPL for built-in.\n"); // Yes InSCSI-IPL
+			p6logd("SCSI-IPL for built-in.\n"); // Yes InSCSI-IPL
 			File_Read(fp, IPL, 0x02000);/*0xfc0000~8KB*/
 			File_Close(fp);
 			memcpy( &IPL[0x00041A], EX_SCSIIOCS, sizeof(EX_SCSIIOCS));//IOCS Patch
@@ -283,7 +283,7 @@ WinX68k_LoadROMs(void)
 		fp = File_OpenCurDir((char *)FONTFILETMP);
 		if (fp == 0) {
 			// フォント生成 XXX
-			printf("フォントROMイメージが見つかりません\n");
+			Error("フォントROMイメージが見つかりません\n");
 			return FALSE;
 		}
 	}
@@ -344,11 +344,11 @@ WinX68k_Init(void)
 	FONT = (uint8_t*)malloc(0xc0000 + 100);
 
 	if (MEM){
-	  memset(MEM, 0, 0xc00000);
+		memset(MEM, 0, 0xc00000);
 	}
 
 	if (MEM && FONT && IPL) {
-	  	m68000_init();  
+		m68000_init();  
 		return TRUE;
 	}
 
@@ -374,9 +374,9 @@ WinX68k_Cleanup(void)
 }
 
 #define CLOCK_SLICE 200
-// -----------------------------------------------------------------------------------
+// ----------------------------------------------------
 //  コアのめいんるーぷ
-// -----------------------------------------------------------------------------------
+// ----------------------------------------------------
 void WinX68k_Exec(void)
 {
 	//char *test = NULL;
@@ -886,12 +886,12 @@ int32_t main(int32_t argc, char *argv[])
 				if (menu_mode != menu_out) {
 					menu_key_down = ev.key.keysym.sym;
 				} else {
-					Keyboard_KeyDown(ev.key.keysym.scancode);//phisical code
+					Keyboard_KeyDown(ev.key.keysym.sym,ev.key.keysym.scancode);//phisical code + α
 				}
 				break;
 			case SDL_KEYUP:
 				p6logd("keyup: 0x%x 0x%x\n", ev.key.keysym.sym,ev.key.keysym.scancode);
-				Keyboard_KeyUp(ev.key.keysym.scancode);//phisical code
+				Keyboard_KeyUp(ev.key.keysym.sym,ev.key.keysym.scancode);//phisical code + α
 				break;
 			}
 		}

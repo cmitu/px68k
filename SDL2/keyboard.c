@@ -37,40 +37,89 @@
 #include "keyboard.h"
 #include "mfp.h"
 #include "windraw.h"
+#include "fileio.h"
 
+// key input buffer
 uint8_t	KeyBufWP;
 uint8_t	KeyBufRP;
 uint8_t	KeyBuf[KeyBufSize];
 uint8_t	KeyEnable = 1;
 uint8_t	KeyIntFlag = 0;
 
+// key configuration MAP
+char KEYCONFFILE[] = "keyconf.dat";
+uint8_t KeyTable[SCANTABLE_MAX*2];
+
+// ----------------------------------
+//	SoftWare Keyboard MAP
+// ----------------------------------
 struct keyboard_key kbd_key[] = {
 #include "keytbl.inc"
 };
-
-extern uint8_t traceflag;
 
 #if defined(ANDROID) || TARGET_OS_IPHONE
 // キーボードの座標
 int32_t kbd_x = 800, kbd_y = 0, kbd_w = 766, kbd_h = 218;
 #endif
 
+
+extern uint8_t traceflag;
+
+// Convert hex to bin
+uint32_t
+hex2bin(char *str , uint32_t keta)
+{
+  uint32_t ans=0;
+  char c;
+
+  for(uint32_t i=0; i<keta; i++){
+   c=*str++;
+   if((c >= '0') && (c <= '9')){c -= '0'; }
+   if((c >= 'A') && (c <= 'F')){c -= '7'; }
+   if((c >= 'a') && (c <= 'f')){c -= 'W'; }
+   ans = ans*16 + c;
+  }
+return ans;
+}
+
+// Key buffer and key MAP init
 void
 Keyboard_Init(void)
 {
+	FILEH fp;
 
+	// buff init.
 	KeyBufWP = 0;
 	KeyBufRP = 0;
 	memset(KeyBuf, 0, KeyBufSize);
 	KeyEnable = 1;
 	KeyIntFlag = 0;
 
+	// Read Key Configuration File
+	fp = File_OpenCurDir(KEYCONFFILE);
+	if(fp)
+	{
+	  //File Read
+	  File_Read(fp, KeyTable, SCANTABLE_MAX*2);
+	  File_Close(fp);
+
+	  //KeyMap rewrite
+	  uint32_t map, key, x68key, i=0;
+	  while(1)
+	  {
+	   map = hex2bin((char*)&KeyTable[i],2); i+=3;
+	   key = hex2bin((char*)&KeyTable[i],3); i+=4;
+	   x68key = hex2bin((char*)&KeyTable[i],2); i+=2;
+	   if(map > 1) break;//終了
+
+	   if((map<2)&&(key<SCANTABLE_MAX))
+	     ScanTable[map][key] = (uint8_t)x68key;//KeyMap書き換え
+
+	   while(KeyTable[i]!='\n'){i++;} i++; //改行まで飛ばす
+	  }
+	}
+
 }
-
-// ----------------------------------
-//	てーぶる類
-// ----------------------------------
-
 
 
 // P6K: PX68K_KEYBOARD
@@ -87,51 +136,39 @@ void send_keycode(uint8_t code, int32_t flag)
 		newwp = ((KeyBufWP + 1) & (KeyBufSize - 1));
 		if (newwp != KeyBufRP) {
 			KeyBuf[KeyBufWP] = code | ((flag == P6K_UP)? 0x80 : 0);
-			//p6logd("KeyBufWP:%d KeyBuf[]:%x\n", KeyBufWP,KeyBuf[KeyBufWP]);
 			KeyBufWP = newwp;
-			//p6logd("KeyBufWP: %d\n", KeyBufWP);
+			//p6logd("KeyBufWP:%d KeyBuf[]:%x\n", KeyBufWP,KeyBuf[KeyBufWP]);
 		}
 	}
+
 }
 
 static int32_t shiftdown = 0;
 
-static int32_t get_x68k_keycode(uint32_t wp)
-{
-
-
-	if (wp < SCANTABLE_MAX) { 		//SDL1/2キー ScanCode
-		  return ScanTable[shiftdown][wp];
-	}
-
-
-return -1;
-
-}
-
 // ----------------------------------
-//	WM_KEYDOWN〜
+//	WM_KEYDOWN〜 (SDL_Keycode SDL_Scancode)
 // ----------------------------------
 void
-Keyboard_KeyDown(uint32_t wp)
+Keyboard_KeyDown(uint32_t sdl_key, uint32_t sdl_scan)
 {
 
 	uint8_t code;
 	uint8_t newwp;
-#if 0
-	if (wp & ~0xff) {
-		if (wp == GDK_VoidSymbol)
-			code = NC;
-		else if ((wp & 0xff00) == 0xff00)
-			code = KeyTable[(wp & 0xff) | 0x100];
-		else
-			code = NC;
-	} else
-		code = KeyTable[wp & 0xff];
+
+#if !SDL_VERSION_ATLEAST(2, 0, 0) //==SDL1==
+	if (sdl_key > SCANTABLE_MAX){
+	  sdl_scan = sdl_key -(SCANTABLE_MAX - 0xe0);
+	}
+	else{
+	 sdl_scan = sdl_key;
+	}
 #endif
-	code = get_x68k_keycode(wp);
-	if (code < 0) {
-		return;
+
+	if (sdl_scan < SCANTABLE_MAX) { 		//SDL1/2キー ScanCode
+		  code = ScanTable[shiftdown][sdl_scan];
+	}
+	else{
+	  return;
 	}
 	if(code == 0x70){ shiftdown = 1; }
 
@@ -139,22 +176,26 @@ Keyboard_KeyDown(uint32_t wp)
 	//printf("wp=0x%x, code=0x%x\n", wp, code);
 	//printf("SDLK_UP: 0x%x\n", SDLK_UP);
 
-#if 0
-	if (code != NC) {
-		newwp = ((KeyBufWP + 1) & (KeyBufSize - 1));
-		if (newwp != KeyBufRP) {
-			KeyBuf[KeyBufWP] = code;
-			KeyBufWP = newwp;
-			//printf("KeyBufWP: %d\n", KeyBufWP);
-		}
+	// keycode remapping
+	if(code & 0x80){
+	 if(shiftdown){	// shift ON
+		send_keycode(0x70, P6K_UP);
+		send_keycode((code&0x7f), P6K_DOWN);
+		send_keycode(0x70, P6K_DOWN);
+	 }
+	 else{			// shift off
+		send_keycode(0x70, P6K_DOWN);
+		send_keycode((code&0x7f), P6K_DOWN);
+		send_keycode(0x70, P6K_UP);
+	 }
 	}
-#else
-	send_keycode(code, P6K_DOWN);
-#endif
+	else{
+	 send_keycode(code, P6K_DOWN);
+	}
 
 	//printf("JoyKeyState: 0x%x\n", JoyKeyState);
 
-	switch (wp) {
+	switch (sdl_scan) {
 	case SDL_SCANCODE_UP:
 		//puts("key up");
 		if (!(JoyKeyState&JOY_DOWN))
@@ -194,46 +235,53 @@ Keyboard_KeyDown(uint32_t wp)
 	}
 }
 
-// ----------------------------------
-//	WM_KEYUP
-// ----------------------------------
+// ------------------------------------
+//	WM_KEYUP  (SDL_Keycode SDL_Scancode)
+// ------------------------------------
 void
-Keyboard_KeyUp(uint32_t wp)
+Keyboard_KeyUp(uint32_t sdl_key, uint32_t sdl_scan)
 {
 	int32_t  code;
 	uint8_t newwp;
-#if 0
-	if (wp & ~0xff) {
-		if (wp == GDK_VoidSymbol)
-			code = NC;
-		else if ((wp & 0xff00) == 0xff00)
-			code = KeyTable[(wp & 0xff) | 0x100];
-		else
-			code = NC;
-	} else
-		code = KeyTable[wp & 0xff];
+
+#if !SDL_VERSION_ATLEAST(2, 0, 0) //==SDL1==
+	if (sdl_key > SCANTABLE_MAX){
+	  sdl_scan = sdl_key -(SCANTABLE_MAX - 0xe0);
+	}
+	else{
+	 sdl_scan = sdl_key;
+	}
 #endif
-	code = get_x68k_keycode(wp);
-	if (code < 0) {
-		return;
+
+	if (sdl_scan < SCANTABLE_MAX) { 		//SDL1/2キー ScanCode
+		  code = ScanTable[shiftdown][sdl_scan];
+	}
+	else{
+	  return;
 	}
 	if(code == 0x70){ shiftdown = 0; }
 
-#if 0
-	if (code != NC) {
-		newwp = ((KeyBufWP + 1) & (KeyBufSize - 1));
-		if (newwp != KeyBufRP) {
-			KeyBuf[KeyBufWP] = code | 0x80;
-			KeyBufWP = newwp;
-		}
+	// keycode remapping
+	if(code & 0x80){
+	 if(shiftdown){	// shift ON
+		send_keycode(0x70, P6K_UP);
+		send_keycode((code&0x7f), P6K_UP);
+		send_keycode(0x70, P6K_DOWN);
+	 }
+	 else{			// shift off
+		send_keycode(0x70, P6K_DOWN);
+		send_keycode((code&0x7f), P6K_UP);
+		send_keycode(0x70, P6K_UP);
+	 }
 	}
-#else
-	send_keycode(code, P6K_UP);
-#endif
+	else{
+	 send_keycode(code, P6K_UP);
+	}
+
 
 	//printf("JoyKeyState: 0x%x\n", JoyKeyState);
 
-	switch(wp) {
+	switch(sdl_scan) {
 	case SDL_SCANCODE_UP:
 		JoyKeyState &= ~JOY_UP;
 		break;

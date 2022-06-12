@@ -26,8 +26,8 @@ extern int32_t  kbd_kx, kbd_ky;
 extern int32_t kbd_x, kbd_y, kbd_w, kbd_h;
 
 void Keyboard_Init(void);
-void Keyboard_KeyDown(uint32_t vkcode);
-void Keyboard_KeyUp(uint32_t vkcode);
+void Keyboard_KeyDown(uint32_t vkcode,uint32_t phcode);
+void Keyboard_KeyUp(uint32_t vkcode,uint32_t phcode);
 void Keyboard_Int(void);
 void send_keycode(uint8_t code, int32_t flag);
 int32_t Keyboard_get_key_ptr(int32_t x, int32_t y);

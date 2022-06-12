@@ -193,13 +193,13 @@ WinX68k_SCSICheck(void)
 	if (scsi) {
 		fp = File_OpenCurDir((char *)SCSIINIPLFILE);/*InSCSI-IPL*/
 		if (fp == 0) {
-			printf("NO-SCSI-IPL for built-in.\n"); // No InSCSI-IPL
+			p6logd("NO-SCSI-IPL for built-in.\n"); // No InSCSI-IPL
 			memset(IPL, 0, 0x10000);		// clear
 			memcpy(IPL, IN_SCSIIMG, sizeof(IN_SCSIIMG));	// Dummy-SCSI BIOS Load
 		}
 		else{
 			strcat(window_title," SCSIin");
-			printf("SCSI-IPL for built-in.\n"); // Yes InSCSI-IPL
+			p6logd("SCSI-IPL for built-in.\n"); // Yes InSCSI-IPL
 			File_Read(fp, IPL, 0x02000);/*0xfc0000~8KB*/
 			File_Close(fp);
 			memcpy( &IPL[0x00041A], EX_SCSIIOCS, sizeof(EX_SCSIIOCS));//IOCS Patch
@@ -281,7 +281,7 @@ WinX68k_LoadROMs(void)
 		fp = File_OpenCurDir((char *)FONTFILETMP);
 		if (fp == 0) {
 			// フォント生成 XXX
-			printf("フォントROMイメージが見つかりません\n");
+			Error("フォントROMイメージが見つかりません\n");
 			return FALSE;
 		}
 	}
@@ -345,7 +345,7 @@ WinX68k_Init(void)
 	}
 
 	if (MEM && FONT && IPL) {
-	  	m68000_init();  
+		m68000_init();  
 		return TRUE;
 	}
 
@@ -404,13 +404,13 @@ void WinX68k_Exec(void)
 	clk_count = -ICount;
 	clk_total = (CRTC_Regs[0x29] & 0x10) ? VSYNC_HIGH : VSYNC_NORM;
 	if (Config.XVIMode == 1) {
-		clk_total = (clk_total*16)/10;
+		clk_total = (clk_total*16)/10;//=====16MHz
 		clkdiv = 16;
 	} else if (Config.XVIMode == 2) {
-		clk_total = (clk_total*24)/10;
+		clk_total = (clk_total*24)/10;//=====24MHz
 		clkdiv = 24;
 	} else {
-		clkdiv = 10;
+		clkdiv = 10;                //=====10MHz
 	}
 	ICount += clk_total;
 	clk_next = (clk_total/VLINE_TOTAL);
@@ -542,7 +542,6 @@ int32_t main(int32_t argc, char *argv[])
 {
 	SDL_Event ev;
 	SDL_Keycode menu_key_down;
-	uint32_t sdl1_keycode;
 
 #if defined(ANDROID) || TARGET_OS_IPHONE
 	int32_t vk_cnt = -1;
@@ -880,21 +879,14 @@ int32_t main(int32_t argc, char *argv[])
 #endif
 				if (menu_mode != menu_out) {
 					menu_key_down = ev.key.keysym.sym;
-				} else {
-					sdl1_keycode = ev.key.keysym.scancode;
-					if (ev.key.keysym.sym > 0x128){
-						sdl1_keycode = ev.key.keysym.sym -(0x128 - 0xe0);
-					}
-					Keyboard_KeyDown(sdl1_keycode);//phisical code + α
+				}
+				else {
+					Keyboard_KeyDown(ev.key.keysym.sym,ev.key.keysym.scancode);//phisical code + α
 				}
 				break;
 			case SDL_KEYUP:
-				sdl1_keycode = ev.key.keysym.scancode;
-				if (ev.key.keysym.sym > 0x128){
-					sdl1_keycode = ev.key.keysym.sym -(0x128 - 0xe0);
-				}
-				p6logd("keyup: 0x%x 0x%x\n", ev.key.keysym.sym,sdl1_keycode);
-				Keyboard_KeyUp(sdl1_keycode);//phisical code + α
+				p6logd("keyup: 0x%x 0x%x\n", ev.key.keysym.sym,ev.key.keysym.scancode);
+				Keyboard_KeyUp(ev.key.keysym.sym,ev.key.keysym.scancode);//phisical code + α
 				break;
 			}
 		}
