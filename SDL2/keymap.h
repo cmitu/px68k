@@ -31,15 +31,15 @@ uint8_t ScanTable[2][SCANTABLE_MAX] = {
 		0x3b,0x3e,0x3c,0x3f,0x40,0x41,0x42,0x46,
 	//	 ent,   1,   2,   3,   4,   5,   6,  7		; 0x58(10key)
 		0x4e,0x4b,0x4c,0x4d,0x47,0x48,0x49,0x43,
-	//	   8,   9,   0,   .,    ,    ,    , =		; 0x60
-		0x44,0x45,0x4f,0x51,  NC,  NC,  NC,0x4a,
+	//	   8,   9,   0,   .,  ろ,    ,    , =		; 0x60(JISwinろ)
+		0x44,0x45,0x4f,0x51,0x34,  NC,  NC,0x4a,
 	//	 F13, F14, F15,    ,    ,    ,    ,  		; 0x68
 		0x5c,0x52,0x54,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    ,  		; 0x70
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    , stop	; 0x78
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,0x61,
-	//	    ,    ,    ,    ,    ,    ,    ,  ろ		; 0x80(international)
+	//	    ,    ,    ,    ,    ,    ,    ,  ろ		; 0x80(international)(JISmacろ)
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,0x34,
 	//	    ,   ¥,    ,    ,    ,    ,    ,   		; 0x88(international)
 		  NC,0x0e,  NC,  NC,  NC,  NC,  NC,  NC,
@@ -105,15 +105,15 @@ uint8_t ScanTable[2][SCANTABLE_MAX] = {
 		0x3b,0x3e,0x3c,0x3f,0x40,0x41,0x42,0x46,
 	//	 ent,   1,   2,   3,   4,   5,   6,  7		; 0x58(10key)
 		0x4e,0x4b,0x4c,0x4d,0x47,0x48,0x49,0x43,
-	//	   8,   9,   0,   .,    ,    ,    , =		; 0x60
-		0x44,0x45,0x4f,0x51,  NC,  NC,  NC,0x4a,
+	//	   8,   9,   0,   .,  ろ,    ,    , =		; 0x60(JISwinろ)
+		0x44,0x45,0x4f,0x51,0x34,  NC,  NC,0x4a,
 	//	 F13, F14, F15,    ,    ,    ,    ,  		; 0x68
 		0x5c,0x52,0x54,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    ,  		; 0x70
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    , stop	; 0x78
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,0x61,
-	//	    ,    ,    ,    ,    ,    ,    ,  ろ		; 0x80(international)
+	//	    ,    ,    ,    ,    ,    ,    ,  ろ		; 0x80(international)(JISmacろ)
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,0x34,
 	//	    ,   |,    ,    ,    ,    ,    ,   		; 0x88(international)
 		  NC,0x0e,  NC,  NC,  NC,  NC,  NC,  NC,
