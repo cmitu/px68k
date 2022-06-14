@@ -21,22 +21,22 @@ uint8_t ScanTable[2][SCANTABLE_MAX] = {
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    , ESC,    ,    ,    ,    		; 0x18
 		  NC,  NC,  NC,0x01,  NC,  NC,  NC,  NC,
-	//	 SPC,    ,    ,    ,    ,    ,    ,   		; 0x20
-		0x35,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	 SPC,    ,    ,    ,    ,    ,    ,  ：		; 0x20 win:
+		0x35,  NC,  NC,  NC,  NC,  NC,  NC,0x28,
 	//	    ,    ,    ,    ,  , ,  - ,  . ,  /		; 0x28
 		  NC,  NC,  NC,  NC,0x31,0x0c,0x32,0x33,
 	//	  0 ,  1 ,  2 ,  3 ,  4 ,  5 ,  6 ,  7		; 0x30
 		0x0b,0x02,0x03,0x04,0x05,0x06,0x07,0x08,
-	//	  8 ,  9 ,  ; ,  : ,    ,    ,    ,    		; 0x38
-		0x09,0x0a,0x28,0x27,  NC,  NC,  NC,  NC,
+	//	  8 ,  9 ,  : ,  ; ,    ,  ^ ,    ,    		; 0x38 win^
+		0x09,0x0a,0x28,0x27,  NC,0x0d,  NC,  NC,
 	//	  @ ,    ,    ,    ,    ,    ,    ,   		; 0x40
 		0x1b,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    ,   		; 0x48
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    ,   		; 0x50
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,  [ ,    ,  ] ,  ^ ,  _		; 0x58
-		  NC,  NC,  NC,0x1c,0x00,0x29,0x0d,0x34,
+	//	    ,    ,    ,  [ ,  ] ,  ] ,  ^ ,  _		; 0x58 win]
+		  NC,  NC,  NC,0x1c,0x29,0x29,0x0d,0x34,
 	//	    ,  a ,  b ,  c ,  d ,  e ,  f ,  g		; 0x60
 		  NC,0x1e,0x2e,0x2c,0x20,0x13,0x21,0x22,
 	//	  h ,  i ,  j ,  k ,  l ,  m ,  n ,  o		; 0x68
@@ -95,22 +95,22 @@ uint8_t ScanTable[2][SCANTABLE_MAX] = {
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    , ESC,    ,    ,    ,    		; 0x18
 		  NC,  NC,  NC,0x01,  NC,  NC,  NC,  NC,
-	//	 SPC,    ,    ,    ,    ,    ,    ,   		; 0x20
-		0x35,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
+	//	 SPC,    ,    ,    ,    ,    ,    ,  :		; 0x20 win:
+		0x35,  NC,  NC,  NC,  NC,  NC,  NC,0x28,
 	//	    ,    ,    ,    ,  , ,   -,  . ,  /		; 0x28
 		  NC,  NC,  NC,  NC,0x31,0x0c,0x32,0x33,
 	//	  0 ,  1 ,  2 ,  3 ,  4 ,  5 ,  6 ,  7		; 0x30
 		0x0b,0x02,0x03,0x04,0x05,0x06,0x07,0x08,
-	//	  8 ,  9 ,  ; ,  : ,    ,    ,    ,    		; 0x38
-		0x09,0x0a,0x28,0x27,  NC,  NC,  NC,  NC,
+	//	  8 ,  9 ,  : ,  ; ,    ,  ^ ,    ,    		; 0x38 win^
+		0x09,0x0a,0x28,0x27,  NC,0x0d,  NC,  NC,
 	//	  @ ,    ,    ,    ,    ,    ,    ,   		; 0x40
 		0x1b,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    ,   		; 0x48
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    ,   		; 0x50
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
-	//	    ,    ,    ,  [ ,    ,  ] ,  ^ ,  _		; 0x58
-		  NC,  NC,  NC,0x1c,0x00,0x29,0x0d,0x34,
+	//	    ,    ,    ,  [ ,  ] ,  ] ,  ^ ,  _		; 0x58 win]
+		  NC,  NC,  NC,0x1c,0x29,0x29,0x0d,0x34,
 	//	    ,  a ,  b ,  c ,  d ,  e ,  f ,  g		; 0x60
 		  NC,0x1e,0x2e,0x2c,0x20,0x13,0x21,0x22,
 	//	  h ,  i ,  j ,  k ,  l ,  m ,  n ,  o		; 0x68
