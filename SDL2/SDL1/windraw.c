@@ -286,15 +286,14 @@ void WinDraw_ChangeMode(int32_t flg)
 		else{
 			flags = SDL_SWSURFACE | SDL_FULLSCREEN;
 		}
-		//SDL_SetVideoMode(800, 600, 16, SDL_SWSURFACE | SDL_FULLSCREEN);
+		// Reopen window (Full-Screen or normal)
+		SDL_SetVideoMode(FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, 16, flags);
+		sdl_surface = SDL_GetVideoSurface();
 		break;
 	default:
 		break;
 	}
 
-	if (flags == 0) return;
-
-	/*SDL1 not supported*/
 
  return ;
 }
