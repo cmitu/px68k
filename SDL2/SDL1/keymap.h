@@ -3,12 +3,12 @@
 #define	NC	0
 #define SCANTABLE_MAX 288
 
-#define	SDL_SCANCODE_RIGHT	0x7c
-#define	SDL_SCANCODE_LEFT	0x7b
-#define	SDL_SCANCODE_UP		0x7e
-#define	SDL_SCANCODE_DOWN	0x7d
-#define	SDL_SCANCODE_Z		0x06
-#define	SDL_SCANCODE_X		0x07
+#define	SDL_SCANCODE_RIGHT	0x113
+#define	SDL_SCANCODE_LEFT	0x114
+#define	SDL_SCANCODE_UP		0x111
+#define	SDL_SCANCODE_DOWN	0x112
+#define	SDL_SCANCODE_Z		0x7a
+#define	SDL_SCANCODE_X		0x78
 
 //SDL1 JIS-KeyBoardテーブル
 uint8_t ScanTable[2][SCANTABLE_MAX] = {
