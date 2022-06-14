@@ -90,6 +90,7 @@ extern int32_t VID_MODE, CHANGEAV_TIMING;
 int32_t WinDraw_Init(void);
 int32_t WinDraw_ChangeSize(void);
 int32_t conv_utf8tosjis();
+int32_t WinDraw_MenuInit(void);
 
 #define	APPNAME	"Keropi"
 
@@ -286,14 +287,21 @@ void WinDraw_ChangeMode(int32_t flg)
 		else{
 			flags = SDL_SWSURFACE | SDL_FULLSCREEN;
 		}
-		// Reopen window (Full-Screen or normal)
-		SDL_SetVideoMode(FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, 16, flags);
-		sdl_surface = SDL_GetVideoSurface();
 		break;
 	default:
 		break;
 	}
 
+	//SDL Video 初期化
+	SDL_QuitSubSystem(SDL_INIT_VIDEO);
+	SDL_InitSubSystem(SDL_INIT_VIDEO);
+
+	//描画エリア再定義
+	SDL_SetVideoMode(FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, 16, flags);
+	sdl_surface = SDL_GetVideoSurface();
+
+	// menu描画用エリア再定義
+	WinDraw_MenuInit();
 
  return ;
 }
