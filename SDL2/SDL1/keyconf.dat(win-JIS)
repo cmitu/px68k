@@ -3,7 +3,9 @@
 01	05b	1b	(shift@)`
 01	05d	1c	(shift[){
 02	end
+
 Win-JIS-Keyboard Mapper
+put into .keropi folder (named `keyconf.dat`)
 [format]
 KeyShift:00 normal 01 with Shift
 SDK_ScanCode (KeyNO.)
