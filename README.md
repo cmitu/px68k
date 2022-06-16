@@ -1,4 +1,4 @@
-# ----from TurtleBazoola/px68k----
+# ----from TurtleBazooka/px68k----
 
 ## From(thanx!)
 * fork from kenyahiro(https://github.com/kenyahiro/px68k)
@@ -25,9 +25,9 @@
 
 ## Need
 * SDL2 (still support SDL1)(https://www.libsdl.org/)
-* Munt/MT-32 emu.(if needed)(https://sourceforge.net/projects/munt/)
+* Munt/MT-32 emu (if needed)(https://sourceforge.net/projects/munt/)
 * fluidsynth and SoundFont2 (if needed)(https://www.fluidsynth.org/)
-* `iplrom.dat``cgrom.dat` and SCSI-IPL `scsiexrom.dat` in .keropi folder
+* `iplrom.dat` `cgrom.dat` and SCSI-IPL `scsiexrom.dat` in .keropi folder
 
 ## Build
 
@@ -42,12 +42,14 @@
  ```
 
  ## Limitation
- * SCSI対応は現状IOCSレベル。 よってNetBSD/68kはbootできません。
+ * SCSI対応は現状IOCSレベル。 よってNetBSD/X68kはbootできません。
  * WinのMIDIはMIDI_MAPPER固定(あとはOS任せ)
  * macのMIDIは内蔵シンセ(CoreAudio)、MuntやUSB-MIDIはCoreMIDIで
- * Linuxは現状fluidsynthのみ
- * 音の割り付け順の変更はMIMPIトーンマップでも変更可
+ * LinuxのMIDIは現状fluidsynthのみ
+ * MIDI-INには非対応
+ * MIDIの音の割り付け順の変更はMIMPIトーンマップでも変更可
  * SDL1でのkeymapデコードは不完全(¥、ろ)
+ * SDL1の描画はCPU依存、よって遅いです。
 
 
 # ----from kenyahiro/px68k----

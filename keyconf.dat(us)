@@ -31,6 +31,6 @@
 US-Keyboard Mapper
 put into .keropi folder (named `keyconf.dat`)
 [format]
-KeyShift:00 normal 01 with Shift
-SDK_ScanCode (KeyNO.)
+KeyShift:00 normal 01:with Shift 02:end
+SDL2_ScanCode (KeyNO.)
 X68000 keycode(0x8x bit is shift)
