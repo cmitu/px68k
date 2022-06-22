@@ -187,7 +187,6 @@ WinX68k_SCSICheck(void)
 			break;
 		}
 	}
-	scsi=0;/* force CZ-6BS1 active */
 
 	// InSCSI(XVI/Compact/030)
 	if (scsi) {
@@ -206,8 +205,8 @@ WinX68k_SCSICheck(void)
 			//Memory_SetSCSIMode(2);
 		}
 	}
+
 	// ExSCSI(origin X68000)
-	else{
 		fp = File_OpenCurDir((char *)CZ6BS1IPLFILE);/*ExSCSI-IPL*/
 		if (fp == 0) {
 			//printf("NO-SCSI-IPL for CZ-6BS1.\n");// No CZ-6BS1-IPL
@@ -222,17 +221,15 @@ WinX68k_SCSICheck(void)
 			File_Close(fp);
 			memset(&SCSIIPL[0x000440], 0, (0x2000-0x440));
 			memcpy( &SCSIIPL[0x000440], EX_SCSIIOCS, sizeof(EX_SCSIIOCS));//IOCS Patch
-			// for little endian 
-#ifndef C68K_BIG_ENDIAN
-			for (i = 0; i < 0x02000; i += 2) {
-			 tmp = SCSIIPL[i];
-			 SCSIIPL[i] = SCSIIPL[i + 1];
-			 SCSIIPL[i + 1] = tmp;
-			}
-#endif
 		}
-
-	}
+		// for little endian 
+#ifndef C68K_BIG_ENDIAN
+		for (i = 0; i < 0x02000; i += 2) {
+		 tmp = SCSIIPL[i];
+		 SCSIIPL[i] = SCSIIPL[i + 1];
+		 SCSIIPL[i + 1] = tmp;
+		}
+#endif
 
  return;
 }

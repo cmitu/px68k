@@ -19,7 +19,7 @@ SDL_CONFIG?= sdl2-config
 endif
 endif
 
-ifeq ($(shell uname -m),aarch64)
+ifeq ($(shell uname -m),arm64)
 MOPT=
 else
 ifeq ($(shell uname -m),x86_64)
@@ -43,8 +43,10 @@ endif
 
 include version.txt
 
+# CC	 = clang -std=c17
+# CXX	 = clang++ -std=c++17
 CC	 = gcc
-CXX	 = c++
+CXX	 = g++
 CXXLINK	 = $(CXX)
 RM	 = rm -f
 TAGS	 = etags

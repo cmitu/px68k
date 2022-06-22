@@ -101,6 +101,8 @@ extern  int32_t		dmatrace;
 		int32_t cur_dir_slen;
 
 extern void midOutChg(uint32_t mid_out_port);
+extern void SRAM_SetSCSIMode(uint32_t mode);
+extern void SRAM_SetSASIDrive(uint8_t drive);
 
 struct menu_flist mfl;
 
@@ -863,11 +865,13 @@ int32_t WinUI_Menu(int32_t first)
 						p = strstr(strwork, ".HDS");
 						if (p == NULL ) {
 						 strcpy((char *)Config.HDImage[drv - 2], tmpstr);
+						 SRAM_SetSASIDrive(15);//Set SRAM for SASI boot drive
 						 Config.SCSIEXHDImage[drv - 2][0] = '\0';
 						}
 						else{
 						 Config.HDImage[drv - 2][0] = '\0';
 						 strcpy((char *)Config.SCSIEXHDImage[drv - 2], tmpstr);
+						 SRAM_SetSCSIMode(1);//Set SRAM for ExSCSI boot!
 						}
 					}
 				}

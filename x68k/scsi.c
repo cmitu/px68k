@@ -1,7 +1,9 @@
 // ---------------------------------------------------------------------
 //  SCSI.C - 外付けSCSIボード (CZ-6BS1) 
 //  ea0001~ea001f SPC
-//  SRAM ed006f="V",70:0x8x(Own-ID),71=SASI-Flg Exp:V,0f,00
+//  SRAM ed006f="V"  Exp:V,0f,00
+//       ed0070 0x07(Own-ID), bit3:1=CZ-6BS1 0=internal
+//       ed0071 SASI-Flg 
 //  SCSI-iocs level emuration, need IPL "scsiexrom.dat"
 // ---------------------------------------------------------------------
 

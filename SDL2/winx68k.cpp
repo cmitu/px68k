@@ -123,7 +123,7 @@ extern SDL_Surface *menu_surface; /*for Menu Drawing*/
 void
 WinX68k_SCSICheck()
 {
-// オリジナルのCZ6BS1のSCSI ROM
+// オリジナルのCZ6BS1のSCSI ROMの代替
 // 動作：SCSI IOCSが呼ばれると、SCSI IOCS番号を $e9f800 に出力します。
 // SCSIデバイスからの起動は不可、初期化ルーチンはSCSI IOCS($F5)のベクタ設定のみを行います。
 	static	const uint8_t	EX_SCSIIMG[] = {
@@ -189,52 +189,51 @@ WinX68k_SCSICheck()
 			break;
 		}
 	}
-	scsi=0;/* force CZ-6BS1 active */
 
-	// InSCSI(XVI/Compact/030)
+
+	// InSCSI(XVI/Compact/030) Append SCSI-IPL
 	if (scsi) {
 		fp = File_OpenCurDir((char *)SCSIINIPLFILE);/*InSCSI-IPL*/
 		if (fp == 0) {
-			p6logd("NO-SCSI-IPL for built-in.\n"); // No InSCSI-IPL
+			//p6logd("NO-SCSI-IPL for built-in.\n"); // No InSCSI-IPL
 			memset(IPL, 0, 0x10000);		// clear
-			memcpy(IPL, IN_SCSIIMG, sizeof(IN_SCSIIMG));	// Dummy-SCSI BIOS Load
+			//memcpy(IPL, IN_SCSIIMG, sizeof(IN_SCSIIMG));	// Dummy-SCSI BIOS Load
 		}
 		else{
 			strcat(window_title," SCSIin");
-			p6logd("SCSI-IPL for built-in.\n"); // Yes InSCSI-IPL
+			//p6logd("SCSI-IPL for built-in.\n"); // Yes InSCSI-IPL
 			File_Read(fp, IPL, 0x02000);/*0xfc0000~8KB*/
 			File_Close(fp);
 			memcpy( &IPL[0x00041A], EX_SCSIIOCS, sizeof(EX_SCSIIOCS));//IOCS Patch
 			//Memory_SetSCSIMode(2);
 		}
 	}
-	// ExSCSI(origin X68000)
-	else{
-		fp = File_OpenCurDir((char *)CZ6BS1IPLFILE);/*ExSCSI-IPL*/
-		if (fp == 0) {
-			//printf("NO-SCSI-IPL for CZ-6BS1.\n");// No CZ-6BS1-IPL
-			memset(SCSIIPL, 0, 0x02000);		// clear
-			memcpy(&SCSIIPL[0x20], EX_SCSIIMG, sizeof(EX_SCSIIMG));	// Dummy-SCSI BIOS Load
-		}
-		else{
-			//printf("SCSI-IPL for CZ-6BS1.\n");// Yes CZ-6BS1-IPL
-			strcat(window_title," SCSIex");
-			/*ea0044からSCSIEXが格納されてることをIPLがチェックしている*/
-			File_Read(fp, &SCSIIPL[0x20], 0x01FD0);/*0xea0000~8KB*/
-			File_Close(fp);
-			memset(&SCSIIPL[0x000440], 0, (0x2000-0x440));
-			memcpy( &SCSIIPL[0x000440], EX_SCSIIOCS, sizeof(EX_SCSIIOCS));//IOCS Patch
-			// for little endian 
-#ifndef C68K_BIG_ENDIAN
-			for (i = 0; i < 0x02000; i += 2) {
-			 tmp = SCSIIPL[i];
-			 SCSIIPL[i] = SCSIIPL[i + 1];
-			 SCSIIPL[i + 1] = tmp;
-			}
-#endif
-		}
 
+	// ExSCSI(origin X68000) CZ-6BS1を常に有効にする
+	fp = File_OpenCurDir((char *)CZ6BS1IPLFILE);/*ExSCSI-IPL*/
+	if (fp == 0) {
+		//p6logd("NO-SCSI-IPL for CZ-6BS1.\n");// No CZ-6BS1-IPL
+		memset(SCSIIPL, 0, 0x02000);		// clear
+		//memcpy(&SCSIIPL[0x20], EX_SCSIIMG, sizeof(EX_SCSIIMG));	// Dummy-SCSI BIOS Load
 	}
+	else{
+		//p6logd("SCSI-IPL for CZ-6BS1.\n");// Yes CZ-6BS1-IPL
+		strcat(window_title," SCSIex");
+		/*ea0044からSCSIEXが格納されてることをIPLがチェックしている*/
+		File_Read(fp, &SCSIIPL[0x20], 0x01FD0);/*0xea0000~8KB*/
+		File_Close(fp);
+		memset(&SCSIIPL[0x000440], 0, (0x2000-0x440));
+		memcpy( &SCSIIPL[0x000440], EX_SCSIIOCS, sizeof(EX_SCSIIOCS));//IOCS Patch
+	}
+		// for little endian 
+#ifndef C68K_BIG_ENDIAN
+	for (i = 0; i < 0x02000; i += 2) {
+	 tmp = SCSIIPL[i];
+	 SCSIIPL[i] = SCSIIPL[i + 1];
+	 SCSIIPL[i + 1] = tmp;
+	}
+#endif
+
 
  return;
 }
@@ -261,10 +260,10 @@ WinX68k_LoadROMs(void)
 	}
 	File_Read(fp, &IPL[0x20000], 0x20000);/*128K*/
 	File_Close(fp);
-	if(i==1) strcat(window_title," SUPER");
-	if(i==2) strcat(window_title," X68030");
-	if(i==3) strcat(window_title," XVIcpt");
-	if(i==4) strcat(window_title," XVI");
+	if(i==1) strcat(window_title," EXPERT");//ver 1.0
+	if(i==2) strcat(window_title," X68030");//ver 1.3
+	if(i==3) strcat(window_title," XVIcpt");//ver 1.2
+	if(i==4) strcat(window_title," XVI");   //ver 1.1
 
 	WinX68k_SCSICheck();	// Load SCSI IPL in:$fc0000～ ex:ea0000
 

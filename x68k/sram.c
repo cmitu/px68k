@@ -1,6 +1,16 @@
-// ---------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 //  SRAM.C - SRAM (16kb) Area
-// ---------------------------------------------------------------------------------------
+//$ed0000	'Ｘ68000',$57 SRAMチェックデータ
+//$ed000c	ROM 起動アドレスへのポインタ $00fc0000:InSCSI-IPL $00ea0020:ExSCSI-IPL
+//$ed0010	$00ed_0100	SRAM 起動アドレス
+//$ed0018	$0000=STD boot
+//$ed001c	$00 KeyBoardの状態
+//$ed005a	Set SASI Active Drive(0~15)
+//~
+//$ed006f	'V' ($00:SCSI無効 $56='V':SCSI有効)
+//$ed0070	$0f SCSI bit0,1,2=Own-ID  bit3:1=CZ-6BS1
+//$ed0071	$00 SASIドライブ接続フラグ
+// ------------------------------------------------------------------------------
 
 #include	"common.h"
 #include	"fileio.h"
@@ -13,6 +23,62 @@
 	uint8_t	SRAM[0x4000];
 	char	SRAMFILE[] = "sram.dat";
 
+// -----------------------------------------------------------
+//   SCSI-IPL 起動をSRAMに設定
+// -----------------------------------------------------------
+void 
+SRAM_SetSCSIMode(int32_t mode)/*1:Ex-SCSI 2:In-SCSI*/
+{
+
+	Memory_WriteB(0xe8e00d, 0x31);	/* Allow SRAM Access(91byte)*/
+	switch(mode){/*SRAM SCSI set*/
+		case 0:/*No-SCSI*/
+			Memory_WriteB(0xea006f, 0x00);	/*No SCSI*/
+			Memory_WriteB(0xea0070, 0x07);	/*Set ID=7*/
+			Memory_WriteB(0xea0071, 0x00);	/*SASI flag all 0*/
+			break;
+		case 1:/*SCSI EX*/
+			Memory_WriteB(0xea000c, 0x00);	/*ExSCSI-IPL*/
+			Memory_WriteB(0xea000d, 0xea);
+			Memory_WriteB(0xea000e, 0x00);
+			Memory_WriteB(0xea000f, 0x20);
+			Memory_WriteB(0xea006f, 'V');	/*Activate SCSI*/
+			Memory_WriteB(0xea0070, 0x0f);	/*ExternalSCSI Set ID=7*/
+			Memory_WriteB(0xea0071, 0x00);	/*SASI flag all 0*/
+			break;
+		case 2:/*SCSI IN*/
+			Memory_WriteB(0xea000c, 0x00);	/*InSCSI-IPL*/
+			Memory_WriteB(0xea000d, 0xfc);
+			Memory_WriteB(0xea000e, 0x00);
+			Memory_WriteB(0xea000f, 0x00);
+			Memory_WriteB(0xea006f, 'V');	/*Activate SCSI*/
+			Memory_WriteB(0xea0070, 0x07);	/*InternalSCSI Set ID=7*/
+			Memory_WriteB(0xea0071, 0x00);	/*SASI flag all 0*/
+			break;
+		default:
+			break;
+	}
+	Memory_WriteB(0xe8e00d, 0x55);	/* Block SRAM Access(91byte)*/
+
+	return;
+}
+
+// -----------------------------------------------------------
+//   SASI 有効ドライブをSRAMに設定
+// -----------------------------------------------------------
+void 
+SRAM_SetSASIDrive(uint8_t drive)/*0~15 Active SASI drive*/
+{
+	if(drive>15) return;
+
+	Memory_WriteB(0xe8e00d, 0x31);	/* Allow SRAM Access(91byte)*/
+
+		Memory_WriteB(0xea005a, drive); /*SASI Dive (set active)*/
+
+	Memory_WriteB(0xe8e00d, 0x55);	/* Block SRAM Access(91byte)*/
+
+	return;
+}
 
 // -----------------------------------------------------------------------
 //   役に立たないうぃるすチェック
@@ -84,12 +150,15 @@ void SRAM_Cleanup(void)
 	uint8_t tmp;
 	FILEH fp;
 
+/*for little endian guys!*/
+#ifndef C68K_BIG_ENDIAN
 	for (int_fast32_t i=0; i<0x4000; i+=2)
 	{
 		tmp = SRAM[i];
 		SRAM[i] = SRAM[i+1];
 		SRAM[i+1] = tmp;
 	}
+#endif
 
 	fp = File_OpenCurDir((char *)SRAMFILE);
 	if (!fp)
