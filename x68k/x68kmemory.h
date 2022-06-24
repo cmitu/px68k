@@ -46,6 +46,6 @@ void dma_writemem24_dword(uint32_t adr, uint32_t data);
 
 void cpu_setOPbase24(uint32_t adr);
 
-void Memory_SetSCSIMode(int32_t mode);
+void Memory_SetSCSIMode();
 
 #endif

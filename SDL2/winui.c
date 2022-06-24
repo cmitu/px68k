@@ -412,7 +412,7 @@ static void menu_create_flist(int32_t v)
 	char support[] = "D8888DHDMDUP2HDDIMXDFIMG";
 
 	drv = WinUI_get_drv_num(mkey_y);
-	p6logd("*** drv:%d ***** %s \n", drv, mfl.dir[drv]);
+	//p6logd("*** drv:%d ***** %s \n", drv, mfl.dir[drv]);
 	if (drv < 0) {
 		return;
 	}
@@ -558,7 +558,7 @@ static void menu_sound_rate(int32_t v)
 static void menu_midout_rate(int32_t v)
 {
 
-	midOutChg(v);
+	midOutChg(v);//Select MIDI port.
 
 }
 
@@ -612,6 +612,7 @@ static void menu_ram_size(int32_t v)
 
 }
 
+// 1階層上に移動するんだよ？
 // ex. ./hoge/.. -> ./
 // ( ./ ---down hoge dir--> ./hoge ---up hoge dir--> ./hoge/.. )
 static void shortcut_dir(int32_t drv)
@@ -623,7 +624,11 @@ static void shortcut_dir(int32_t drv)
 	len = strlen(mfl.dir[drv]);
 	p = mfl.dir[drv] + len - 2;
 	for (i = len - 2; i >= 0; i--) {
+#ifdef _WIN32
+		if (*p == '\\') {
+#else
 		if (*p == '/') {
+#endif
 			found = 1;
 			break;
 		}
@@ -634,13 +639,13 @@ static void shortcut_dir(int32_t drv)
 	if (found && strcmp(p, "\\..\\")) {
 		*(p + 1) = '\0';
 	} else {
-		strcat(mfl.dir[drv], "..\\");
+		strcat(mfl.dir[drv], "..\\");//ここに来たら要注意
 	}
 #else
 	if (found && strcmp(p, "/../")) {
 		*(p + 1) = '\0';
 	} else {
-		strcat(mfl.dir[drv], "../");
+		strcat(mfl.dir[drv], "../");//ここに来たら要注意
 	}
 #endif
 
@@ -807,11 +812,11 @@ int32_t WinUI_Menu(int32_t first)
 			menu_redraw = 1;
 
 			drv = WinUI_get_drv_num(mkey_y);
-			printf("**** drv:%d *****\n", drv);
+			p6logd("**** drv:%d *****\n", drv);
 			if (drv >= 0) {
 				if (mval_y[mkey_y] == 0) {
 					// go file_mode
-					printf("hoge:%d", mval_y[mkey_y]);
+					//p6logd("hoge:%d", mval_y[mkey_y]);
 					menu_state = ms_file;
 					menu_redraw = 0; //reset
 					mfile_redraw = 1;
@@ -828,7 +833,7 @@ int32_t WinUI_Menu(int32_t first)
 			break;
 		case ms_file:
 			drv = WinUI_get_drv_num(mkey_y);
-			p6logd("***** drv:%d *****\n", drv);
+			//p6logd("***** drv:%d *****\n", drv);
 			if (drv < 0) {
 				break; 
 			}

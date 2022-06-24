@@ -542,39 +542,15 @@ cpu_setOPbase24(uint32_t addr)
 }
 
 void 
-Memory_SetSCSIMode(int32_t mode)/*1:Ex-SCSI 2:In-SCSI*/
+Memory_SetSCSIMode() //SCSIアクセスはBusErrorにSet
 {
 	int_fast16_t i;
 
 /*バスエラーに落とす*/
-/*	for (i = 0xe0; i < 0xf0; i++) {
-		MemReadTable[i] = rm_buserr;
-	}
-*/
-
-/*作成中*/
-	Memory_WriteB(0xe8e00d, 0x31);	/* Allow SRAM Access(91byte)*/
-	switch(mode){/*SRAM SCSI set*/
-		case 0:/*No-SCSI*/
-			Memory_WriteB(0xe8e06f, 0x00);	/*No SCSI*/
-			Memory_WriteB(0xe8e070, 0x07);	/*Set ID=7*/
-			Memory_WriteB(0xe8e071, 0x00);	/*SASI flag all 0*/
-			break;
-		case 1:/*SCSI EX*/
-			Memory_WriteB(0xe8e06f, 'V');	/*Activate SCSI*/
-			Memory_WriteB(0xe8e070, 0x0f);	/*ExternalSCSI Set ID=7*/
-			Memory_WriteB(0xe8e071, 0x00);	/*SASI flag all 0*/
-			break;
-		case 2:/*SCSI IN*/
-			Memory_WriteB(0xe8e06f, 'V');	/*Activate SCSI*/
-			Memory_WriteB(0xe8e070, 0x07);	/*InternalSCSI Set ID=7*/
-			Memory_WriteB(0xe8e071, 0x00);	/*SASI flag all 0*/
-			break;
-		default:
-			break;
-	}
-
-	return;
+  for (i = 0xe0; i < 0xf0; i++) {
+   MemReadTable[i] = rm_buserr;
+  }
+return;
 }
 
 void Memory_ErrTrace(void)
