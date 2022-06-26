@@ -24,10 +24,10 @@
  */
 
 #ifndef SDL1
-#include <SDL2/SDL.h>
+#include "SDL2/SDL.h"
 #include "keymap.h"
 #else
-#include <SDL/SDL.h>
+#include "SDL/SDL.h"
 #include "./SDL1/keymap.h"
 #endif
 

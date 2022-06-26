@@ -119,7 +119,7 @@ SDL_LIB=		`$(SDL_CONFIG) --libs`
 LDLIBS = -lm -lpthread
 
 ifeq "$(PLATFORM)" "Darwin"
-LDLIBS+=  -framework Cocoa -framework CoreMIDI -framework AudioUnit -framework AudioToolbox -framework CoreAudio
+LDLIBS+= -framework Cocoa -framework CoreMIDI -framework AudioToolbox
 ifdef FLUID
 FLUID_INCLUDE=  -I/Library/Frameworks/FluidSynth.framework/Headers
 FLUID_LIB= -F/Library/Frameworks -framework FluidSynth

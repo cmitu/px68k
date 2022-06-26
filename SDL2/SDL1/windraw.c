@@ -24,10 +24,10 @@
  */
 
 #include "common.h"
-#include <SDL/SDL.h>
+#include "SDL/SDL.h"
 
 #ifdef USE_OGLES11
-#include <SDL/SDL_opengles.h>
+#include "SDL/SDL_opengles.h"
 #endif
 
 #include "winx68k.h"
