@@ -68,7 +68,7 @@ uint8_t Draw_ClrMenu = 0;
 int32_t  winx = 0, winy = 0; /*window position*/
 uint32_t winh = 0, winw = 0; /*window width hight*/
 uint32_t root_width, root_height; /*primary screen size*/
-uint16_t FrameCount = 0;
+uint32_t FrameCount = 0;
 int32_t  SplashFlag = 0;
 int32_t  ScreenClearFlg = 0;
 

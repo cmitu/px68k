@@ -1,7 +1,7 @@
 00	05b	1b	@
 00	05d	1c	[
-01	05b	1b	(shift@)`
-01	05d	1c	(shift[){
+01	05b	1b	(shift+@)`
+01	05d	1c	(shift+[){
 02	end
 
 Win-JIS-Keyboard Mapper

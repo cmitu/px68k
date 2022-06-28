@@ -25,7 +25,7 @@ void SysPort_Init(void)
 // -----------------------------------------------------------------------
 void FASTCALL SysPort_Write(uint32_t adr, uint8_t data)
 {
-	switch(adr)
+	switch(adr & 0xe8e00f)
 	{
 	case 0xe8e001:
 		if (SysPort[1]!=(data&15))
@@ -60,7 +60,7 @@ uint8_t FASTCALL SysPort_Read(uint32_t adr)
 {
 	uint8_t ret=0xff;
 
-	switch(adr)
+	switch(adr & 0xe8e00f)
 	{
 	case 0xe8e001:
 		ret = SysPort[1];
