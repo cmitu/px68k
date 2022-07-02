@@ -59,7 +59,7 @@
 				<key>ActionParameters</key>
 				<dict>
 					<key>COMMAND_STRING</key>
-					<string>./quasi88.sdl2
+					<string>./px68k
 </string>
 					<key>CheckedForUserDefaultShell</key>
 					<true/>
