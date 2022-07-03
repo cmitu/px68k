@@ -314,6 +314,7 @@ WinX68k_Reset(void)
 	SCSI_Init();
 	IOC_Init();
 	SCC_Init();
+	Keyboard_Init();
 	PIA_Init();
 	RTC_Init();
 	TVRAM_Init();
@@ -682,6 +683,7 @@ int32_t main(int32_t argc, char *argv[])
 	}
 
 	Keyboard_Init(); //WinDraw_Init()前に移動
+	Keymap_Init(); //Load Key Map file
 
 	if (!WinDraw_Init()) {
 		WinDraw_Cleanup();

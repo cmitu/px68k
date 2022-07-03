@@ -82,18 +82,11 @@ hex2bin(char *str , uint32_t keta)
 return ans;
 }
 
-// Key buffer and key MAP init
+// Key MAP init
 void
-Keyboard_Init(void)
+Keymap_Init(void)
 {
 	FILEH fp;
-
-	// buff init.
-	KeyBufWP = 0;
-	KeyBufRP = 0;
-	memset(KeyBuf, 0, KeyBufSize);
-	KeyEnable = 1;
-	KeyIntFlag = 0;
 
 	// Read Key Configuration File
 	fp = File_OpenCurDir(KEYCONFFILE);
@@ -118,6 +111,20 @@ Keyboard_Init(void)
 	   while(KeyTable[i]!='\n'){i++;} i++; //改行まで飛ばす
 	  }
 	}
+
+}
+
+// Key buffer init
+void
+Keyboard_Init(void)
+{
+
+	// buff init.
+	KeyBufWP = 0;
+	KeyBufRP = 0;
+	memset(KeyBuf, 0, KeyBufSize);
+	KeyEnable = 1;
+	KeyIntFlag = 0;
 
 }
 
