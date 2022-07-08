@@ -35,7 +35,7 @@ void    neogeo_upload(void);
 #endif
 
 // exception cycle table (taken from musashi core)
-static const s32 c68k_exception_cycle_table[256] =
+static const int32_t c68k_exception_cycle_table[256] =
 {
 	  4, //  0: Reset - Initial Stack Pointer
 	  4, //  1: Reset - Initial Program Counter
@@ -121,7 +121,7 @@ static void *JumpTable[0x10000];
 #endif
 #endif
 
-static u32 C68k_Initialised = 0;
+static uint32_t C68k_Initialised = 0;
 
 #endif  // C68K_GEN
 
@@ -144,7 +144,7 @@ static uint32_t readw(uint32_t address) {
 /* Make our own version of the structure to avoid the overhead of dozens of
  * function calls every instruction */
 static struct {
-    u32 D[8], A[8], PC, SR, USP, SSP, dummy[7];
+    uint32_t D[8], A[8], PC, SR, USP, SSP, dummy[7];
     void *readb, *readw, *writeb, *writew;
 } state = {.readw = readw};
 void TRACE(int PC,c68k_struc *CPU,int Opcode,int CCnt) {
@@ -163,27 +163,27 @@ void TRACE(int PC,c68k_struc *CPU,int Opcode,int CCnt) {
 // main exec function
 //////////////////////
 
-s32 FASTCALL C68k_Exec(c68k_struc *cpu, s32 cycle)
+int32_t FASTCALL C68k_Exec(c68k_struc *cpu, int32_t cycle)
 {
 #ifndef C68K_GEN
 #if 0
     register c68k_struc *CPU asm ("ebx");
-    register pointer PC asm ("esi");
-    register s32 CCnt asm ("edi");
-//    register u32 Opcode asm ("edi");
+    register uintptr_t PC asm ("esi");
+    register int32_t CCnt asm ("edi");
+//    register uint32_t Opcode asm ("edi");
 //    c68k_struc *CPU;
-//    u32 PC;
-//    s32 CCnt;
-    u32 Opcode;
+//    uint32_t PC;
+//    int32_t CCnt;
+    uint32_t Opcode;
 #else
 //    register c68k_struc *CPU asm ("r10");
-//    register u32 PC asm ("r11");
-//    register s32 CCnt asm ("r12");
-//    register u32 Opcode asm ("r13");
+//    register uint32_t PC asm ("r11");
+//    register int32_t CCnt asm ("r12");
+//    register uint32_t Opcode asm ("r13");
     c68k_struc *CPU;
-    pointer PC;
-    s32 CCnt;
-    u32 Opcode;
+    uintptr_t PC;
+    int32_t CCnt;
+    uint32_t Opcode;
 #endif
 #endif
 
@@ -218,11 +218,11 @@ s32 FASTCALL C68k_Exec(c68k_struc *cpu, s32 cycle)
     CHECK_INT
 #else
     {
-        s32 line, vect;
+        int32_t line, vect;
 
         line = CPU->IRQLine;
 
-        if ((line == 7) || (line > (s32)CPU->flag_I))
+        if ((line == 7) || (line > (int32_t)CPU->flag_I))
         {
             PRE_IO
 
@@ -238,7 +238,7 @@ s32 FASTCALL C68k_Exec(c68k_struc *cpu, s32 cycle)
             /* swap A7 and USP */
             if (!CPU->flag_S)
             {
-                u32 tmpSP;
+                uint32_t tmpSP;
 
                 tmpSP = CPU->USP;
                 CPU->USP = CPU->A[7];
@@ -246,7 +246,7 @@ s32 FASTCALL C68k_Exec(c68k_struc *cpu, s32 cycle)
             }
 
             /* push PC and SR */
-            PUSH_32_F((u32)(PC - CPU->BasePC))
+            PUSH_32_F((uint32_t)(PC - CPU->BasePC))
             PUSH_16_F(GET_SR)
 
             /* adjust SR */
@@ -322,7 +322,7 @@ C68k_Exec_Really_End:
 #ifndef C68K_NO_JUMP_TABLE
 C68k_Init:
     {
-        u32 i, j;
+        uint32_t i, j;
 
         #include "c68k_ini.inc"
         

@@ -10,8 +10,8 @@
 #include "c68k/c68k.h"
 #include "../x68k/x68kmemory.h"
 
-int m68000_ICountBk;
-int ICount;
+int32_t m68000_ICountBk;
+int32_t ICount;
 
 /******************************************************************************
 	M68000インタフェース関数

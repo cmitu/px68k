@@ -402,13 +402,13 @@ void WinX68k_Exec(void)
 	clk_count = -ICount;
 	clk_total = (CRTC_Regs[0x29] & 0x10) ? VSYNC_HIGH : VSYNC_NORM;
 	if (Config.XVIMode == 1) {
-		clk_total = (clk_total*16)/10;//=====16MHz
+		clk_total = (clk_total*16)/10; // ===16MHz (XVI)
 		clkdiv = 16;
 	} else if (Config.XVIMode == 2) {
-		clk_total = (clk_total*24)/10;//=====24MHz
+		clk_total = (clk_total*24)/10; // ===24MHz (RedZONE)
 		clkdiv = 24;
 	} else {
-		clkdiv = 10;                //=====10MHz
+		clkdiv = 10;  // ===10MHz (EXPERT)
 	}
 	ICount += clk_total;
 	clk_next = (clk_total/VLINE_TOTAL);
