@@ -5,6 +5,11 @@
 
 extern	uint8_t	SRAM[0x4000];
 
+void SRAM_Clear();
+void SRAM_SetRamSize(uint8_t size);
+void SRAM_SetSCSIMode(int32_t mode);
+void SRAM_SetSASIDrive(uint8_t drive);
+
 void SRAM_Init(void);
 void SRAM_Cleanup(void);
 void SRAM_VirusCheck(void);

@@ -64,6 +64,7 @@
 #include "mercury.h"
 #include "tvram.h"
 #include "winui.h"
+#include "sram.h"
 
 #include <dirent.h>
 #include <sys/stat.h>
@@ -100,10 +101,6 @@ extern  int32_t		dmatrace;
 		char cur_dir_str[MAX_PATH];
 		int32_t cur_dir_slen;
 
-extern void midOutChg(uint32_t mid_out_port);
-extern void SRAM_SetSCSIMode(uint32_t mode);
-extern void SRAM_SetSASIDrive(uint8_t drive);
-
 struct menu_flist mfl;
 
 /***** menu items *****/
@@ -121,7 +118,7 @@ char menu_item_key[][16] = {"SYSTEM", "Joy/Mouse", "FDD0", "FDD1", "HDD0", "HDD1
 // Max # of characters is 30.
 // Max # of items including terminater `""' in each line is 15.
 char menu_items[][16][30] = {
-	{"RESET", "NMI RESET", "QUIT", ""},
+	{"RESET", "NMI RESET", "QUIT", "SRAM-Clear and RESET", ""},
 	{"Joystick", "Mouse", ""},
 	{"dummy", "EJECT", ""},
 	{"dummy", "EJECT", ""},
@@ -377,13 +374,16 @@ int32_t mkey_pos = 0;
 static void menu_system(int32_t v)
 {
 	switch (v) {
-	case 0 :
-		WinX68k_Reset();
-		break;
 	case 1:
 		IRQH_Int(7, NULL);
 		break;
+	case 3 :
+		SRAM_Clear();
+	case 0 :
+		WinX68k_Reset();
+		break;
 	}
+	mval_y[M_SYS] = 0;//メニュー選択をReset
 }
 
 static void menu_joy_or_mouse(int32_t v)
@@ -607,8 +607,8 @@ static void menu_ram_size(int32_t v)
 		Config.ram_size = 2;
 	}
 
-	/*Set SRAM[8]:RAM-Size*/
-	SRAM[(uint32_t)8] = (uint8_t)(Config.ram_size << 4);
+	/*Set SRAM RAM-Size*/
+	SRAM_SetRamSize((uint8_t)(Config.ram_size<<4));
 
 }
 

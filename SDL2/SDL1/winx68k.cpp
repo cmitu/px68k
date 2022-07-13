@@ -571,6 +571,7 @@ int32_t main(int32_t argc, char *argv[])
 	file_setcd(winx68k_dir);
     puts(winx68k_dir);
 
+	SRAM_Init();
 	LoadConfig();
 
 #ifndef NOSOUND
@@ -663,25 +664,34 @@ int32_t main(int32_t argc, char *argv[])
 	WinUI_Init();
 	WinDraw_StartupScreen();
 
+	uint32_t err_msg_no = 0;
 	if (!WinX68k_Init()) {
-		WinX68k_Cleanup();
-		WinDraw_Cleanup();
-		return 1;
+		//WinX68k_Cleanup();
+		//WinDraw_Cleanup();
+		err_msg_no = 1;
+		//return 1;
 	}
 
 	if (!WinX68k_LoadROMs()) {
-		WinX68k_Cleanup();
-		WinDraw_Cleanup();
-		exit (1);
+		//WinX68k_Cleanup();
+		//WinDraw_Cleanup();
+		err_msg_no = 2;
+		//exit (1);
 	}
 
 	Keyboard_Init(); //WinDraw_Init()前に移動
 	Keymap_Init(); //Load Key Map file
 
-	if (!WinDraw_Init()) {
+	if (!WinDraw_Init(err_msg_no)) {
 		WinDraw_Cleanup();
 		Error("Error: Can't init screen.\n");
 		return 1;
+	}
+
+	if(err_msg_no != 0){ // メモリなし、ROMなし＝END
+		WinX68k_Cleanup();
+		WinDraw_Cleanup();
+		exit (1);
 	}
 
 	if ( SoundSampleRate ) {
@@ -702,7 +712,6 @@ int32_t main(int32_t argc, char *argv[])
 	SysPort_Init();
 	Mouse_Init();
 	Joystick_Init();
-	SRAM_Init();
 	WinX68k_Reset();
 	Timer_Init();
 

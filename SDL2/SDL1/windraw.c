@@ -87,7 +87,8 @@ extern SDL_Surface *sdl_x68screen;
 
 extern int32_t VID_MODE, CHANGEAV_TIMING;
 
-int32_t WinDraw_Init(void);
+int32_t WinDraw_Init(uint32_t err_msg_no);
+void WinDraw_Draw(void);
 int32_t WinDraw_ChangeSize(void);
 int32_t conv_utf8tosjis();
 int32_t WinDraw_MenuInit(void);
@@ -316,9 +317,9 @@ void WinDraw_HideSplash(void)
 
 static void draw_kbd_to_tex(void);
 
-int32_t WinDraw_Init(void)
+int32_t WinDraw_Init(uint32_t err_msg_no)
 {
-	int32_t i, j;
+	int32_t i, j, k;
 
 	WindowX = 768;
 	WindowY = 512;
@@ -411,6 +412,28 @@ int32_t WinDraw_Init(void)
 	//ScrBuf = malloc(800 * 600 * 2); でもまったく問題なし
 
 #endif
+
+// --- Draw Init Err Message ---
+#include "msg_tif.h"
+	uint16_t *p;
+	uint8_t dt;
+	if(err_msg_no != 0){
+	  for(j=0; j<14; j++){
+	   for(i=0; i<38; i++){ // 304/8=38byte
+	    p=ScrBuf + 800*(280+j)+230+(i*8);
+	    dt = no_rom_msg[j*38+i];
+		for(k=0; k<8; k++){
+	    if((dt & 0x80)!=0){*p = 0xffff;} //color depth = 16bit
+		dt = dt << 1;
+		p++;
+		}
+	   }
+	  }
+	  TextDotX=800; TextDotY=600;
+	  WinDraw_Draw();
+	  sleep(6); // waiting.....
+	}
+
 	return TRUE;
 }
 

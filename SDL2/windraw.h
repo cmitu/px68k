@@ -27,7 +27,7 @@ void WinDraw_HideSplash(void);
 void WinGetRootSize(void);
 
 extern int32_t WinDraw_ChangeSize(void);
-extern int32_t WinDraw_Init();
+extern int32_t WinDraw_Init(uint32_t err_msg_no);
 
 void WinDraw_StartupScreen(void);
 void WinDraw_CleanupScreen(void);

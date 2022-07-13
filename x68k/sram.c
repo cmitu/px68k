@@ -1,6 +1,7 @@
 // ------------------------------------------------------------------------------
 //  SRAM.C - SRAM (16kb) Area
 //$ed0000	'Ｘ68000',$57 SRAMチェックデータ
+//$ed0008-b RAM Size
 //$ed000c	ROM 起動アドレスへのポインタ $00fc0000:InSCSI-IPL $00ea0020:ExSCSI-IPL
 //$ed0010	$00ed_0100	SRAM 起動アドレス
 //$ed0018	$0000=STD boot
@@ -24,36 +25,68 @@
 	char	SRAMFILE[] = "sram.dat";
 
 // -----------------------------------------------------------
+//   SRAM all Clear
+// -----------------------------------------------------------
+void
+SRAM_Clear()
+{
+	uint32_t i;
+
+	Memory_WriteB(0xe8e00d, 0x31);	/* Allow SRAM Access(91byte)*/
+	for(i=0xed0000; i<0xed4000; i++)
+	{
+	  Memory_WriteB(i, 0xff);
+	}
+	Memory_WriteB(0xe8e00d, 0x55);	/* Block SRAM Access(91byte)*/
+	return;
+}
+// -----------------------------------------------------------
+//   Set Memorry Size
+// -----------------------------------------------------------
+void
+SRAM_SetRamSize(uint8_t size)
+{
+	Memory_WriteB(0xe8e00d, 0x31);	/* Allow SRAM Access(91byte)*/
+
+	 Memory_WriteB(0xed0008, 0x00);
+	 Memory_WriteB(0xed0009, (size&0xf0));
+	 Memory_WriteB(0xed000a, 0x00);
+	 Memory_WriteB(0xed000b, 0x00);
+
+	Memory_WriteB(0xe8e00d, 0x55);	/* Block SRAM Access(91byte)*/
+	return;
+}
+// -----------------------------------------------------------
 //   SCSI-IPL 起動をSRAMに設定
 // -----------------------------------------------------------
-void 
+void
 SRAM_SetSCSIMode(int32_t mode)/*1:Ex-SCSI 2:In-SCSI*/
 {
 
 	Memory_WriteB(0xe8e00d, 0x31);	/* Allow SRAM Access(91byte)*/
 	switch(mode){/*SRAM SCSI set*/
 		case 0:/*No-SCSI*/
-			Memory_WriteB(0xea006f, 0x00);	/*No SCSI*/
-			Memory_WriteB(0xea0070, 0x07);	/*Set ID=7*/
-			Memory_WriteB(0xea0071, 0x00);	/*SASI flag all 0*/
+			Memory_WriteB(0xed006f, 0x00);	/*No SCSI*/
+			Memory_WriteB(0xed0070, 0x07);	/*Set ID=7*/
+			Memory_WriteB(0xed0071, 0x00);	/*SASI flag all 0*/
 			break;
 		case 1:/*SCSI EX*/
-			Memory_WriteB(0xea000c, 0x00);	/*ExSCSI-IPL*/
-			Memory_WriteB(0xea000d, 0xea);
-			Memory_WriteB(0xea000e, 0x00);
-			Memory_WriteB(0xea000f, 0x20);
-			Memory_WriteB(0xea006f, 'V');	/*Activate SCSI*/
-			Memory_WriteB(0xea0070, 0x0f);	/*ExternalSCSI Set ID=7*/
-			Memory_WriteB(0xea0071, 0x00);	/*SASI flag all 0*/
+			Memory_WriteB(0xed000c, 0x00);	/*ExSCSI-IPL*/
+			Memory_WriteB(0xed000d, 0xea);
+			Memory_WriteB(0xed000e, 0x00);
+			Memory_WriteB(0xed000f, 0x20);
+			Memory_WriteB(0xed006f, 'V');	/*Activate SCSI*/
+			Memory_WriteB(0xed0070, 0x0f);	/*ExternalSCSI Set ID=7*/
+			Memory_WriteB(0xed0071, 0x00);	/*SASI flag all 0*/
 			break;
 		case 2:/*SCSI IN*/
-			Memory_WriteB(0xea000c, 0x00);	/*InSCSI-IPL*/
-			Memory_WriteB(0xea000d, 0xfc);
-			Memory_WriteB(0xea000e, 0x00);
-			Memory_WriteB(0xea000f, 0x00);
-			Memory_WriteB(0xea006f, 'V');	/*Activate SCSI*/
-			Memory_WriteB(0xea0070, 0x07);	/*InternalSCSI Set ID=7*/
-			Memory_WriteB(0xea0071, 0x00);	/*SASI flag all 0*/
+			Memory_WriteB(0xed000c, 0x00);	/*InSCSI-IPL*/
+			Memory_WriteB(0xed000d, 0xfc);
+			Memory_WriteB(0xed000e, 0x00);
+			Memory_WriteB(0xed000f, 0x00);
+			Memory_WriteB(0xed006f, 'V');	/*Activate SCSI*/
+			Memory_WriteB(0xed0070, 0x07);	/*InternalSCSI Set ID=7*/
+			Memory_WriteB(0xed0071, 0x00);	/*SASI flag all 0*/
 			break;
 		default:
 			break;
@@ -73,7 +106,7 @@ SRAM_SetSASIDrive(uint8_t drive)/*0~15 Active SASI drive*/
 
 	Memory_WriteB(0xe8e00d, 0x31);	/* Allow SRAM Access(91byte)*/
 
-		Memory_WriteB(0xea005a, drive); /*SASI Dive (set active)*/
+		Memory_WriteB(0xed005a, drive); /*SASI Dive (set active)*/
 
 	Memory_WriteB(0xe8e00d, 0x55);	/* Block SRAM Access(91byte)*/
 

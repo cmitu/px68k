@@ -38,6 +38,7 @@
 #include "keyboard.h"
 #include "fileio.h"
 #include "prop.h"
+#include "x68kmemory.h"
 
 char ini_title[] = "WinX68k";
 
@@ -243,7 +244,7 @@ void LoadConfig(void)
 
 	Config.FrameRate = (uint8_t)GetPrivateProfileInt((const char*)ini_title, "FrameRate", 7, winx68k_ini);
 	if (!Config.FrameRate) Config.FrameRate = 7;
-	Config.ram_size = (int32_t)GetPrivateProfileInt((const char*)ini_title, "RAM(MB)", 2, winx68k_ini);
+	Config.ram_size = (int32_t)(Memory_ReadB(0xed0009) & 0xf0)>>4; // from SRAM
 	GetPrivateProfileString((const char*)ini_title, "StartDir", "", buf, MAX_PATH, winx68k_ini);
 	if (buf[0] != 0)
 		strncpy(filepath, buf, sizeof(filepath));
@@ -391,8 +392,8 @@ void SaveConfig(void)
 	WritePrivateProfileString((const char*)ini_title, "WinPosY", buf, winx68k_ini);
 	wsprintf(buf, "%d", Config.FrameRate);
 	WritePrivateProfileString((const char*)ini_title, "FrameRate", buf, winx68k_ini);
-	wsprintf(buf, "%d", Config.ram_size);
-	WritePrivateProfileString((const char*)ini_title, "RAM(MB)", buf, winx68k_ini);
+	//wsprintf(buf, "%d", Config.ram_size);  SRAMに保存してあるのでconfigには保存しない
+	//WritePrivateProfileString((const char*)ini_title, "RAM(MB)", buf, winx68k_ini);
 	WritePrivateProfileString((const char*)ini_title, "StartDir", filepath, winx68k_ini);
 
 	wsprintf(buf, "%d", Config.OPM_VOL);

@@ -657,7 +657,11 @@ uint32_t j;
 	  ret = ((scsi_TrCnt      ) & 0xff);
 	  break;
 	default:
+#ifndef C68K_BIG_ENDIAN
 	  ret = SCSIIPL[(adr^1)&0x1fff];/*SCSI-IPL_ROM*/
+#else
+	  ret = SCSIIPL[(adr  )&0x1fff];/*SCSI-IPL_ROM*/
+#endif
 	  break;
  }
 

@@ -258,7 +258,11 @@ wm_cnt(uint32_t addr, uint8_t val)
 
 	addr &= 0x00ffffff;
 	if (addr < 0x00c00000) {	// Use RAM upto 12MB
+#ifndef C68K_BIG_ENDIAN
 		MEM[addr ^ 1] = val;
+#else
+		MEM[addr    ] = val;
+#endif
 	} else if (addr < 0x00e00000) {
 		GVRAM_Write(addr, val);
 	} else {
@@ -423,7 +427,11 @@ rm_main(uint32_t addr)
 
 	addr &= 0x00ffffff;
 	if (addr < 0x00c00000) {	// Use RAM upto 12MB
+#ifndef C68K_BIG_ENDIAN
 		v = MEM[addr ^ 1];
+#else
+		v = MEM[addr    ];
+#endif
 	} else if (addr < 0x00e00000) {
 		v = GVRAM_Read(addr);
 	} else {
@@ -443,8 +451,11 @@ rm_font(uint32_t addr)
 static uint8_t
 rm_ipl(uint32_t addr)
 {
-
+#ifndef C68K_BIG_ENDIAN
 	return IPL[(addr & 0x3ffff) ^ 1];
+#else
+	return IPL[(addr & 0x3ffff)    ];
+#endif
 }
 
 static uint8_t
