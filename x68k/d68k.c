@@ -150,9 +150,9 @@ static int32_t  CLIB_DECL compare_nof_true_bits(const void *aptr, const void *bp
 typedef struct
 {
    void (*opcode_handler)(void); /* handler function */
-   uint32_t mask;                    /* mask on opcode */
-   uint32_t match;                   /* what to match after masking */
-   uint32_t ea_mask;                 /* what ea modes are allowed */
+   uint16_t mask;                    /* mask on opcode */
+   uint16_t match;                   /* what to match after masking */
+   uint16_t ea_mask;                 /* what ea modes are allowed */
 } opcode_struct;
 
 

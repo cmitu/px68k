@@ -30,7 +30,7 @@
 
 #define STDCALL
 #define	LABEL
-#define	__stdcall
+//#define	__stdcall
 
 typedef uint8_t	UINT8;
 typedef uint16_t	UINT16;
