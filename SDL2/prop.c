@@ -233,7 +233,7 @@ set_dir:
 
 void LoadConfig(void)
 {
-	int_fast16_t	i, j;
+	int		i, j;
 	char	buf[CFGLEN];
 
 	Config.MenuLanguage = (int32_t)GetPrivateProfileInt((const char*)ini_title, "MenuLanguage", 0, winx68k_ini);
@@ -379,7 +379,7 @@ extern BOOL WritePrivateProfileString(const char* , const char* , const char* , 
 
 void SaveConfig(void)
 {
-	int_fast16_t	i, j;
+	int		i, j;
 	char	buf[CFGLEN], buf2[CFGLEN];
 
 	wsprintf(buf, "%d", Config.MenuLanguage);
