@@ -67,7 +67,9 @@ SDL_AudioFormat deviceFormat;
 int32_t
 DSound_Init(uint32_t rate, uint32_t buflen)
 {
-	SDL_AudioSpec fmt;
+	SDL_AudioSpec fmt; //要求format
+	SDL_AudioSpec actfmt; // SDL返答format
+
 	// Linuxは2倍(SDL1.2)、Android(SDL2.0)は4倍のlenでcallbackされた。
 	// この値を小さくした方が音の遅延は少なくなるが負荷があがる
 	uint32_t samples = 2048;
@@ -93,12 +95,16 @@ DSound_Init(uint32_t rate, uint32_t buflen)
 	fmt.userdata = NULL;
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
-	audio_dev = SDL_OpenAudioDevice(NULL, 0, &fmt, NULL, 0);
+	audio_dev = SDL_OpenAudioDevice(NULL, 0, &fmt, &actfmt, 0);//SDL側で合わせてね
 	if (audio_dev == 0) {
-		return FALSE;
+	  p6logd("SDL Audio open device error.\n");
+	  return FALSE;
 	}
-	if(fmt.size == 0){ fmt.size = fmt.samples * fmt.channels * 8; }//自動計算しない場合用
-	deviceFormat=fmt.format; //保存
+	if(actfmt.size == 0){ //自動計算しない場合用(普通はありえない)
+	 p6logd("SDL Audio open size error.\n");
+	 return FALSE;
+	}
+	deviceFormat=actfmt.format; //保存
 	SDL_PauseAudioDevice(audio_dev, 0); //Start!
 	audio_fd = 1; //flag
 #else
