@@ -234,7 +234,6 @@ WinX68k_SCSICheck()
 	}
 #endif
 
-
  return;
 }
 
@@ -300,9 +299,9 @@ WinX68k_Reset(void)
 {
 	OPM_Reset();
 
-	C68k_Reset(&C68K);
-	C68k_Set_AReg(&C68K, 7, (IPL[0x30001]<<24)|(IPL[0x30000]<<16)|(IPL[0x30003]<<8)|IPL[0x30002]);
-	C68k_Set_PC(&C68K, (IPL[0x30005]<<24)|(IPL[0x30004]<<16)|(IPL[0x30007]<<8)|IPL[0x30006]);
+	m68000_reset();
+	m68000_set_reg(M68K_A7,(IPL[0x30001]<<24)|(IPL[0x30000]<<16)|(IPL[0x30003]<<8)|IPL[0x30002]);
+	m68000_set_reg(M68K_PC,(IPL[0x30005]<<24)|(IPL[0x30004]<<16)|(IPL[0x30007]<<8)|IPL[0x30006]);
 
 	Memory_Init();
 	CRTC_Init();
@@ -448,7 +447,7 @@ void WinX68k_Exec(void)
 		{
 			//C68K.ICount = n;
 			//C68k_Exec(&C68K, C68K.ICount);
-			C68k_Exec(&C68K, n);
+			m68000_execute(n);
 			m = (n-m68000_ICountBk);			// 経過クロック数
 			ClkUsed += m*10;
 			usedclk = ClkUsed/clkdiv;

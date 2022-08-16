@@ -73,8 +73,8 @@ int32_t m68000_execute(int32_t cycles)
 /*--------------------------------------------------------
 	割り込み処理
 --------------------------------------------------------*/
-
-void m68000_set_irq_line(int32_t irqline, int32_t state)
+//void m68000_set_irq_line(int32_t irqline, int32_t state)
+void m68000_set_irq_line(int32_t irqline)
 {
 //	if (irqline == IRQ_LINE_NMI)
 //		irqline = 7;

@@ -192,13 +192,13 @@ WinX68k_SCSICheck(void)
 	if (scsi) {
 		fp = File_OpenCurDir((char *)SCSIINIPLFILE);/*InSCSI-IPL*/
 		if (fp == 0) {
-			p6logd("NO-SCSI-IPL for built-in.\n"); // No InSCSI-IPL
+			//p6logd("NO-SCSI-IPL for built-in.\n"); // No InSCSI-IPL
 			memset(IPL, 0, 0x10000);		// clear
-			memcpy(IPL, IN_SCSIIMG, sizeof(IN_SCSIIMG));	// Dummy-SCSI BIOS Load
+			//memcpy(IPL, IN_SCSIIMG, sizeof(IN_SCSIIMG));	// Dummy-SCSI BIOS Load
 		}
 		else{
 			strcat(window_title," SCSIin");
-			p6logd("SCSI-IPL for built-in.\n"); // Yes InSCSI-IPL
+			//p6logd("SCSI-IPL for built-in.\n"); // Yes InSCSI-IPL
 			File_Read(fp, IPL, 0x02000);/*0xfc0000~8KB*/
 			File_Close(fp);
 			memcpy( &IPL[0x00041A], EX_SCSIIOCS, sizeof(EX_SCSIIOCS));//IOCS Patch
@@ -211,7 +211,7 @@ WinX68k_SCSICheck(void)
 		if (fp == 0) {
 			//printf("NO-SCSI-IPL for CZ-6BS1.\n");// No CZ-6BS1-IPL
 			memset(SCSIIPL, 0, 0x02000);		// clear
-			memcpy(&SCSIIPL[0x20], EX_SCSIIMG, sizeof(EX_SCSIIMG));	// Dummy-SCSI BIOS Load
+			//memcpy(&SCSIIPL[0x20], EX_SCSIIMG, sizeof(EX_SCSIIMG));	// Dummy-SCSI BIOS Load
 		}
 		else{
 			//printf("SCSI-IPL for CZ-6BS1.\n");// Yes CZ-6BS1-IPL
@@ -296,9 +296,9 @@ WinX68k_Reset(void)
 {
 	OPM_Reset();
 
-	C68k_Reset(&C68K);
-	C68k_Set_AReg(&C68K, 7, (IPL[0x30001]<<24)|(IPL[0x30000]<<16)|(IPL[0x30003]<<8)|IPL[0x30002]);
-	C68k_Set_PC(&C68K, (IPL[0x30005]<<24)|(IPL[0x30004]<<16)|(IPL[0x30007]<<8)|IPL[0x30006]);
+	m68000_reset();
+	m68000_set_reg(M68K_A7,(IPL[0x30001]<<24)|(IPL[0x30000]<<16)|(IPL[0x30003]<<8)|IPL[0x30002]);
+	m68000_set_reg(M68K_PC,(IPL[0x30005]<<24)|(IPL[0x30004]<<16)|(IPL[0x30007]<<8)|IPL[0x30006]);
 
 	Memory_Init();
 	CRTC_Init();
@@ -443,7 +443,7 @@ void WinX68k_Exec(void)
 		{
 			//C68K.ICount = n;
 			//C68k_Exec(&C68K, C68K.ICount);
-			C68k_Exec(&C68K, n);
+			m68000_execute(n);
 			m = (n-m68000_ICountBk);			// 経過クロック数
 			ClkUsed += m*10;
 			usedclk = ClkUsed/clkdiv;

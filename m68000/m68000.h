@@ -26,7 +26,7 @@ void m68000_reset(void);
 void m68000_exit(void);
 int32_t  m68000_execute(int32_t cycles);
 
-void m68000_set_irq_line(int32_t irqline, int32_t state);
+void m68000_set_irq_line(int32_t irqline);
 void m68000_set_irq_callback(int32_t (*callback)(int32_t irqline));
 uint32_t  m68000_get_reg(int32_t regnum);
 void m68000_set_reg(int32_t regnum, uint32_t val);

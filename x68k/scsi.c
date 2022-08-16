@@ -10,7 +10,7 @@
 #include	"common.h"
 #include	"fileio.h"
 #include	"winx68k.h"
-#include	"m68000.h"
+#include	"../m68000/m68000.h"
 #include	"../SDL2/prop.h"
 #include	"../m68000/c68k/c68k.h"
 #include	"x68kmemory.h"
@@ -274,59 +274,59 @@ if(adr == 0xe9f800){ // SCSI-IOCS
  switch(SCSIiocs)
  {
 	case 0x00:/*SPC のリセット及び SCSI バスのリセット*/
-		C68k_Set_DReg(&C68K, 0, 0x00);/*OK*/
+		m68000_set_reg(M68K_D0,0);/*OK*/
 	 break;
 	case 0x01:/*アービトレーションフェーズとセレクションフェーズの実行*/
-		target_id = C68k_Get_DReg(&C68K, 4) & 0xff;
-		C68k_Set_DReg(&C68K, 0, 0x00);/*OK*/
+		target_id = m68000_get_reg(M68K_D4) & 0xff;
+		m68000_set_reg(M68K_D0,0);/*OK*/
 	 break;
 	case 0x02:/*アービトレーションフェーズとセレクションフェーズの実行(ATN)*/
-		target_id = C68k_Get_DReg(&C68K, 4) & 0xff;
+		target_id = m68000_get_reg(M68K_D4) & 0xff;
 		//scsi_atn = TRUE;
-		C68k_Set_DReg(&C68K, 0, 0x00);/*OK*/
+		m68000_set_reg(M68K_D0,0);/*OK*/
 	 break;
 	case 0x03:/*コマンドアウトフェーズの実行*/
-		C68k_Set_DReg(&C68K, 0, 0x00);/*OK(ダミー)*/
+		m68000_set_reg(M68K_D0,0);/*OK(ダミー)*/
 	 break;
 	case 0x04:/*データインフェーズの実行*/
-		C68k_Set_DReg(&C68K, 0, 0x00);/*OK(ダミー)*/
+		m68000_set_reg(M68K_D0,0);/*OK(ダミー)*/
 	 break;
 	case 0x05:/*データアウトフェーズの実行*/
-		C68k_Set_DReg(&C68K, 0, 0x00);/*OK(ダミー)*/
+		m68000_set_reg(M68K_D0,0);/*OK(ダミー)*/
 	 break;
 	case 0x06:/*ステータスインフェーズの実行*/
 		/*00:Good 02:chkCondition 04:ConditionMet 08:Busy 10:Intermediate 14:Intermediate ConditionMet*/
-		C68k_Set_DReg(&C68K, 0, 0x00);/*OK(ダミー)*/
+		m68000_set_reg(M68K_D0,0);/*OK(ダミー)*/
 	 break;
 	case 0x07:/*メッセージインフェーズの実行*/
 		/*00: CommandComplete 01:ExtendedMessage 02:OneByteMessage 20:2ByteMessage*/
-		C68k_Set_DReg(&C68K, 0, 0x00);/*OK(ダミー)*/
+		m68000_set_reg(M68K_D0,0);/*OK(ダミー)*/
 	 break;
 	case 0x08:/*メッセージアウトフェーズの実行*/
-		C68k_Set_DReg(&C68K, 0, 0x00);/*OK(ダミー)*/
+		m68000_set_reg(M68K_D0,0);/*OK(ダミー)*/
 	 break;
 	case 0x09:/*フェーズセンス*/
-		C68k_Set_DReg(&C68K, 0, 0x00);/*OK(ダミー)*/
+		m68000_set_reg(M68K_D0,0);/*OK(ダミー)*/
 	 break;
 	case 0x0a:/*SCSI IOCS のバージョンを調べる*/
-		//C68k_Set_DReg(&C68K, 0, 0x00);/*X68 Super*/
-		//C68k_Set_DReg(&C68K, 0, 0x01);/*CZ-6BS1*/
-		//C68k_Set_DReg(&C68K, 0, 0x03);/*X68 XVI*/
-		C68k_Set_DReg(&C68K, 0, 0x10);/*X68030 */
+		//m68000_set_reg(M68K_D0,0);/*X68 Super*/
+		//m68000_set_reg(M68K_D0, 0x01);/*CZ-6BS1*/
+		//m68000_set_reg(M68K_D0, 0x03);/*X68 XVI*/
+		m68000_set_reg(M68K_D0, 0x10);/*X68030 */
 	 break;
 	case 0x0b:/*データインフェーズの実行*/
-		C68k_Set_DReg(&C68K, 0, 0x00);/*OK(ダミー)*/
+		m68000_set_reg(M68K_D0,0);/*OK(ダミー)*/
 	 break;
 	case 0x0c:/*データアウトフェーズの実行*/
-		C68k_Set_DReg(&C68K, 0, 0x00);/*OK(ダミー)*/
+		m68000_set_reg(M68K_D0,0);/*OK(ダミー)*/
 	 break;
 	case 0x0d:/*メッセージアウトフェーズの実行*/
-		C68k_Set_DReg(&C68K, 0, 0x11);/*NG(未サポート)*/
+		m68000_set_reg(M68K_D0,0x11);/*NG(未サポート)*/
 	 break;
 	case 0x20:/*INQUIRY データの要求*/
-		target_id = C68k_Get_DReg(&C68K, 4) & 0xff;
-		m68_adrs  = C68k_Get_AReg(&C68K, 1);
-		dtcnt     = C68k_Get_DReg(&C68K, 3);
+		target_id = m68000_get_reg(M68K_D4) & 0xff;
+		m68_adrs  = m68000_get_reg(M68K_A1);
+		dtcnt     = m68000_get_reg(M68K_D3);
 		SCSI_Device = target_id;
 		SCSI_Blocks = 0;
 		SCSI_BlockSize = 512;
@@ -334,21 +334,21 @@ if(adr == 0xe9f800){ // SCSI-IOCS
 			for(i=0; i<dtcnt; i++){
 			  Memory_WriteB(m68_adrs+i, INQHD[i]);
 			}
-			C68k_Set_DReg(&C68K, 0, 0x00);/*OK*/
+			m68000_set_reg(M68K_D0,0);/*OK*/
 		}
 		else{
-			C68k_Set_DReg(&C68K, 0, 0x11);/*No device*/
+			m68000_set_reg(M68K_D0,0x11);/*No device*/
 		}
 	 break;
 	case 0x21:/*SCSI 装置よりデータの読み込み*/
 	case 0x26:/*拡張 Read*/
 	case 0x2e:/*DMA Read*/
-		target_id = C68k_Get_DReg(&C68K, 4) & 0xff;
-		m68_adrs  = C68k_Get_AReg(&C68K, 1);
-		dtcnt     = C68k_Get_DReg(&C68K, 3);/*読み込みブロック数*/
+		target_id = m68000_get_reg(M68K_D4) & 0xff;
+		m68_adrs  = m68000_get_reg(M68K_A1);
+		dtcnt     = m68000_get_reg(M68K_D3);/*読み込みブロック数*/
 		SCSI_Device = target_id;
-		SCSI_Blocks = C68k_Get_DReg(&C68K, 2);
-		switch(C68k_Get_DReg(&C68K, 5))
+		SCSI_Blocks = m68000_get_reg(M68K_D2);
+		switch(m68000_get_reg(M68K_D5))
 		{
 		  case 0: SCSI_BlockSize =  256; break;
 		  case 1: SCSI_BlockSize =  512; break;
@@ -360,10 +360,10 @@ if(adr == 0xe9f800){ // SCSI-IOCS
 			for(j=0; j<SCSI_BlockSize; j++){
 			  Memory_WriteB(m68_adrs+(i*SCSI_BlockSize)+j,SCSI_Buf[j]);
 			}
-			C68k_Set_DReg(&C68K, 0, 0x00);/*OK*/
+			m68000_set_reg(M68K_D0,0);/*OK*/
 		  }
 		  else{
-			C68k_Set_DReg(&C68K, 0, 0x11);/*err*/
+			m68000_set_reg(M68K_D0,0x11);/*err*/
 			break;
 		  }
 		  SCSI_Blocks++;
@@ -371,12 +371,12 @@ if(adr == 0xe9f800){ // SCSI-IOCS
 	 break;
 	case 0x22:/*SCSI 装置へのデータの書き込み*/
 	case 0x27:/*拡張 Write*/
-		target_id = C68k_Get_DReg(&C68K, 4) & 0xff;
-		m68_adrs  = C68k_Get_AReg(&C68K, 1);
-		dtcnt     = C68k_Get_DReg(&C68K, 3);/*読み込みブロック数*/
+		target_id = m68000_get_reg(M68K_D4) & 0xff;
+		m68_adrs  = m68000_get_reg(M68K_A1);
+		dtcnt     = m68000_get_reg(M68K_D3);/*読み込みブロック数*/
 		SCSI_Device = target_id;
-		SCSI_Blocks = C68k_Get_DReg(&C68K, 2);
-		switch(C68k_Get_DReg(&C68K, 5))
+		SCSI_Blocks = m68000_get_reg(M68K_D2);
+		switch(m68000_get_reg(M68K_D5))
 		{
 		  case 0: SCSI_BlockSize =  256; break;
 		  case 1: SCSI_BlockSize =  512; break;
@@ -388,53 +388,53 @@ if(adr == 0xe9f800){ // SCSI-IOCS
 		    SCSI_Buf[j] = Memory_ReadB(m68_adrs+(i*SCSI_BlockSize)+j);
 		  }
 		  if(SCSI_BlockWrite()==1){
-			C68k_Set_DReg(&C68K, 0, 0x00);/*OK*/
+			m68000_set_reg(M68K_D0,0);/*OK*/
 		  }
 		  else{
-			C68k_Set_DReg(&C68K, 0, 0x11);/*err*/
+			m68000_set_reg(M68K_D0,0x11);/*err*/
 			break;
 		  }
 		  SCSI_Blocks++;
 		}
 	 break;
 	case 0x23:/*SCSI 装置のフォーマット*/
-		target_id = C68k_Get_DReg(&C68K, 4) & 0xff;
+		target_id = m68000_get_reg(M68K_D4) & 0xff;
 		SCSI_Device = target_id;
 		SCSI_Blocks = 0;
 		SCSI_BlockSize = 512;
 		if(target_id == (Memory_ReadB(0xed001b) & 0x07))/*OWN-ID check*/
-			C68k_Set_DReg(&C68K, 0, 0xffffffff);/*err(not support)*/
+			m68000_set_reg(M68K_D0, 0xffffffff);/*err(not support)*/
 
 		memset(SCSI_Buf, 0, SCSI_BlockSize);
 		memcpy(SCSI_Buf,MAGICSTR,sizeof(MAGICSTR));
 		if((SCSI_BlockWrite()==1)&&(SCSI_OK[target_id]==TRUE)){
-			C68k_Set_DReg(&C68K, 0, 0x00);/*OK*/
+			m68000_set_reg(M68K_D0,0);/*OK*/
 		}
 		else{
-			C68k_Set_DReg(&C68K, 0, 0xffffffff);/*err(not support)*/
+			m68000_set_reg(M68K_D0, 0xffffffff);/*err(not support)*/
 		}
 	 break;
 	case 0x24:/*SCSI 装置が動作可能であるか調べる*/
-		target_id = C68k_Get_DReg(&C68K, 4) & 0xff;
+		target_id = m68000_get_reg(M68K_D4) & 0xff;
 		SCSI_Device = target_id;
 		SCSI_Blocks = 0;
 		SCSI_BlockSize = 512;
 		if(target_id == (Memory_ReadB(0xed001b) & 0x07)){/*OWN-ID check*/
-			C68k_Set_DReg(&C68K, 0, 0xffffffff);/*err(not support)*/
+			m68000_set_reg(M68K_D0, 0xffffffff);/*err(not support)*/
 		}
 		else{
 		  if((SCSI_BlockRead()==1)&&(SCSI_OK[target_id]==TRUE)){
-			C68k_Set_DReg(&C68K, 0, 0x00);/*OK*/
+			m68000_set_reg(M68K_D0,0);/*OK*/
 			//printf("DeviceNO %d OK\n",SCSI_Device);
 		  }
 		  else{
-			C68k_Set_DReg(&C68K, 0, 0x11);/*No device*/
+			m68000_set_reg(M68K_D0,0x11);/*No device*/
 		  }
 		}
 	 break;
 	case 0x25:/*SCSI 装置の容量に関する情報を調べる*/
-		target_id = C68k_Get_DReg(&C68K, 4) & 0xff;
-		m68_adrs  = C68k_Get_AReg(&C68K, 1);
+		target_id = m68000_get_reg(M68K_D4) & 0xff;
+		m68_adrs  = m68000_get_reg(M68K_A1);
 		SCSI_Device = target_id;
 		SCSI_Blocks = 0;
 		SCSI_BlockSize = 512;
@@ -451,32 +451,32 @@ if(adr == 0xe9f800){ // SCSI-IOCS
 			Memory_WriteD(m68_adrs, i);
 			INQ_blksize[target_id]=j;
 			Memory_WriteD(m68_adrs+4, j);
-			C68k_Set_DReg(&C68K, 0, 0x00);/*OK*/
+			m68000_set_reg(M68K_D0,0);/*OK*/
 		}
 		else{
-			C68k_Set_DReg(&C68K, 0, 0x11);/*No device*/
+			m68000_set_reg(M68K_D0,0x11);/*No device*/
 		}
 	 break;
 	case 0x28:/*拡張 VERIFY コマンド*/
-		target_id = C68k_Get_DReg(&C68K, 4) & 0xff;
-		C68k_Set_DReg(&C68K, 0, 0x00);/*OK(DUMMY)*/
+		target_id = m68000_get_reg(M68K_D4) & 0xff;
+		m68000_set_reg(M68K_D0,0);/*OK(DUMMY)*/
 	  break;
 	case 0x29:/*MODE SENSE データの要求*/
-		target_id = C68k_Get_DReg(&C68K, 4) & 0xff;
-		C68k_Set_DReg(&C68K, 0, 0x00);/*OK(DUMMY)*/
+		target_id = m68000_get_reg(M68K_D4) & 0xff;
+		m68000_set_reg(M68K_D0,0);/*OK(DUMMY)*/
 	  break;
 	case 0x2a:/*MODE SELECT コマンド*/
-		target_id = C68k_Get_DReg(&C68K, 4) & 0xff;
-		C68k_Set_DReg(&C68K, 0, 0x00);/*OK(DUMMY)*/
+		target_id = m68000_get_reg(M68K_D4) & 0xff;
+		m68000_set_reg(M68K_D0,0);/*OK(DUMMY)*/
 	  break;
 	case 0x2b:/*SCSI 装置を指定の状態にセット*/
-		target_id = C68k_Get_DReg(&C68K, 4) & 0xff;
-		C68k_Set_DReg(&C68K, 0, 0x00);/*OK(DUMMY)*/
+		target_id = m68000_get_reg(M68K_D4) & 0xff;
+		m68000_set_reg(M68K_D0,0);/*OK(DUMMY)*/
 	  break;
 	case 0x2c:/*SCSI 装置のセンスデータを調べる*/
-		target_id = C68k_Get_DReg(&C68K, 4) & 0xff;
-		m68_adrs  = C68k_Get_AReg(&C68K, 1);
-		dtcnt     = C68k_Get_DReg(&C68K, 3);/*読み込みbyte数*/
+		target_id = m68000_get_reg(M68K_D4) & 0xff;
+		m68_adrs  = m68000_get_reg(M68K_A1);
+		dtcnt     = m68000_get_reg(M68K_D3);/*読み込みbyte数*/
 		SCSI_Device = target_id;
 		SCSI_Blocks = 0;
 		SCSI_BlockSize = 512;
@@ -486,30 +486,30 @@ if(adr == 0xe9f800){ // SCSI-IOCS
 			for (i=0; i<dtcnt; i++){
 			  Memory_WriteB(m68_adrs+i, RQ_SENSE[i]);
 			}
-			C68k_Set_DReg(&C68K, 0, 0x00);/*OK*/
+			m68000_set_reg(M68K_D0,0);/*OK*/
 		}
 		else{
-			C68k_Set_DReg(&C68K, 0, 0x11);/*No device*/
+			m68000_set_reg(M68K_D0,0x11);/*No device*/
 		}
 	 break;
 	case 0x2d:/*指定の論理ブロックアドレスへシークする*/
-		target_id = C68k_Get_DReg(&C68K, 4) & 0xff;
+		target_id = m68000_get_reg(M68K_D4) & 0xff;
 		SCSI_Device = target_id;
-		SCSI_Blocks = C68k_Get_DReg(&C68K, 2);
-		C68k_Set_DReg(&C68K, 0, 0x00);/*OK*/
+		SCSI_Blocks = m68000_get_reg(M68K_D2);
+		m68000_set_reg(M68K_D0,0);/*OK*/
 	 break;
 	case 0x2f:/*SCSI 装置に対して以降の操作を可能・不可能にすることを要求*/
-		target_id = C68k_Get_DReg(&C68K, 4) & 0xff;
-		dtcnt     = C68k_Get_DReg(&C68K, 3);/*(0:操作不可能 1:操作可能 2:メディア排出)*/
+		target_id = m68000_get_reg(M68K_D4) & 0xff;
+		dtcnt     = m68000_get_reg(M68K_D3);/*(0:操作不可能 1:操作可能 2:メディア排出)*/
 		if(dtcnt == 0) SCSI_OK[target_id] = FALSE;
 		if(dtcnt == 1) SCSI_OK[target_id] = TRUE;
 		if(dtcnt == 2) CZ_6MO1[target_id] = FALSE;
-		C68k_Set_DReg(&C68K, 0, 0x00);/*OK*/
+		m68000_set_reg(M68K_D0,0);/*OK*/
 	 break;
 	case 0x30:/*MO 排出*/
-		target_id = C68k_Get_DReg(&C68K, 4) & 0xff;
+		target_id = m68000_get_reg(M68K_D4) & 0xff;
 		CZ_6MO1[target_id] = FALSE;
-		C68k_Set_DReg(&C68K, 0, 0x00);/*OK*/
+		m68000_set_reg(M68K_D0,0);/*OK*/
 	 break;
 	case 0x31:/*欠陥ブロックの再割り当て*/
 	case 0x32:/*メディアのイジェクトの禁止/許可を設定*/
@@ -517,7 +517,7 @@ if(adr == 0xe9f800){ // SCSI-IOCS
 	case 0x37:/*SASI 装置をフォーマットする*/
 	case 0x38:/*SASI 装置の破損トラックを使用不能にする*/
 	case 0x39:/*SASI 装置を代替トラックを設定する*/
-		C68k_Set_DReg(&C68K, 0, 0x00);/*OK(ダミー)*/
+		m68000_set_reg(M68K_D0,0);/*OK(ダミー)*/
 	 break;
 	default:
 	 break;
@@ -563,7 +563,7 @@ if(adr == 0xe9f810){ //SCSI 起動
 	}
 
 
-	C68k_Set_AReg(&C68K, 1, 0x002000);/*OK*/
+	m68000_set_reg(M68K_A1, 0x002000);/*OK*/
 	return;
 }
 
