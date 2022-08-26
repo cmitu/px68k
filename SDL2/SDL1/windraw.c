@@ -271,34 +271,28 @@ void WinDraw_CleanupScreen(void)
 }
 
 /* Window Size set 
-  0: 800x600(default)
+  0: 800x600(default) or Resizable
   1: full-screen  */
 void WinDraw_ChangeMode(int32_t flg)
 {
-	uint32_t flags = 0;
-	printf("Trying full screen mode %d %d \n",Config.WinStrech,flg);
+	uint32_t w_flags;
 
-	switch (Config.WinStrech) {
-	case 0:		/* non action */
-		break;
-	case 1:		/* Normal-FullScreen */
-		if(flg == 0){
-			flags = SDL_SWSURFACE;
-		}
-		else{
-			flags = SDL_SWSURFACE | SDL_FULLSCREEN;
-		}
-		break;
-	default:
-		break;
+	if(flg == 0){
+		w_flags = SDL_SWSURFACE;
 	}
+	else{
+		w_flags = SDL_SWSURFACE | SDL_FULLSCREEN;
+	}
+
+	if(Config.WinStrech == 1)
+		w_flags |= SDL_RESIZABLE;
 
 	//SDL Video 初期化
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 	SDL_InitSubSystem(SDL_INIT_VIDEO);
 
 	//描画エリア再定義
-	SDL_SetVideoMode(FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, 16, flags);
+	SDL_SetVideoMode(FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, 16, w_flags);
 	sdl_surface = SDL_GetVideoSurface();
 
 	// menu描画用エリア再定義

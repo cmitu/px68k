@@ -594,8 +594,12 @@ int32_t main(int32_t argc, char *argv[])
 	SDL_WM_SetCaption(APPNAME" SDL", NULL);
 
 	/*SDL1*/
-	if (SDL_SetVideoMode(FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, 16, SDL_SWSURFACE) == NULL) {
-		puts("SDL_SetVideoMode() failed");
+	uint32_t flags = SDL_SWSURFACE;
+	if(Config.WinStrech == 1){
+		flags |= SDL_RESIZABLE;
+	}
+	if (SDL_SetVideoMode(FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, 16, flags) == NULL) {
+		p6logd("SDL_SetVideoMode() failed");
 		return 1;
 	}
 #else

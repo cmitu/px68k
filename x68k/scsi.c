@@ -246,12 +246,11 @@ void SCSI_Cleanup(void)
 {
 }
 
-// -----------------------------
-/* ダミーIPL IOCS(F5) */
-// -----------------------------
-void SCSI_iocs(uint32_t adr, uint8_t SCSIiocs)
+/* 代替SCSI-IOCS */
+void
+SCSI_iocs(uint8_t SCSIiocs)
 {
-  uint32_t i,j;
+ uint32_t i,j;
 
  uint32_t target_id;
  uint32_t m68_adrs;
@@ -270,7 +269,6 @@ void SCSI_iocs(uint32_t adr, uint8_t SCSIiocs)
 			'F','U','J','I','T','S','U',' ','M','C','R','3','2','3','0','S','S','-','S'};
  static uint8_t MAGICSTR[] = {'X','6','8','S','C','S','I','1',0x02,00, 00,00,00,00 ,0x01,0x00};
 
-if(adr == 0xe9f800){ // SCSI-IOCS
  switch(SCSIiocs)
  {
 	case 0x00:/*SPC のリセット及び SCSI バスのリセット*/
@@ -309,7 +307,7 @@ if(adr == 0xe9f800){ // SCSI-IOCS
 		m68000_set_reg(M68K_D0,0);/*OK(ダミー)*/
 	 break;
 	case 0x0a:/*SCSI IOCS のバージョンを調べる*/
-		//m68000_set_reg(M68K_D0,0);/*X68 Super*/
+		//m68000_set_reg(M68K_D0, 0x00);/*X68 Super*/
 		//m68000_set_reg(M68K_D0, 0x01);/*CZ-6BS1*/
 		//m68000_set_reg(M68K_D0, 0x03);/*X68 XVI*/
 		m68000_set_reg(M68K_D0, 0x10);/*X68030 */
@@ -321,7 +319,7 @@ if(adr == 0xe9f800){ // SCSI-IOCS
 		m68000_set_reg(M68K_D0,0);/*OK(ダミー)*/
 	 break;
 	case 0x0d:/*メッセージアウトフェーズの実行*/
-		m68000_set_reg(M68K_D0,0x11);/*NG(未サポート)*/
+		m68000_set_reg(M68K_D0, 0x11);/*NG(未サポート)*/
 	 break;
 	case 0x20:/*INQUIRY データの要求*/
 		target_id = m68000_get_reg(M68K_D4) & 0xff;
@@ -337,7 +335,7 @@ if(adr == 0xe9f800){ // SCSI-IOCS
 			m68000_set_reg(M68K_D0,0);/*OK*/
 		}
 		else{
-			m68000_set_reg(M68K_D0,0x11);/*No device*/
+			m68000_set_reg(M68K_D0, 0x11);/*No device*/
 		}
 	 break;
 	case 0x21:/*SCSI 装置よりデータの読み込み*/
@@ -363,7 +361,7 @@ if(adr == 0xe9f800){ // SCSI-IOCS
 			m68000_set_reg(M68K_D0,0);/*OK*/
 		  }
 		  else{
-			m68000_set_reg(M68K_D0,0x11);/*err*/
+			m68000_set_reg(M68K_D0, 0x11);/*err*/
 			break;
 		  }
 		  SCSI_Blocks++;
@@ -391,7 +389,7 @@ if(adr == 0xe9f800){ // SCSI-IOCS
 			m68000_set_reg(M68K_D0,0);/*OK*/
 		  }
 		  else{
-			m68000_set_reg(M68K_D0,0x11);/*err*/
+			m68000_set_reg(M68K_D0, 0x11);/*err*/
 			break;
 		  }
 		  SCSI_Blocks++;
@@ -428,7 +426,7 @@ if(adr == 0xe9f800){ // SCSI-IOCS
 			//printf("DeviceNO %d OK\n",SCSI_Device);
 		  }
 		  else{
-			m68000_set_reg(M68K_D0,0x11);/*No device*/
+			m68000_set_reg(M68K_D0, 0x11);/*No device*/
 		  }
 		}
 	 break;
@@ -454,7 +452,7 @@ if(adr == 0xe9f800){ // SCSI-IOCS
 			m68000_set_reg(M68K_D0,0);/*OK*/
 		}
 		else{
-			m68000_set_reg(M68K_D0,0x11);/*No device*/
+			m68000_set_reg(M68K_D0, 0x11);/*No device*/
 		}
 	 break;
 	case 0x28:/*拡張 VERIFY コマンド*/
@@ -489,7 +487,7 @@ if(adr == 0xe9f800){ // SCSI-IOCS
 			m68000_set_reg(M68K_D0,0);/*OK*/
 		}
 		else{
-			m68000_set_reg(M68K_D0,0x11);/*No device*/
+			m68000_set_reg(M68K_D0, 0x11);/*No device*/
 		}
 	 break;
 	case 0x2d:/*指定の論理ブロックアドレスへシークする*/
@@ -522,12 +520,19 @@ if(adr == 0xe9f800){ // SCSI-IOCS
 	default:
 	 break;
  }
-return;
+  return;
 }
 
-if(adr == 0xe9f810){ //SCSI 起動
-	printf("SCSI-IPL %x  \n",SCSIiocs);
+/* 代替SCSI-IPL */
+void
+SCSI_ipl(void)
+{
+ uint32_t i,j;
+
+
+	p6logd("SCSI-IPL\n");
 	Memory_WriteD(0x7d4, 0xea004a);	// set SCSI-IOCS vect.
+	uint32_t own_id = Memory_ReadB(0xed0070) & 0x07;
 
 	SCSI_Device = 0;
 	SCSI_Blocks = 0;
@@ -536,7 +541,7 @@ if(adr == 0xe9f810){ //SCSI 起動
 		for(j=0; j<SCSI_BlockSize; j++){
 		  Memory_WriteB(0x02000+j,SCSI_Buf[j]);
 		}
-		if((Memory_ReadB(0x02000) != 'X')||(Memory_ReadB(0x02001) != '6')){ /*check X68SCSI1*/
+		if((Memory_ReadD(0x02000) != 0x58363853)||(Memory_ReadD(0x02001) != 0x43534931)){ /*check X68SCSI1*/
 		 printf("0");return;
 		}
 	}
@@ -562,14 +567,24 @@ if(adr == 0xe9f810){ //SCSI 起動
 		return;
 	}
 
+	if(Memory_ReadB(0x02000) != 0x60)
+		return;
 
 	m68000_set_reg(M68K_A1, 0x002000);/*OK*/
-	return;
+
+  return;
 }
 
-if(adr == 0xe9f820){ //Human 起動
-	printf("Human-IPL %x  \n",SCSIiocs);
+/* 代替Human-IPL */
+void
+Human_ipl(void)
+{
+ uint32_t i,j;
+
+
+	p6logd("Human-IPL\n");
 	Memory_WriteD(0x7d4, 0xea004a);	// set SCSI-IOCS vect.
+	uint32_t own_id = Memory_ReadB(0xed0070) & 0x07;
 
 	//boot情報 自分は起動不可
 	//IOCSベクタセット
@@ -586,15 +601,47 @@ if(adr == 0xe9f820){ //Human 起動
 		for(j=0; j<SCSI_BlockSize; j++){
 		  Memory_WriteB(0x02000+j,SCSI_Buf[j]);
 		}
-		if(Memory_ReadB(0x02000) != 'X'){ /*check X68SCSI1*/
-		 return;
+		if((Memory_ReadD(0x02000) != 0x58363853)||(Memory_ReadD(0x02004) != 0x43534931)){ /*check X68SCSI1*/
+		 printf("0");return;
 		}
 	}
 
+	SCSI_Blocks = 2;
+	if(SCSI_BlockRead()==2){
+		for(j=0; j<SCSI_BlockSize; j++){
+		  Memory_WriteB(0x02000+j,SCSI_Buf[j]);
+		}
+		if(Memory_ReadD(0x2000)!=0x5836384B){ /*check X68K*/
+		 printf("3");return;
+		}
+		if((Memory_ReadD(0x02010) != 0x48756D61)||(Memory_ReadD(0x02014) != 0x6E36386B)){ /*check Humen68k*/
+		 printf("4");return;
+		}
+	}
+	else{
+		return;
+	}
 
+
+  return;
 }
 
-return;
+// ----------------------
+/* SCSI IPL/IOCS 分岐 */
+// ----------------------
+void SCSI_vecs(uint32_t adr, uint8_t SCSIiocs)
+{
+
+if(adr == 0xe9f800) // SCSI-IOCS
+	SCSI_iocs(SCSIiocs);
+
+if(adr == 0xe9f810) //SCSI 起動
+	SCSI_ipl();
+
+if(adr == 0xe9f820) //Human 起動
+	Human_ipl();
+
+ return;
 }
 
 // -----------------------------------

@@ -276,48 +276,29 @@ void WinDraw_CleanupScreen(void)
 }
 
 /* Window Size set 
-  0: 800x600(default)
+  0: 800x600(default) or Resizable
   1: full-screen  */
 void WinDraw_ChangeMode(int32_t flg)
 {
-	/* full screen mode(TRUE) <-> window mode(FALSE) */
-	uint32_t flags = 0;
-	printf("Trying full screen mode .%d %d.. \n",Config.WinStrech,flg);
+	uint32_t w_flags = 0;
 
-	switch (Config.WinStrech) {
-	case 0:		/* non action */
-		break;
-	case 1:		/* 800x600 / 4:3 Normal-FullScreen */
-		if (flg == 1) {
-		  flags =  SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN_DESKTOP;
-		}
-		else{
-		  flags =  SDL_WINDOW_SHOWN;
-		}
-		break;
-	default:
-		break;
+	if (flg == 1) {
+	  w_flags =  SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN_DESKTOP;
+	}
+	else{
+	  w_flags =  SDL_WINDOW_SHOWN;
 	}
 
-	if (flags == 0) return;
+	if (Config.WinStrech == 1){w_flags |= SDL_WINDOW_RESIZABLE;}
 
-	/* clear screen く*/
+	/* clear screen */
 	SDL_RenderClear(sdl_render);
 
 	/*texture 描画のみ有効。（surface描画は画面真っ黒）*/
-	SDL_SetWindowFullscreen(sdl_window, flags);
+	SDL_SetWindowFullscreen(sdl_window, w_flags);
 
-	/* clear screen く*/
+	/* clear screen */
 	ScreenClearFlg=1;
-
-	/*全画面時論理解像度を変更：実際の解像度と論理解像度を合わせる*/
-	if (flg == 1) {
-	 if(SDL_RenderSetLogicalSize( sdl_render ,FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT)){
-		p6logd("SetLogicalSize Error %s\n",SDL_GetError());
-		return ;
-	 }
-	}
-
 
  return ;
 }

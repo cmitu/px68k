@@ -625,8 +625,11 @@ int32_t main(int32_t argc, char *argv[])
 #else
 	/* SDL2 for GPU */
 	strcat(window_title," SDL2");
-	sdl_window = SDL_CreateWindow(window_title, winx, winy, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+	uint32_t flags = SDL_WINDOW_SHOWN;
+	if (Config.WinStrech == 1){flags |= SDL_WINDOW_RESIZABLE;} /*Windowサイズ変更可能？*/
+	sdl_window = SDL_CreateWindow(window_title, winx, winy, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, flags);
 	sdl_render = SDL_CreateRenderer( sdl_window ,-1, SDL_RENDERER_ACCELERATED);
+	SDL_RenderSetLogicalSize( sdl_render ,FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT);
 	SDL_RenderClear(sdl_render);
 #endif
 
@@ -785,6 +788,10 @@ int32_t main(int32_t argc, char *argv[])
 			switch (ev.type) {
 			case SDL_QUIT:
 				goto end_loop;
+			case SDL_WINDOWEVENT:
+				if(ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED){ ScreenClearFlg = 1;}
+				if(ev.window.event == SDL_WINDOWEVENT_RESIZED ){ ScreenClearFlg = 1; }
+			break;
 			case SDL_MOUSEBUTTONDOWN:
 				if(ev.button.button == SDL_BUTTON_LEFT){//左ボタンを押した
 					Mouse_Event((int)1, 1, 0);

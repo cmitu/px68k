@@ -25,9 +25,9 @@
 
 ## Need
 * SDL2 (still support SDL1)(https://www.libsdl.org/)
+* `iplrom.dat` `cgrom.dat` and SCSI-IPL `scsiexrom.dat` in .keropi folder
 * Munt/MT-32 emu (if needed)(https://sourceforge.net/projects/munt/)
 * fluidsynth and SoundFont2 (if needed)(https://www.fluidsynth.org/)
-* `iplrom.dat` `cgrom.dat` and SCSI-IPL `scsiexrom.dat` in .keropi folder
 
 ## Build
 
