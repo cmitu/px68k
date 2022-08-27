@@ -377,6 +377,9 @@ static void menu_system(int32_t v)
 	case 1:
 		IRQH_Int(7, NULL);
 		break;
+	case 2:
+		return; /*quit for main loop*/
+		break;
 	case 3 :
 		SRAM_Clear();
 	case 0 :
