@@ -908,53 +908,53 @@ int32_t Get_FileSize(uint8_t SCSI_ID)
 }
 
 // -----------------------------------------------------------------------
-//   FileRead （SCSI_BlocksからBlockSize分ReadしてSCSI_Bufに格納）
+//   SCSI BlockRead （SCSI_BlocksからBlockSize分ReadしてSCSI_Bufに格納）
 // -----------------------------------------------------------------------
 int32_t SCSI_BlockRead(void)
 {
 	FILEH fp;
 	memset(SCSI_Buf, 0, SCSI_BlockSize);
-	fp = File_Open((char *)Config.SCSIEXHDImage[SCSI_Device]);
+	fp = file_open((char *)Config.SCSIEXHDImage[SCSI_Device]);
 	if (!fp)
 	{
 		memset(SCSI_Buf, 0, SCSI_BlockSize);
 		return -1;
 	}
-	if (File_Seek(fp, SCSI_Blocks*SCSI_BlockSize, FSEEK_SET)!=(SCSI_Blocks*SCSI_BlockSize)) 
+	if (file_seek(fp, SCSI_Blocks*SCSI_BlockSize, FSEEK_SET)!=(SCSI_Blocks*SCSI_BlockSize)) 
 	{
-		File_Close(fp);
+		file_close(fp);
 		return 0;
 	}
-	if (File_Read(fp, SCSI_Buf, SCSI_BlockSize)!=SCSI_BlockSize)
+	if (file_read(fp, SCSI_Buf, SCSI_BlockSize)!=SCSI_BlockSize)
 	{
-		File_Close(fp);
+		file_close(fp);
 		return 0;
 	}
-	File_Close(fp);
+	file_close(fp);
 
 	return 1;/*success*/
 }
 
 
 // -----------------------------------------------------------------------
-//   FileWrite（SCSI_BlocksからBlockSize分,Write）
+//   SCSI BlockWrite（SCSI_BlocksからBlockSize分,Write）
 // -----------------------------------------------------------------------
 int32_t SCSI_BlockWrite(void)
 {	FILEH fp;
 
-	fp = File_Open((char *)Config.SCSIEXHDImage[SCSI_Device]);
+	fp = file_open((char *)Config.SCSIEXHDImage[SCSI_Device]);
 	if (!fp) return -1;
-	if (File_Seek(fp, SCSI_Blocks*SCSI_BlockSize, FSEEK_SET)!=(SCSI_Blocks*SCSI_BlockSize))
+	if (file_seek(fp, SCSI_Blocks*SCSI_BlockSize, FSEEK_SET)!=(SCSI_Blocks*SCSI_BlockSize))
 	{
-		File_Close(fp);
+		file_close(fp);
 		return 0;
 	}
-	if (File_Write(fp, SCSI_Buf, SCSI_BlockSize)!=SCSI_BlockSize)
+	if (file_write(fp, SCSI_Buf, SCSI_BlockSize)!=SCSI_BlockSize)
 	{
-		File_Close(fp);
+		file_close(fp);
 		return 0;
 	}
-	File_Close(fp);
+	file_close(fp);
 
 	return 1;/*success*/
 }
