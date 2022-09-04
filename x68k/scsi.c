@@ -914,23 +914,23 @@ int32_t SCSI_BlockRead(void)
 {
 	FILEH fp;
 	memset(SCSI_Buf, 0, SCSI_BlockSize);
-	fp = file_open((char *)Config.SCSIEXHDImage[SCSI_Device]);
+	fp = File_Open((char *)Config.SCSIEXHDImage[SCSI_Device]);
 	if (!fp)
 	{
 		memset(SCSI_Buf, 0, SCSI_BlockSize);
 		return -1;
 	}
-	if (file_seek(fp, SCSI_Blocks*SCSI_BlockSize, FSEEK_SET)!=(SCSI_Blocks*SCSI_BlockSize)) 
+	if (File_Seek(fp, SCSI_Blocks*SCSI_BlockSize, FSEEK_SET)!=(SCSI_Blocks*SCSI_BlockSize)) 
 	{
-		file_close(fp);
+		File_Close(fp);
 		return 0;
 	}
-	if (file_read(fp, SCSI_Buf, SCSI_BlockSize)!=SCSI_BlockSize)
+	if (File_Read(fp, SCSI_Buf, SCSI_BlockSize)!=SCSI_BlockSize)
 	{
-		file_close(fp);
+		File_Close(fp);
 		return 0;
 	}
-	file_close(fp);
+	File_Close(fp);
 
 	return 1;/*success*/
 }
@@ -942,19 +942,19 @@ int32_t SCSI_BlockRead(void)
 int32_t SCSI_BlockWrite(void)
 {	FILEH fp;
 
-	fp = file_open((char *)Config.SCSIEXHDImage[SCSI_Device]);
+	fp = File_Open((char *)Config.SCSIEXHDImage[SCSI_Device]);
 	if (!fp) return -1;
-	if (file_seek(fp, SCSI_Blocks*SCSI_BlockSize, FSEEK_SET)!=(SCSI_Blocks*SCSI_BlockSize))
+	if (File_Seek(fp, SCSI_Blocks*SCSI_BlockSize, FSEEK_SET)!=(SCSI_Blocks*SCSI_BlockSize))
 	{
-		file_close(fp);
+		File_Close(fp);
 		return 0;
 	}
-	if (file_write(fp, SCSI_Buf, SCSI_BlockSize)!=SCSI_BlockSize)
+	if (File_Write(fp, SCSI_Buf, SCSI_BlockSize)!=SCSI_BlockSize)
 	{
-		file_close(fp);
+		File_Close(fp);
 		return 0;
 	}
-	file_close(fp);
+	File_Close(fp);
 
 	return 1;/*success*/
 }

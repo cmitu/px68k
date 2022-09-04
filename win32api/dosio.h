@@ -47,25 +47,24 @@ extern "C" {
 void dosio_init(void);
 void dosio_term(void);
 							// ファイル操作
-FILEH file_open(char* filename);
-FILEH file_create(char* filename, int32_t ftype);
-uint32_t file_seek(FILEH handle, long pointer, short mode);
-uint32_t file_lread(FILEH handle, void *data, uint32_t length);
-uint32_t file_lwrite(FILEH handle, void *data, uint32_t length);
-uint16_t file_read(FILEH handle, void *data, uint16_t length);
-uint16_t file_write(FILEH handle, void *data, uint16_t length);
-int32_t file_zeroclr(FILEH handle, uint32_t length);
-uint16_t file_lineread(FILEH handle, void *data, uint16_t length);
-int16_t file_close(FILEH handle);
-int16_t file_attr(char* filename);
+FILEH File_Open(char* filename);
+FILEH File_Create(char* filename, int32_t ftype);
+uint32_t File_Seek(FILEH handle, long pointer, short mode);
+uint32_t File_Read(FILEH handle, void *data, uint32_t length);
+uint32_t File_Write(FILEH handle, void *data, uint32_t length);
+int32_t File_ZeroClr(FILEH handle, uint32_t length);
+uint16_t File_LineRead(FILEH handle, void *data, uint16_t length);
+int16_t File_Close(FILEH handle);
+int16_t File_Attr(char* filename);
 							// カレントファイル操作
-void file_setcd(char* exename);
-char* file_getcd(char* filename);
-FILEH file_open_c(char* filename);
-FILEH file_create_c(char* filename, int32_t ftype);
-short file_attr_c(char* filename);
+void File_Setcd(char* exename);
+char* File_Getcd(char* filename);
+FILEH File_OpenCurDir(char* filename);
+FILEH File_CreateCurDir(char* filename, int32_t ftype);
+short File_AttrCurDir(char* filename);
 
-int32_t file_getftype(char* filename);
+int32_t File_GetFType(char* filename);
+
 
 							// 日時の取得
 void dosdateset(uint8_t *dat);

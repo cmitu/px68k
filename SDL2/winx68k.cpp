@@ -572,7 +572,7 @@ int32_t main(int32_t argc, char *argv[])
 		return 1;
 
 	dosio_init();
-	file_setcd(winx68k_dir);
+	File_Setcd(winx68k_dir);
     puts(winx68k_dir);
 
 	SRAM_Init();

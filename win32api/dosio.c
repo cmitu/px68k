@@ -54,7 +54,7 @@ dosio_term(void)
 
 /* ファイル操作 */
 FILEH
-file_open(char* filename)
+File_Open(char* filename)
 {
 	FILEH	ret;
 
@@ -70,7 +70,7 @@ file_open(char* filename)
 }
 
 FILEH
-file_create(char* filename, int32_t ftype)
+File_Create(char* filename, int32_t ftype)
 {
 	FILEH	ret;
 
@@ -84,14 +84,14 @@ file_create(char* filename, int32_t ftype)
 }
 
 uint32_t
-file_seek(FILEH handle, long pointer, short mode)
+File_Seek(FILEH handle, long pointer, short mode)
 {
 
 	return SetFilePointer(handle, pointer, 0, mode);
 }
 
 uint32_t
-file_lread(FILEH handle, void *data, uint32_t length)
+File_Read(FILEH handle, void *data, uint32_t length)
 {
 	uint32_t	readsize;
 
@@ -101,7 +101,7 @@ file_lread(FILEH handle, void *data, uint32_t length)
 }
 
 uint32_t
-file_lwrite(FILEH handle, void *data, uint32_t length)
+File_Write(FILEH handle, void *data, uint32_t length)
 {
 	uint32_t	writesize;
 
@@ -110,18 +110,8 @@ file_lwrite(FILEH handle, void *data, uint32_t length)
 	return writesize;
 }
 
-uint16_t
-file_read(FILEH handle, void *data, uint16_t length)
-{
-	uint32_t	readsize;
-
-	if (ReadFile(handle, data, length, &readsize, NULL) == 0)
-		return 0;
-	return (uint16_t)readsize;
-}
-
 int32_t
-file_zeroclr(FILEH handle, uint32_t length)
+File_ZeroClr(FILEH handle, uint32_t length)
 {
 	char	buf[256];
 	uint32_t	size;
@@ -132,7 +122,7 @@ file_zeroclr(FILEH handle, uint32_t length)
 	while (length > 0) {
 		wsize = (length >= sizeof(buf)) ? sizeof(buf) : length;
 
-		size = file_lwrite(handle, buf, wsize);
+		size = File_Write(handle, buf, wsize);
 		if (size == 0)
 			return -1;
 
@@ -144,26 +134,15 @@ file_zeroclr(FILEH handle, uint32_t length)
 	return ret;
 }
 
-
 uint16_t
-file_write(FILEH handle, void *data, uint16_t length)
-{
-	uint32_t	writesize;
-
-	if (WriteFile(handle, data, length, &writesize, NULL) == 0)
-		return 0;
-	return (uint16_t)writesize;
-}
-
-uint16_t
-file_lineread(FILEH handle, void *data, uint16_t length)
+File_LineRead(FILEH handle, void *data, uint16_t length)
 {
 	char*	p = (char*)data;
 	uint32_t	readsize;
 	uint32_t	pos;
 	uint16_t	ret = 0;
 
-	if ((length == 0) || ((pos = file_seek(handle, 0, 1)) == -1))
+	if ((length == 0) || ((pos = File_Seek(handle, 0, 1)) == -1))
 		return 0;
 
 	memset(data, 0, length);
@@ -180,13 +159,13 @@ file_lineread(FILEH handle, void *data, uint16_t length)
 	}
 	*p = '\0';
 
-	file_seek(handle, pos, 0);
+	File_Seek(handle, pos, 0);
 
 	return ret;
 }
 
 int16_t
-file_close(FILEH handle)
+File_Close(FILEH handle)
 {
 
 	FAKE_CloseHandle(handle);
@@ -194,7 +173,7 @@ file_close(FILEH handle)
 }
 
 int16_t
-file_attr(char* filename)
+File_Attr(char* filename)
 {
 
 	return (int16_t)GetFileAttributes(filename);
@@ -203,7 +182,7 @@ file_attr(char* filename)
 
 							// カレントファイル操作
 void
-file_setcd(char* exename)
+File_Setcd(char* exename)
 {
 
 	strncpy(curpath, exename, sizeof(curpath));
@@ -213,7 +192,7 @@ file_setcd(char* exename)
 }
 
 char*
-file_getcd(char* filename)
+File_Getcd(char* filename)
 {
 
 	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
@@ -221,31 +200,31 @@ file_getcd(char* filename)
 }
 
 FILEH
-file_open_c(char* filename)
+File_OpenCurDir(char* filename)
 {
 
 	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
-	return file_open(curpath);
+	return File_Open(curpath);
 }
 
 FILEH
-file_create_c(char* filename, int32_t ftype)
+File_CreateCurDir(char* filename, int32_t ftype)
 {
 
 	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
-	return file_create(curpath, ftype);
+	return File_Create(curpath, ftype);
 }
 
 int16_t
-file_attr_c(char* filename)
+File_AttrCurDir(char* filename)
 {
 
 	strncpy(curfilep, filename, MAX_PATH - (curfilep - curpath));
-	return file_attr(curpath);
+	return File_Attr(curpath);
 }
 
 int32_t
-file_getftype(char* filename)
+File_GetFType(char* filename)
 {
 
 	(void)filename;
