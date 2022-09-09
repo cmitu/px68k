@@ -6,6 +6,8 @@
 void
 midOutChg(uint32_t port_no, uint32_t bank)
 {
+HMIDIOUT hmo;
+
 	/* select BANK CC20 LSB */
 	uint32_t msg = ((bank << 16) | (0x20 << 8) | 0xb0);/*Bank select2*/
 	midiOutShortMsg(hmo, msg);
