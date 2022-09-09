@@ -41,6 +41,14 @@ PROGRAM = px68k.sdl2
 CDEBUGFLAGS = -DSDL2
 endif
 
+ifeq "$(PLATFORM)" 'Windows'
+ifdef SDL
+PROGRAM = px68k.sdl.exe
+else
+PROGRAM = px68k.sdl2.exe
+endif
+endif
+
 include version.txt
 
 # CC	 = clang -std=c17
@@ -118,29 +126,40 @@ SDL_LIB=		`$(SDL_CONFIG) --libs`
 
 LDLIBS = -lm -lpthread
 
+#
+# MIDI option NO_MIDI=1 or FLUID=1
+# macOS:CoreAudio/CoreMIDI Linux:Fluidsynth Win:winmm
+
+ifdef NO_MIDI
+MIDIOBJS= x68k/midi_non.o
+else
 ifeq "$(PLATFORM)" "Darwin"
-LDLIBS+= -framework Cocoa -framework CoreMIDI -framework AudioToolbox
 ifdef FLUID
 FLUID_INCLUDE=  -I/Library/Frameworks/FluidSynth.framework/Headers
 FLUID_LIB= -F/Library/Frameworks -framework FluidSynth
+MIDIOBJS= x68k/midi_fluid.o
+else
+LDLIBS+= -framework Cocoa -framework CoreMIDI -framework AudioToolbox
+MIDIOBJS= x68k/midi_darwin.o
 endif
 else
 ifeq "$(PLATFORM)" "Linux"
 ifdef FLUID
 FLUID_LIB=  -lfluidsynth
+MIDIOBJS= x68k/midi_fluid.o
+else
+MIDIOBJS= x68k/midi_alsa.o
 endif
 # 
 else
 # Cygwin for MIDI (winmm.lib)
 ifdef FLUID
 FLUID_LIB=  -lfluidsynth
+MIDIOBJS= x68k/midi_fluid.o
 else
 LDLIBS+= -lwinmm
+MIDIOBJS= x68k/midi_win.o
 endif
-ifdef SDL
-PROGRAM = px68k.sdl.exe
-else
-PROGRAM = px68k.sdl2.exe
 endif
 endif
 endif
@@ -174,7 +193,7 @@ endif
 
 WIN32APIOBJS= win32api/dosio.o win32api/fake.o win32api/peace.o
 
-COBJS=		$(X68KOBJS) $(SDL2OBJS) $(SDLOBJS) $(WIN32APIOBJS) $(CPUOBJS) $(C68KOBJS)
+COBJS=		$(X68KOBJS) $(SDL2OBJS) $(SDLOBJS) $(WIN32APIOBJS) $(CPUOBJS) $(C68KOBJS) $(MIDIOBJS)
 CXXOBJS=	$(FMGENOBJS) $(SDLCXXOBJS)
 OBJS=		$(COBJS) $(CXXOBJS)
 

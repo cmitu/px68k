@@ -23,6 +23,7 @@ typedef struct
 	int32_t MIDI_SW;
 	int32_t MIDI_Type;
 	int32_t MIDI_Reset;
+	int32_t MIDI_Bank;
 	int32_t JoyKey;
 	int32_t JoyKeyReverse;
 	int32_t JoyKeyJoy2;

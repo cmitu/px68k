@@ -1,34 +1,17 @@
-// fluidsynth利用のMIDI出力ルーチン群
-// 要 framework版/共有ライブラリ版libfluidsynth
-// 要 SoundFont2(Configで指定)
-// libfluidsynth is under LGPLv2.1 licence なんだけど
-// LINK(共有ライブラリ)するだけならその限りではないそうです。
-//
-// 2022/5/29  by kameya (このソースはご自由にご利用ください)
-//
+/*
+ fluidsynth利用のMIDI出力ルーチン群
+ 要 framework版/共有ライブラリ版libfluidsynth
+ 要 SoundFont2(Configで指定)
+ libfluidsynth is under LGPLv2.1 licence なんだけど
+ LINK(共有ライブラリ)するだけならその限りではないそうです。
+
+ 2022/5/29  by kameya (このソースはご自由にご利用ください)
+*/
 #include <fluidsynth.h>
 #include <stdint.h>
-
-typedef struct midihdr {
-	char*			lpData;
-	uint32_t			dwBufferLength;
-	uint32_t			dwBytesRecorded;
-	uint32_t			dwUser;
-	uint32_t			dwFlags;
-	struct midihdr *	lpNext;
-	uint32_t			reserved;
-	uint32_t			dwOffset;
-	uint32_t			dwReserved[8];
-} MIDIHDR, *PMIDIHDR, *NPMIDIHDR, *LPMIDIHDR;
-
-typedef	HANDLE		HMIDIOUT;
-typedef	HMIDIOUT *	LPHMIDIOUT;
-
-#define MIDBUF_SIZE 200
-#define	MMSYSERR_NOERROR	0
-#define	MIDIERR_STILLPLAYING	2
-#define	MIDI_MAPPER		-1
-#define	CALLBACK_NULL		0x00000000L
+#include "prop.h"
+#include "winui.h"
+#include "midi.h"
 
 uint32_t midiOutShortMsg(HMIDIOUT , uint32_t );
 
@@ -43,10 +26,10 @@ uint32_t midiOutShortMsg(HMIDIOUT , uint32_t );
 
 #define sf_default	"/usr/local/share/soundfonts/default.sf2"
 
-// -----------------------------------------------------------------------
-//   fluid_synth Open
-//   and Load SoundFont2 (Loadできないと音出ないよ)
-// -----------------------------------------------------------------------
+/* ----------------------------------------------------
+   fluid_synth Open
+   and Load SoundFont2 (Loadできないと音出ないよ)
+------------------------------------------------------*/
 uint32_t
 midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
     uint32_t dwInstance, uint32_t fdwOpen)
@@ -70,7 +53,7 @@ midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
     adriver = new_fluid_audio_driver(settings, synth);
 	sequencer = new_fluid_sequencer2(0);
 
-	// ++ Load SoundFont.sf2 ++
+	/* ++ Load SoundFont.sf2 ++ */
 	int32_t fluid_res;
 	if(Config.SoundFontFile[0]){
 		fluid_res = fluid_synth_sfload(synth, (char*)Config.SoundFontFile, 1);
@@ -85,7 +68,7 @@ midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
 		}
 	}
 
-	//  set menu 
+	/*  set menu */
 	strcpy(menu_items[8][Device_num],synth_name);
 	Device_num ++;
 	strcpy(menu_items[8][Device_num],"\0"); // Menu END 
@@ -97,17 +80,21 @@ midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
 
 }
 
-// -----------------------------------------------------------------------
-//   set/change MIDI Port 
-// -----------------------------------------------------------------------
-void midOutChg(uint32_t port_no)
+/* ----------------------------------------------------
+   set/change MIDI Port and select BANK
+------------------------------------------------------*/
+void midOutChg(uint32_t port_no, uint32_t bank)
 {
+	/* select BANK CC20 LSB */
+	uint32_t msg = ((bank << 16) | (0x20 << 8) | 0xb0);/*Bank select2*/
+	midiOutShortMsg(hmo, msg);
+
 	return;
 }
 
-// -----------------------------------------------------------------------
-//   MIDI Port close
-// -----------------------------------------------------------------------
+/* ----------------------------------------------------
+   MIDI Port close
+------------------------------------------------------*/
 uint32_t
 midiOutClose(HMIDIOUT hmo)
 {
@@ -125,9 +112,9 @@ midiOutClose(HMIDIOUT hmo)
 	return MMSYSERR_NOERROR;
 }
 
-// -----------------------------------------------------------------------
-//   Send Short Message (演奏データ送信)
-// -----------------------------------------------------------------------
+/* ----------------------------------------------------
+   Send Short Message (演奏データ送信)
+------------------------------------------------------*/
 uint32_t
 midiOutShortMsg(HMIDIOUT hmo, uint32_t msg)
 {
@@ -177,9 +164,9 @@ midiOutShortMsg(HMIDIOUT hmo, uint32_t msg)
 	return MMSYSERR_NOERROR;
 }
 
-// -----------------------------------------------------------------------
-//   Exclusive GO!  (設定データ送信)
-// -----------------------------------------------------------------------
+/* ----------------------------------------------------
+   Exclusive GO!  (設定データ送信)
+------------------------------------------------------*/
 uint32_t
 midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh)
 {
@@ -191,7 +178,7 @@ midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh)
 	return MMSYSERR_NOERROR;
 }
 
-//---以下ダミー---
+/*---Dummy--*/
 
 uint32_t
 midiOutUnprepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh)

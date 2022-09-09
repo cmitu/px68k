@@ -77,10 +77,6 @@ typedef	void *		DRAWITEMSTRUCT;
 #define	MAX_PATH	MAXPATHLEN
 #endif
 
-#ifndef	AVE
-#define	AVE(a, b)	(((a)+(b))/2)
-#endif
-
 /*
  * DUMMY DEFINITION
  */
@@ -99,8 +95,6 @@ typedef	void *		DRAWITEMSTRUCT;
 #define	INLINE	static inline
 #endif
 
-#define	RGB(r,g,b)	((uint32_t)((uint8_t)(r))|((uint16_t)((uint8_t)(g)))|((uint32_t)((uint8_t)(b))))
-
 #define	MB_APPLMODAL		0
 
 #define	MB_ICONSTOP		16
@@ -114,14 +108,14 @@ typedef	void *		DRAWITEMSTRUCT;
 #define BI_RGB			0
 #define BI_RLE8			1
 #define BI_RLE4			2
-#define	BI_BITFIELDS		3
+#define	BI_BITFIELDS	3
 
 /* for dosio.c */
-#define	GENERIC_READ			1
-#define	GENERIC_WRITE			2
+#define	GENERIC_READ		1
+#define	GENERIC_WRITE		2
 
-#define	OPEN_EXISTING			1
-#define	CREATE_ALWAYS			2
+#define	OPEN_EXISTING		1
+#define	CREATE_ALWAYS		2
 #define	CREATE_NEW			3
 
 #define	FILE_SHARE_READ			0x00000001  
@@ -143,7 +137,7 @@ typedef	void *		DRAWITEMSTRUCT;
 #define	ERROR_SHARING_VIOLATION		32
 
 #define	FILE_BEGIN			0
-#define	FILE_CURRENT			1
+#define	FILE_CURRENT		1
 #define	FILE_END			2
 
 

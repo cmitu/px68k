@@ -16,7 +16,6 @@
 //       ・IPLリセット時は実機でもリセットされない筈だが、
 //         ここら辺は好みなので configで設定できてもいいかも
 
-
 #include "common.h"
 #include "prop.h"
 #include "winx68k.h"
@@ -24,33 +23,9 @@
 //#include "mmsystem.h"
 #include "x68kmemory.h"
 #include "irqh.h"
-#include "midi.h"
 #include "winui.h"
 #include "m68000.h"
-
-#ifdef _WIN32
-#ifdef FLUID
-#include "midi_fluid.h"
-#else
-#include "midi_win.h"
-#endif
-#endif
-
-#ifdef __unix__
-#ifdef FLUID
-#include "midi_fluid.h"
-#else
-#include "midi_alsa.h"
-#endif
-#endif
-
-#ifdef __MACH__
-#ifdef FLUID
-#include "midi_fluid.h"
-#else
-#include "midi_darwin.h"
-#endif
-#endif
+#include "midi.h"
 
 #define MIDIBUFFERS 1024			// 1024は流石に越えないでしょう^_^;
 #define MIDIBUFTIMER 3200			// 10MHz / (31.25K / 10bit) = 3200 が正解になります... 

@@ -561,7 +561,7 @@ static void menu_sound_rate(int32_t v)
 static void menu_midout_rate(int32_t v)
 {
 
-	midOutChg(v);//Select MIDI port.
+	midOutChg(v, Config.MIDI_Bank);//Select MIDI port.
 
 }
 

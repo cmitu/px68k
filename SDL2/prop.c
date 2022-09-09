@@ -275,6 +275,7 @@ void LoadConfig(void)
 	GetPrivateProfileString((const char*)ini_title, "MIDI_Reset", "0", buf, CFGLEN, winx68k_ini);
 	Config.MIDI_Reset = solveBOOL(buf);
 	Config.MIDI_Type = GetPrivateProfileInt((const char*)ini_title, "MIDI_Type", 1, winx68k_ini);
+	Config.MIDI_Bank = GetPrivateProfileInt((const char*)ini_title, "MIDI_Bank", 0, winx68k_ini);
 	GetPrivateProfileString((const char*)ini_title, "JoySwap", "0", buf, CFGLEN, winx68k_ini);
 	Config.JoySwap = solveBOOL(buf);
 
