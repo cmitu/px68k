@@ -103,6 +103,8 @@ static uint32_t surfaceW=800,surfaceH=600; /*width Hight*/
 static uint32_t HLINE_TOTAL_1,CRTC_HSTART_1,CRTC_HEND_1;/*Store*/
 static uint32_t VLINE_TOTAL_1,CRTC_VSTART_1,CRTC_VEND_1,CRTC_VStep_1;
 
+/*UTF8 conv Table and util. by Kameya*/
+#include "kanjiconv.c"
 
 /* X68 change screen size (Call from CRTC) */
 /* Clear -> ChangeScreen -> Clear  */
@@ -1469,7 +1471,7 @@ static void draw_char(uint16_t sjis)
 	/*Font for sjis*/
 	f = get_font_addr(sjis, h);
 
-	if (f < 0){
+	if (f == -1){
 		return;
 	}
 
@@ -1497,8 +1499,8 @@ static void draw_char(uint16_t sjis)
 }
 
 /*--- 文字列を画面表示(sjis,utf8対応) ---*/
-/*	flg = 0 sjis/utf8	*/
-/*	flg = 1 utf8	*/
+/*	flg = 0 sjis/utf8 (Auto)*/
+/*	flg = 1 utf8 (Force)*/
 static void draw_str(char *cp, uint32_t flg)
 {
 	uint32_t i, len, ret;
@@ -1536,76 +1538,9 @@ static void draw_str(char *cp, uint32_t flg)
 		/*Locate Y dot check*/
 		if((p6m.ml_y) > 580) break;
 	}
+
+ return;
 }
-
-
-#include "kanjiconv.c"
-int32_t conv_utf8tosjis(char *dst,char *src)
-{
-	uint8_t h;
-	uint32_t i,c,c2;
-	int32_t flg=0;
-
-
-	while ((h = *src ++)) {/*loop*/
-
-		if (h == '\0') break;		/* strings end */
-
-	    if (h < 0xc0) {			    /* ASCII    0xxxxxxx */
-		 if(h==0x5c){ h=0x80;}/* \変換 */
-		c = h;
-	    } else if (h < 0xe0) {		    /* 2byte    110xxxxx */
-		    c = h << 8;
-		    if ((h = *src++) == '\0') break;
-		    c |= h;
-		} else if (h < 0xf0) {		    /* 3byte    1110xxxx */
-		    c = h << 16;
-		    if ((h = *src++) == '\0') break;
-		    c |= h << 8;
-		    if ((h = *src++) == '\0') break;
-		    c |= h;
-		} else if (h < 0xf8) {		    /* 4byte    11110xxx */
-		    c = h << 24;
-		    if ((h = *src++) == '\0') break;
-		    c |= h << 16;
-		    if ((h = *src++) == '\0') break;
-		    c |= h << 8;
-		    if ((h = *src++) == '\0') break;
-		    c |= h;
-		} else {			    /* 5〜6byte          */
-		    continue;
-		}
-
-
-	 if (c <= 0x82) { /* store 1byte code */
-		*dst++ = (unsigned char)(c & 0x00ff);
-	 }
-	 else{
-		c2 = 0x8140;/*SPC*/
-		for(i=0; conv_unicode[i][0]; i++)
-		{
-			if(conv_unicode[i][2] == c){
-				c2 = conv_unicode[i][1];
-				if(flg<500) flg++;/*2/3byte code count*/
-				break;
-			}
-		}
-		if((c2 & 0xff000000) == 0xf0000000){ if(flg<500) flg++; }/*4byte code count*/
-		/* Store S-JIS code */
-		if((c2 & 0x00ff) != c2){ /*3byte half kana support*/
-		*dst++ = (unsigned char)((c2 & 0xff00) >> 8);
-		}
-		*dst++ = (unsigned char)(c2 & 0x00ff);
-	 }
-
-	} /*loop end*/
-
-	*dst++ = '\0';
-
-return flg;
-
-}
-
 
 int32_t WinDraw_MenuInit(void)
 {
