@@ -100,6 +100,8 @@ static uint32_t surfaceW=800,surfaceH=600; /*width Hight*/
 static uint32_t HLINE_TOTAL_1,CRTC_HSTART_1,CRTC_HEND_1;/*Store*/
 static uint32_t VLINE_TOTAL_1,CRTC_VSTART_1,CRTC_VEND_1,CRTC_VStep_1;
 
+/*UTF8 conv Table and util. by Kameya*/
+#include "kanjiconv.c"
 
 /* X68 change screen size (Call from CRTC) */
 /* Clear -> ChangeScreen -> Clear  */
@@ -1520,14 +1522,14 @@ static void draw_char(uint16_t sjis)
 }
 
 /*--- 文字列を画面表示(sjis,utf8対応) ---*/
-/*	flg = 0 Auto(utf8/sjis)	*/
-/*	flg = 1 utf8	*/
+/*	flg = 0 sjis/utf8 (Auto)*/
+/*	flg = 1 utf8 (Force)*/
 static void draw_str(char *cp, uint32_t flg)
 {
 	uint32_t i, len, ret;
 	uint8_t *s;
 	uint16_t wc;
-	char show_str[400];
+	char show_str[MAX_PATH];
 
 	/*UTF8 or S-JIS*/
 	ret = conv_utf8tosjis((char *)show_str, (char *)cp);
@@ -1559,76 +1561,9 @@ static void draw_str(char *cp, uint32_t flg)
 		/*Locate Y dot check*/
 		if((p6m.ml_y) > 580) break;
 	}
+
+ return;
 }
-
-
-#include "kanjiconv.c"
-int32_t conv_utf8tosjis(char *dst,char *src)
-{
-	uint8_t h;
-	uint32_t i,c,c2;
-	int32_t flg=0;
-
-
-	while ((h = *src ++)) {/*loop*/
-
-		if (h == '\0') break;		/* strings end */
-
-	    if (h < 0xc0) {			    /* ASCII    0xxxxxxx */
-		 if(h==0x5c){ h=0x80;}/* \変換 */
-		c = h;
-	    } else if (h < 0xe0) {		    /* 2byte    110xxxxx */
-		    c = h << 8;
-		    if ((h = *src++) == '\0') break;
-		    c |= h;
-		} else if (h < 0xf0) {		    /* 3byte    1110xxxx */
-		    c = h << 16;
-		    if ((h = *src++) == '\0') break;
-		    c |= h << 8;
-		    if ((h = *src++) == '\0') break;
-		    c |= h;
-		} else if (h < 0xf8) {		    /* 4byte    11110xxx */
-		    c = h << 24;
-		    if ((h = *src++) == '\0') break;
-		    c |= h << 16;
-		    if ((h = *src++) == '\0') break;
-		    c |= h << 8;
-		    if ((h = *src++) == '\0') break;
-		    c |= h;
-		} else {			    /* 5〜6byte          */
-		    continue;
-		}
-
-
-	 if (c <= 0x82) { /* store 1byte code */
-		*dst++ = (unsigned char)(c & 0x00ff);
-	 }
-	 else{
-		c2 = 0x8140;/*SPC*/
-		for(i=0; conv_unicode[i][0]; i++)
-		{
-			if(conv_unicode[i][2] == c){
-				c2 = conv_unicode[i][1];
-				if(flg<500) flg++;/*2/3byte code count*/
-				break;
-			}
-		}
-		if((c2 & 0xff000000) == 0xf0000000){ if(flg<500) flg++; }/*4byte code count*/
-		/* Store S-JIS code */
-		if((c2 & 0x00ff) != c2){ /*3byte half kana support*/
-		*dst++ = (unsigned char)((c2 & 0xff00) >> 8);
-		}
-		*dst++ = (unsigned char)(c2 & 0x00ff);
-	 }
-
-	} /*loop end*/
-
-	*dst++ = '\0';
-
-return flg;
-
-}
-
 
 int32_t WinDraw_MenuInit(void)
 {
@@ -1807,12 +1742,21 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 			if (p[0] == '\0') {
 				draw_str(" -- no disk --",1);
 			} else {
-				// 先頭のカレントディレクトリ名を表示しない
-				if (!strncmp(cur_dir_str, p, cur_dir_slen)) {
-					draw_str(p + cur_dir_slen,0);
-				} else {
-					draw_str(p,0);
-				}
+			 // 先頭のカレントディレクトリ名を表示しない
+			 if (!strncmp(cur_dir_str, p, cur_dir_slen)) {
+				p += cur_dir_slen;
+			 }
+			 char str_sjis[MAX_PATH];
+			 if(conv_utf8tosjis(str_sjis,p) == 0){strcpy(str_sjis,p);}/*sjisに変換*/
+			 p=str_sjis;
+			 if(strlen(p)>44){ /*24dotで44文字以上*/
+			  set_mfs(16);
+			  if(strlen(p)>66){/*16dotで66文字以上*/
+			   p += (strlen(p)-66);
+			  }
+			 }
+			 draw_str(p,0);
+			 set_mfs(24);/*元に戻す*/
 			}
 		} else {
 			draw_str(menu_items[i + mkey_pos][mval_y[i + mkey_pos]],1);

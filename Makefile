@@ -3,22 +3,7 @@ ifeq "$(PLATFORM)" ""
 PLATFORM := $(shell uname)
 endif
 
-ifdef SDL
-ifeq "$(PLATFORM)" "Darwin"
-SDL_CONFIG?= ./osx/sdl-config-mac
-else
-SDL_CONFIG?= sdl-config
-endif
-else
-ifeq "$(PLATFORM)" "Darwin"
-SDL2 :=1
-SDL_CONFIG?= ./osx/sdl2-config-mac
-else
-SDL2 :=1
-SDL_CONFIG?= sdl2-config
-endif
-endif
-
+# for CPU
 ifeq ($(shell uname -m),arm64)
 MOPT=
 else
@@ -33,19 +18,38 @@ endif
 endif
 endif
 
+# for SDL1
 ifdef SDL
-PROGRAM = px68k.sdl
 CDEBUGFLAGS = -DSDL1
-else
-PROGRAM = px68k.sdl2
-CDEBUGFLAGS = -DSDL2
 endif
 
-ifeq "$(PLATFORM)" 'Windows'
+# for SDL1/2-config
+ifeq "$(PLATFORM)" "Darwin"
 ifdef SDL
+SDL_CONFIG?= ./osx/sdl-config-mac
+PROGRAM = px68k.sdl
+else
+SDL_CONFIG?= ./osx/sdl2-config-mac
+PROGRAM = px68k.sdl2
+endif
+else
+ifeq "$(PLATFORM)" "Linux"
+ifdef SDL
+SDL_CONFIG?= sdl-config
+PROGRAM = px68k.sdl
+else
+SDL_CONFIG?= sdl2-config
+PROGRAM = px68k.sdl2
+endif
+else
+# for CygWin(windows)
+ifdef SDL
+SDL_CONFIG?= sdl-config
 PROGRAM = px68k.sdl.exe
 else
+SDL_CONFIG?= sdl2-config
 PROGRAM = px68k.sdl2.exe
+endif
 endif
 endif
 
@@ -71,19 +75,12 @@ DEPEND_DEFINES =
 # CDEBUGFLAGS+= -DNO_SOUND
 
 #
-# enable libfluidsynth MIDI sound
-#
-ifdef FLUID
-CDEBUGFLAGS+= -DFLUID
-endif
-
-#
 # disable mercury unit
 #
 # CDEBUGFLAGS+= -DNO_MERCURY
 
 #
-# enable RFMDRV
+# enable RFMDRV(Over TCP/IP)
 #
 # CDEBUGFLAGS+= -DRFMDRV
 
@@ -94,7 +91,6 @@ endif
 # CDEBUGFLAGS+= -DC68K_CONST_JUMP_TABLE
 # CDEBUGFLAGS+= -DC68K_BIG_ENDIAN
 
-
 #
 # for Opt.
 #
@@ -102,9 +98,6 @@ endif
 # CDEBUGFLAGS+= -funroll-loops
 # CDEBUGFLAGS+= -fomit-frame-pointer
 # CDEBUGFLAGS+= -ffast-math
-
-# CDEBUGFLAGS+= -march=pentium-m
-# CDEBUGFLAGS+= -msse -mfpmath=sse
 
 #
 # for DEBUG
@@ -126,10 +119,9 @@ SDL_LIB=		`$(SDL_CONFIG) --libs`
 
 LDLIBS = -lm -lpthread
 
-#
 # MIDI option NO_MIDI=1 or FLUID=1
 # macOS:CoreAudio/CoreMIDI Linux:Fluidsynth Win:winmm
-
+#
 ifdef NO_MIDI
 MIDIOBJS= x68k/midi_non.o
 else
