@@ -87,6 +87,10 @@ extern SDL_Renderer *sdl_render;
 extern SDL_Texture *sdl_texture;
 extern SDL_Surface *sdl_x68screen;
 
+#if !defined(USE_OGLES11)
+SDL_Surface *menu_surface;
+#endif
+
 extern int32_t VID_MODE, CHANGEAV_TIMING;
 
 
@@ -492,6 +496,45 @@ void draw_all_buttons(GLfloat *tex, GLfloat *ver, GLfloat scale, int32_t is_menu
 }
 #endif // USE_OGLES11
 
+/*==SDL2 Update Screen===*/
+void
+Update_Screen(uint32_t menu)
+{
+	SDL_Rect x68rect, CRTrect;
+
+	/*surface(Main mem.) → texture(Frame buff.) */
+	if(menu){
+	  SDL_UpdateTexture(sdl_texture, NULL, menu_surface->pixels, 800*2);
+	  x68rect.x = CRTrect.x = 0;
+	  x68rect.y = CRTrect.y = 0;
+	  x68rect.w = CRTrect.w = 800;
+	  x68rect.h = CRTrect.h = 600;
+	}
+	else{
+	  SDL_UpdateTexture(sdl_texture, NULL, ScrBuf, 800*2);
+	  /*texture → renderer copy rect */
+	  x68rect.x = 0;
+	  x68rect.y = 0;
+	  x68rect.w = TextDotX;
+	  x68rect.h = TextDotY;
+	  CRTrect.x = (800*drawW/surfaceW);
+	  CRTrect.y = (600*drawH/surfaceH);
+	  CRTrect.w = (800*TextDotX/surfaceW);
+	  CRTrect.h = (600*TextDotY/surfaceH);
+	}
+
+	if(ScreenClearFlg != 0){ 			/*change screen(clear while 3 Frame)*/
+	  SDL_SetRenderDrawColor(sdl_render, 0, 0, 0, 0);	/* select color (black) */
+	  SDL_RenderClear(sdl_render);		/*renderer buffer clear*/
+	  if(ScreenClearFlg == 2)	WinDraw_ChangeSizeGO();
+	  if(ScreenClearFlg++ > 3) ScreenClearFlg=0;
+	}
+
+	SDL_RenderCopy(sdl_render, sdl_texture, &x68rect, &CRTrect);/*texture → renderer*/
+	SDL_RenderPresent(sdl_render);								/* update screen */
+
+ return;
+}
 
 /*描画バッファから表示バッファへの転送*/
 /* X68K VRAM to Screen buffer   */
@@ -581,28 +624,11 @@ WinDraw_Draw(void)
 
 	SDL_GL_SwapWindow(sdl_window);
 
-#else // OpenGL ES end
+#else // end of OpenGLES
 
-	/*==SDL2 Drawing===*/
-	/*surface(Main mem.) → texture(Frame buff.) */
-	SDL_UpdateTexture(sdl_texture, NULL, ScrBuf, 800*2);
+	Update_Screen(0); /* Draw Screen for X68000 (SDL2) */
 
-	if(ScreenClearFlg != 0){ 			/*change screen(clear while 3 Frame)*/
-	  SDL_SetRenderDrawColor(sdl_render, 0, 0, 0, 0);	/* select color (black) */
-	  SDL_RenderClear(sdl_render);		/*renderer buffer clear*/
-	  if(ScreenClearFlg == 2)	WinDraw_ChangeSizeGO();
-	  if(ScreenClearFlg++ > 3) ScreenClearFlg=0;
-	}
-
-	/*texture → renderer copy rect */
-	SDL_Rect x68rect = { 0, 0, TextDotX, TextDotY };
-	SDL_Rect CRTrect = {(800*drawW/surfaceW), (600*drawH/surfaceH) ,
-						(800*TextDotX/surfaceW), (600*TextDotY/surfaceH)};
-	SDL_RenderCopy(sdl_render, sdl_texture, &x68rect, &CRTrect);/*texture → renderer*/
-	SDL_RenderPresent(sdl_render);								/* update screen */
-
-
-#endif	// OpenGL ES END
+#endif	// OpenGLES END
 
 	FrameCount++;
 	if (!Draw_DrawFlag/* && is_installed_idle_process()*/)
@@ -1291,10 +1317,6 @@ struct _px68k_menu {
 	int32_t mfs; // menu font size;
 } p6m;
 
-#if !defined(USE_OGLES11)
-SDL_Surface *menu_surface;
-#endif
-
 // 画面タイプを変更する
 enum ScrType {x68k, pc98};
 int32_t scr_type = x68k;
@@ -1810,10 +1832,7 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 	ogles11_draw_menu();
 #else
 
-/*画面更新(SDL2)*/
-	SDL_UpdateTexture(sdl_texture, NULL, menu_surface->pixels, 800*2);	/*surface to texture*/
-	SDL_RenderCopy(sdl_render, sdl_texture, NULL, NULL);	/*texture to renderer*/
-	SDL_RenderPresent(sdl_render);	/* update screen */
+	Update_Screen(1); /* Draw Screen for Menu (SDL2) */
 
 #endif
 }
@@ -1861,11 +1880,7 @@ void WinDraw_DrawMenufile(struct menu_flist *mfl)
 	ogles11_draw_menu();
 #else
 
-/*画面更新(SDL2)*/
-	SDL_UpdateTexture(sdl_texture, NULL, menu_surface->pixels, 800*2);	/*surface to texture*/
-	SDL_RenderCopy(sdl_render, sdl_texture, NULL, NULL);	/*texture to renderer*/
-	SDL_RenderPresent(sdl_render);	/* update screen */
-
+	Update_Screen(1); /* Draw Screen for Menu (SDL2) */
 
 #endif
 }

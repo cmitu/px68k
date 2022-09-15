@@ -906,7 +906,7 @@ int32_t main(int32_t argc, char *argv[])
 				}
 				break;
 			case SDL_KEYUP:
-				p6logd("keyup: 0x%x 0x%x\n", ev.key.keysym.sym,ev.key.keysym.scancode);
+				//p6logd("keyup: 0x%x 0x%x\n", ev.key.keysym.sym,ev.key.keysym.scancode);
 				Keyboard_KeyUp(ev.key.keysym.sym,ev.key.keysym.scancode);//phisical code + α
 				break;
 			}
@@ -946,6 +946,10 @@ int32_t main(int32_t argc, char *argv[])
 			int32_t ret; 
 
 			Joystick_Update(TRUE, menu_key_down);
+
+			if(ScreenClearFlg == 1){/*Resizable Window support in MENU*/
+			 Update_Screen(1);
+			}
 
 			ret = WinUI_Menu(menu_mode == menu_enter);
 			menu_mode = menu_in;

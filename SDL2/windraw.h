@@ -35,6 +35,8 @@ void WinDraw_CleanupScreen(void);
 int32_t WinDraw_MenuInit(void);
 void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int32_t *mval_y);
 
+void Update_Screen(uint32_t menu);
+
 extern struct menu_flist mfl;
 
 void WinDraw_DrawMenufile(struct menu_flist *mfl);

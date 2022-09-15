@@ -5,6 +5,7 @@ extern uint8_t Draw_DrawFlag;
 extern int32_t winx, winy;
 extern uint32_t winh, winw;
 extern int32_t FullScreenFlag;
+extern int32_t ScreenClearFlg;
 extern uint8_t Draw_ClrMenu;
 extern uint32_t FrameCount;
 extern uint16_t WinDraw_Pal16B, WinDraw_Pal16R, WinDraw_Pal16G;

@@ -783,6 +783,9 @@ int32_t main(int32_t argc, char *argv[])
 			switch (ev.type) {
 			case SDL_QUIT:
 				goto end_loop;
+			case SDL_VIDEORESIZE:
+				ScreenClearFlg = 1;
+			break;
 			case SDL_MOUSEBUTTONDOWN:
 				if(ev.button.button == SDL_BUTTON_LEFT){//左ボタンを押した
 					Mouse_Event((int)1, 1, 0);
@@ -938,6 +941,11 @@ int32_t main(int32_t argc, char *argv[])
 			int32_t ret; 
 
 			Joystick_Update(TRUE, menu_key_down);
+
+			if(ScreenClearFlg == 1){/*Resizable Window support in MENU*/
+			 extern SDL_Surface *menu_surface;
+			 SDL_UpdateRect(menu_surface, 0, 0, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT);
+			}
 
 			ret = WinUI_Menu(menu_mode == menu_enter);
 			menu_mode = menu_in;
