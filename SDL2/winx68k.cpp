@@ -813,7 +813,8 @@ int32_t main(int32_t argc, char *argv[])
 				}
 			break;
 			case SDL_MOUSEMOTION:
-				Mouse_Event((int)0, (float)ev.motion.xrel, (float)ev.motion.yrel);//mouse support
+				Mouse_Event((int)0,	(float)ev.motion.xrel * Config.MouseSpeed /10,
+									(float)ev.motion.yrel * Config.MouseSpeed /10);/*mouse support*/
 				//p6logd("x:%d y:%d xrel:%d yrel:%d\n", ev.motion.x, ev.motion.y, ev.motion.xrel, ev.motion.yrel);
 				break;
 #if defined(ANDROID) || TARGET_OS_IPHONE
