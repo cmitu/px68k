@@ -280,7 +280,8 @@ WinX68k_LoadROMs(void)
 		// cgrom.tmpがある？
 		fp = File_OpenCurDir((char *)FONTFILETMP);
 		if (fp == 0) {
-			// フォント生成 XXX
+			/*make_cgrom(); フォント生成 */
+			memset(IPL, 0, 0x40000);/*IPL clear*/
 			Error("フォントROMイメージが見つかりません\n");
 			return FALSE;
 		}
@@ -695,12 +696,6 @@ int32_t main(int32_t argc, char *argv[])
 		WinDraw_Cleanup();
 		Error("Error: Can't init screen.\n");
 		return 1;
-	}
-
-	if(err_msg_no != 0){ // メモリなし、ROMなし＝END
-		WinX68k_Cleanup();
-		WinDraw_Cleanup();
-		exit (1);
 	}
 
 	if ( SoundSampleRate ) {

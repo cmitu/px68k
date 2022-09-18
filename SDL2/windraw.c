@@ -435,7 +435,6 @@ int32_t WinDraw_Init(uint32_t err_msg_no)
 	  }
 	  TextDotX=800; TextDotY=600;
 	  WinDraw_Draw();
-	  sleep(6); // waiting.....
 	}
 
 	return TRUE;
