@@ -42,15 +42,9 @@ midiOutPrepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh)
 }
 
 uint32_t
-midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
-    uint32_t dwInstance, uint32_t fdwOpen)
+mid_DevList(LPHMIDIOUT phmo)
 {
-	(void)phmo;
-	(void)uDeviceID;
-	(void)dwCallback;
-	(void)dwInstance;
-	(void)fdwOpen;
-	return !MMSYSERR_NOERROR;
+ return 0;
 }
 
 uint32_t
@@ -71,6 +65,12 @@ void
 midOutChg(uint32_t port_no, uint32_t bank)
 {
 	HMIDIOUT hmo;
+
+	/* All note off */
+	HMIDIOUT hmo;
+	for (uint32_t msg=0x7bb0; msg<0x7bc0; msg++) {
+		midiOutShortMsg(hmo, msg);
+	}
 
 	/* select BANK CC20 LSB */
 	uint32_t msg = ((bank << 16) | (0x20 << 8) | 0xb0);/*Bank select2*/

@@ -8,8 +8,7 @@
 * 単独アプリ形式のエミュレータの改良を目指します。
 * ソースコードをutf8に変換
 * (DWORD)-1 で頻繁に異常終了する問題に対処
-* SDL2のRenderer(GPU)を活用
-* よって"sdl-gfx"は不要
+* SDL2のRenderer(GPU)を活用、よって"sdl-gfx"は不要
 * Support Full-Screen Mode.(`F11`)
 * 正確なScreen描画の再現(表示域と描画域を個別演算)
 * SCSI DiskImageサポート(`boot from *.HDS`)

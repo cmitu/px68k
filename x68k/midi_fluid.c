@@ -26,21 +26,16 @@ uint32_t midiOutShortMsg(HMIDIOUT , uint32_t );
 
 #define sf_default	"/usr/local/share/soundfonts/default.sf2"
 
-/* ----------------------------------------------------
-   fluid_synth Open
-   and Load SoundFont2 (Loadできないと音出ないよ)
-------------------------------------------------------*/
+/*
+  fluid_synth Open
+  and Load SoundFont2 (Loadできないと音出ないよ)
+*/
 uint32_t
-midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
-    uint32_t dwInstance, uint32_t fdwOpen)
+mid_DevList(LPHMIDIOUT phmo)
 {
-	(void)dwCallback;
-	(void)dwInstance;
-	(void)fdwOpen;
-
 	uint32_t Device_num = 0;
 
-	//==setting synth==
+	/*==setting synth==*/
 	settings = new_fluid_settings();
 	//fluid_settings_setstr(settings, "audio.driver", "dsound"); //win
 	//fluid_settings_setstr(settings, "audio.driver", "coreaudio"); //mac
@@ -48,12 +43,12 @@ midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
 	fluid_settings_setint(settings, "synth.polyphony", 128);
 	fluid_settings_setint(settings, "synth.reverb.active", FALSE);
 
-    /* ==Set in synthesizer ==*/
+    /*==Set in synthesizer ==*/
     synth = new_fluid_synth(settings);
     adriver = new_fluid_audio_driver(settings, synth);
 	sequencer = new_fluid_sequencer2(0);
 
-	/* ++ Load SoundFont.sf2 ++ */
+	/*++ Load SoundFont.sf2 ++*/
 	int32_t fluid_res;
 	if(Config.SoundFontFile[0]){
 		fluid_res = fluid_synth_sfload(synth, (char*)Config.SoundFontFile, 1);
@@ -68,24 +63,27 @@ midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
 		}
 	}
 
-	/*  set menu */
+	/* set menu */
 	strcpy(menu_items[8][Device_num],synth_name);
 	Device_num ++;
-	strcpy(menu_items[8][Device_num],"\0"); // Menu END 
+	strcpy(menu_items[8][Device_num],"\0"); /* Menu END */
 
+	*phmo = (HANDLE)mid_name; /*MIDI Active!(ダミーを代入しておく)*/
 
-	*phmo = (HANDLE)mid_name; //MIDI Active!(ダミーを代入しておく)
-
-	return MMSYSERR_NOERROR;
-
+ return Device_num;
 }
 
-/* ----------------------------------------------------
+/*---------------------------------------------
    set/change MIDI Port and select BANK
-------------------------------------------------------*/
+-----------------------------------------------*/
 void midOutChg(uint32_t port_no, uint32_t bank)
 {
 	HMIDIOUT hmo;
+
+	/* All note off */
+	for (uint32_t msg=0x7bb0; msg<0x7bc0; msg++) {
+		midiOutShortMsg(hmo, msg);
+	}
 
 	/* select BANK CC20 LSB */
 	uint32_t msg = ((bank << 16) | (0x20 << 8) | 0xb0);/*Bank select2*/
@@ -94,9 +92,9 @@ void midOutChg(uint32_t port_no, uint32_t bank)
 	return;
 }
 
-/* ----------------------------------------------------
+/*---------------------------------------------
    MIDI Port close
-------------------------------------------------------*/
+-----------------------------------------------*/
 uint32_t
 midiOutClose(HMIDIOUT hmo)
 {
@@ -114,23 +112,23 @@ midiOutClose(HMIDIOUT hmo)
 	return MMSYSERR_NOERROR;
 }
 
-/* ----------------------------------------------------
+/*--------------------------------------------
    Send Short Message (演奏データ送信)
-------------------------------------------------------*/
+----------------------------------------------*/
 uint32_t
 midiOutShortMsg(HMIDIOUT hmo, uint32_t msg)
 {
 	uint8_t messg[4];
 	int32_t val;
 
-	// (uint32)msg を 4byte に分解
+	/* (uint32)msg を 4byte に分解 */
 	messg[0] =   msg       & 0xff; //status byte
 	messg[1] =  (msg >> 8) & 0xff; //note No.
 	messg[2] =  (msg >> 16) & 0xff;//velocity
 	messg[3] =  (msg >> 24) & 0xff;// none
 
 
-	// length of msg
+	/* length of msg */
 	uint32_t len;
 	switch(messg[0] & 0xf0){
 		case 0xc0://prog. chg
@@ -166,9 +164,9 @@ midiOutShortMsg(HMIDIOUT hmo, uint32_t msg)
 	return MMSYSERR_NOERROR;
 }
 
-/* ----------------------------------------------------
+/*---------------------------------------------
    Exclusive GO!  (設定データ送信)
-------------------------------------------------------*/
+-----------------------------------------------*/
 uint32_t
 midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh)
 {

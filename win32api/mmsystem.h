@@ -22,7 +22,7 @@ typedef struct midihdr {
 	uint32_t			dwReserved[8];
 } MIDIHDR, *PMIDIHDR, *NPMIDIHDR, *LPMIDIHDR;
 
-
+#define MIDBUF_SIZE 200
 #define	MMSYSERR_NOERROR	0
 #define	MIDIERR_STILLPLAYING	2
 

@@ -41,15 +41,9 @@ midiOutPrepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh)
 }
 
 uint32_t
-midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
-    uint32_t dwInstance, uint32_t fdwOpen)
+mid_DevList(LPHMIDIOUT phmo)
 {
-	(void)phmo;
-	(void)uDeviceID;
-	(void)dwCallback;
-	(void)dwInstance;
-	(void)fdwOpen;
-	return !MMSYSERR_NOERROR;
+ return 0;
 }
 
 uint32_t

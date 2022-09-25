@@ -19,8 +19,7 @@
 #include "common.h"
 #include "prop.h"
 #include "winx68k.h"
-#include "fileio.h"
-//#include "mmsystem.h"
+#include "dosio.h"
 #include "x68kmemory.h"
 #include "irqh.h"
 #include "winui.h"
@@ -318,15 +317,13 @@ void MIDI_Init(void) {
 	MIDI_EXCVWAIT = 0;
 
 	if (!hOut) {
-		strcpy(menu_items[8][0], "MIDI_MAPPER");//Win default message
-		strcpy(menu_items[8][1],"\0"); // Menu END 
-		if (midiOutOpen(&hOut, MIDI_MAPPER, 0, 0, CALLBACK_NULL)
-							== MMSYSERR_NOERROR) {
-			midiOutReset(hOut);
+		if(mid_DevList(&hOut) > 0){ /* if MIDI found?*/
+		 midOutChg(0,0); /*Select Port0 Bank 0*/
 		}
 		else{
-			strcpy(menu_items[8][0],"No Device found.");
-			hOut = 0;
+		 strcpy(menu_items[8][0],"No Device Found.");
+		 strcpy(menu_items[8][1],"\0"); /* Menu END*/
+		 hOut = 0;
 		}
 	}
 

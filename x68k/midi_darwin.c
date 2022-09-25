@@ -37,7 +37,6 @@ uint32_t midiOutShortMsg(HMIDIOUT , uint32_t );
 	const uint8_t packetBuf[MIDBUF_SIZE];
 	MIDIPacketList *packetList = (MIDIPacketList *)packetBuf;
 
-
 	const char mid_name[] = {"px68k-MIDI"};
 	const char synth_name[] = {"DLSSynth(CoreAudio)"};
 
@@ -83,11 +82,11 @@ load_soundfont(char *sf_name)
 return !MMSYSERR_NOERROR;
 }
 
-/*-----------------------------------------
+/*
    MIDI port Open (CoreAudio synth)
-------------------------------------------*/
+*/
 uint32_t
-mid_synth_open()
+mid_synthA_open(uint32_t num)
 {
 	AUNode outputNode;
 	AUNode synthNode;
@@ -96,14 +95,14 @@ mid_synth_open()
 	OSStatus err_sts;
 
 	if (mid_auGraph)
-		return !MMSYSERR_NOERROR;
+		return num;
 
 	/* Open the Music Device. */
 	err_sts = NewAUGraph(&mid_auGraph);
 	err_sts = AUGraphOpen(mid_auGraph);
 	if (err_sts != noErr){
 		p6logd("CoreAudio:Can't Open AUGraph\n");
-		return !MMSYSERR_NOERROR;
+		return num;
 	}
 
 	/* The default output AudioUnit */
@@ -128,7 +127,7 @@ mid_synth_open()
 	err_sts = AUGraphInitialize(mid_auGraph);
 	if (err_sts != noErr){
 		p6logd("CoreAudio:AUGraph Open/Init error\n");
-		return !MMSYSERR_NOERROR;
+		return num;
 	}
 
 	/* Get the music device from the graph. */
@@ -141,34 +140,24 @@ mid_synth_open()
 	err_sts = AUGraphStart(mid_auGraph);
 	if (err_sts != noErr){
 		p6logd("CoreAudio:AUGraph can't start\n");
-		return !MMSYSERR_NOERROR;
+		return num;
 	}
 
-return MMSYSERR_NOERROR;
+	strcpy(menu_items[8][num],synth_name);
+	num++;
+	strcpy(menu_items[8][num],"\0"); // Menu END
+
+return num;
 }
 
-/*-----------------------------------------
-   MIDI port Open (Client -> Source -> Port ,EndPoint)
-   CoreAudio and CoreMIDI
-   default select Port0 for output MIDI.
-------------------------------------------*/
+/*
+   MIDI port Open (CoreMIDI synth)
+*/
 uint32_t
-midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
-    uint32_t dwInstance, uint32_t fdwOpen)
+mid_synthM_open(uint32_t num)
 {
-	(void)dwCallback;
-	(void)dwInstance;
-	(void)fdwOpen;
-
 	uint32_t Device_num = 0;
 	OSStatus err_sts;
-
-	/*CoreAudio Open synth OK */
-	if (mid_synth_open() == MMSYSERR_NOERROR){
-		strcpy(menu_items[8][Device_num],synth_name);
-		Device_num ++;
-		strcpy(menu_items[8][Device_num],"\0"); // Menu END 
-	}
 
 	/* Create Client for coreMIDI */
 	err_sts = MIDIClientCreate(CFSTR("px68k"), NULL, NULL, &mid_client);
@@ -176,6 +165,7 @@ midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
 	if (err_sts != noErr)
 	{
 		p6logd("MIDI:CoreMIDI: No client created.");
+		return num;
 	}
 
 	/* Create Source for client */
@@ -194,6 +184,7 @@ midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
 	if (err_sts != noErr)
 	{
 		p6logd("MIDI:CoreMIDI: No port created.");
+		return num;
 	}
 
 	/* Get the MIDIEndPoint */
@@ -203,18 +194,13 @@ midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
 	uint32_t core_mid_num = MIDIGetNumberOfDestinations();//仮想ポート含む
 	if (core_mid_num == 0)
 	{
-		if(Device_num == 0){
-		  p6logd("No MIDI-port found.\n");
-		  strcpy(menu_items[8][Device_num],"No Device found.");
-		  Device_num ++;
-		  strcpy(menu_items[8][Device_num],"\0"); // Menu END 
-		  return !MMSYSERR_NOERROR; // No found Error
-		}
+		  return num; // No found
 	}
 
 	/* Store MIDI out port LIST */
 	CFStringRef strRef;
 	char mididevicename[64];
+	Device_num = num;
 	 for(uint32_t i = 0; i<core_mid_num; i++){
 		mid_endpoint = MIDIGetDestination(i);
 		MIDIObjectGetStringProperty(mid_endpoint, kMIDIPropertyName, &strRef);
@@ -227,14 +213,28 @@ midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback,
 	//CFRelease(strRef);
 	strcpy(menu_items[8][Device_num],"\0"); // Menu END 
 
+return Device_num;
+}
 
-	/* Set MIDI outport (default=Port0, BANK=0)*/
-	midOutChg(0,0);
+/*
+ Search and Store MIDI Device LIST 
+*/
+uint32_t
+mid_DevList(LPHMIDIOUT phmo)
+{
+	uint32_t Device_numA = 0;
+	uint32_t Device_numM = 0;
+	uint32_t Total_Device_num = 0;
+
+	/*CoreAudio Device Serce*/
+	Device_numA = mid_synthA_open(0);
+
+	/*CoreMIDI Device serch*/
+	Total_Device_num = mid_synthM_open(Device_numA);
 
 	*phmo = (HANDLE)mid_name; //MIDI Active!(ダミーを代入しておく)
 
-	return MMSYSERR_NOERROR;
-
+return Total_Device_num;
 }
 
 /*-----------------------------------------
@@ -244,9 +244,9 @@ void midOutChg(uint32_t port_no, uint32_t bank)
 {
 	OSStatus err_sts;
 	uint32_t coremid_port = port_no;
+	HMIDIOUT hmo;
 
 	/* All note off */
-	HMIDIOUT hmo;
 	for (uint32_t msg=0x7bb0; msg<0x7bc0; msg++) {
 		midiOutShortMsg(hmo, msg);
 	}
@@ -267,7 +267,7 @@ void midOutChg(uint32_t port_no, uint32_t bank)
 	/* CoreMIDI endpoint change */
 	mid_endpoint = MIDIGetDestination(coremid_port);
 	if (err_sts != noErr){
-		mid_endpoint = MIDIGetDestination((uint32_t)0);// エラーだったらとりあえずPort0に再セットしておく
+		mid_endpoint = MIDIGetDestination((uint32_t)0);/* エラーだったらとりあえずPort0に再セットしておく*/
 	}
 
 	/* select BANK CC20 LSB */
