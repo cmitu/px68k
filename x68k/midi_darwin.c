@@ -232,7 +232,9 @@ mid_DevList(LPHMIDIOUT phmo)
 	/*CoreMIDI Device serch*/
 	Total_Device_num = mid_synthM_open(Device_numA);
 
-	*phmo = (HANDLE)mid_name; //MIDI Active!(ダミーを代入しておく)
+	if(Total_Device_num != 0){
+	  *phmo = (HANDLE)mid_name; //MIDI Active!(ダミーを代入しておく)
+	}
 
 return Total_Device_num;
 }
@@ -320,6 +322,7 @@ midiOutClose(HMIDIOUT hmo)
 uint32_t
 midiOutShortMsg(HMIDIOUT hmo, uint32_t msg)
 {
+	(void)hmo;
 	uint8_t messg[4];
 
 	/* (uint32)msg を 4byte に分解 */
