@@ -97,7 +97,7 @@ mid_synthA_open(uint32_t num)
 	if (mid_auGraph)
 		return num;
 
-	/* Open the Music Device. */
+	/* Open the Audio Unit Graph. */
 	err_sts = NewAUGraph(&mid_auGraph);
 	err_sts = AUGraphOpen(mid_auGraph);
 	if (err_sts != noErr){
@@ -122,8 +122,7 @@ mid_synthA_open(uint32_t num)
 	/* Connect the softsynth to the default output */
 	AUGraphConnectNodeInput(mid_auGraph, synthNode, 0, outputNode, 0);
 
-	/* Open and initialize the graph */
-	err_sts = AUGraphOpen(mid_auGraph);
+	/* initialize the graph */
 	err_sts = AUGraphInitialize(mid_auGraph);
 	if (err_sts != noErr){
 		p6logd("CoreAudio:AUGraph Open/Init error\n");
