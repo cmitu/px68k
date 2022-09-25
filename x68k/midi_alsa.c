@@ -67,7 +67,6 @@ midOutChg(uint32_t port_no, uint32_t bank)
 	HMIDIOUT hmo;
 
 	/* All note off */
-	HMIDIOUT hmo;
 	for (uint32_t msg=0x7bb0; msg<0x7bc0; msg++) {
 		midiOutShortMsg(hmo, msg);
 	}
