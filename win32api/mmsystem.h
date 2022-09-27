@@ -22,6 +22,19 @@ typedef struct midihdr {
 	uint32_t			dwReserved[8];
 } MIDIHDR, *PMIDIHDR, *NPMIDIHDR, *LPMIDIHDR;
 
+#define MAXPNAMELEN 32
+typedef struct midioutcaps_tag {
+  uint16_t    wMid;
+  uint16_t    wPid;
+  int32_t vDriverVersion;
+  char    szPname[MAXPNAMELEN];
+  uint16_t    wTechnology;
+  uint16_t    wVoices;
+  uint16_t    wNotes;
+  uint16_t    wChannelMask;
+  uint32_t   dwSupport;
+} MIDIOUTCAPS, *PMIDIOUTCAPS, *NPMIDIOUTCAPS, *LPMIDIOUTCAPS;
+
 #define MIDBUF_SIZE 200
 #define	MMSYSERR_NOERROR	0
 #define	MIDIERR_STILLPLAYING	2

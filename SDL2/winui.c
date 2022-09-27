@@ -560,9 +560,7 @@ static void menu_sound_rate(int32_t v)
 
 static void menu_midout_rate(int32_t v)
 {
-
-	midOutChg(v, Config.MIDI_Bank);//Select MIDI port.
-
+	Config.MIDI_Port = v;
 }
 
 static void menu_vkey_size(int32_t v)
@@ -832,6 +830,8 @@ int32_t WinUI_Menu(int32_t first)
 					return WUM_EMU_QUIT;
 				}
 				return WUM_MENU_END;
+			} else if (!strcmp("MIDI Out", menu_item_key[mkey_y])) {
+				midOutChg(Config.MIDI_Port, Config.MIDI_Bank);
 			}
 			break;
 		case ms_file:

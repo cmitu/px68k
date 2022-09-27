@@ -6,7 +6,6 @@
 typedef struct
 {
 	int32_t MenuLanguage;
-	int32_t KeyboardType;
 	uint32_t SampleRate;
 	uint32_t BufferSize;
 	int32_t DisplayNo;
@@ -23,6 +22,7 @@ typedef struct
 	int32_t MIDI_SW;
 	int32_t MIDI_Type;
 	int32_t MIDI_Reset;
+	int32_t MIDI_Port;
 	int32_t MIDI_Bank;
 	int32_t JoyKey;
 	int32_t JoyKeyReverse;
