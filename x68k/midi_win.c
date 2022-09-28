@@ -8,7 +8,7 @@
 
 extern HMIDIOUT hOut;
 extern uint32_t midiOutGetNumDevs();
-extern midiOutGetDeviceCapsA(uint32_t, LPMIDIOUTCAPS, uint32_t);
+extern uint32_t midiOutGetDevCapsA(uint32_t, LPMIDIOUTCAPS, uint32_t);
 
 #pragma comment(lib,"winmm.lib")
 
@@ -36,15 +36,16 @@ mid_DevList(LPHMIDIOUT phmo)
   /* What's No ? */
   num = midiOutGetNumDevs();
 
-  for(devid = menu_no; devid<(num+menu_no); devid++){
-    res=midiOutGetDeviceCapsA(devid, &OutCaps, sizeof(OutCaps));
+  for(devid = 0; devid<num; devid++){
+    res=midiOutGetDevCapsA(devid, &OutCaps, sizeof(OutCaps));
     if(res == MMSYSERR_NOERROR){
-     strcpy(menu_item[8][devid].OutCaps.szPname);
+     strcpy(menu_items[8][menu_no], OutCaps.szPname);
+     menu_no++;
     }
   }
-  strcpy(menu_item[8][devid]."\0");
+  strcpy(menu_items[8][menu_no], "\0");
 
- return devid;
+ return menu_no;
 }
 
 /*
