@@ -289,6 +289,15 @@ WinX68k_LoadROMs(void)
 	File_Read(fp, FONT, 0xc0000);
 	File_Close(fp);
 
+	// for little endian 
+#ifndef C68K_BIG_ENDIAN
+	for (i = 0; i < 0xc0000; i += 2) {
+		tmp = FONT[i];
+		FONT[i] = FONT[i + 1];
+		FONT[i + 1] = tmp;
+	}
+#endif
+
 	SDL_SetWindowTitle(sdl_window, window_title); /*SDL2 only*/
 
 	return TRUE;

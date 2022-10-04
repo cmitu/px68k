@@ -211,8 +211,19 @@ cpu_writemem24_word(uint32_t addr, uint32_t val)
 
 	BusErrFlag = 0;
 
-	wm_cnt(addr, (val >> 8) & 0xff);
-	wm_main(addr + 1, val & 0xff);
+	addr &= 0x00ffffff;
+	if (addr < 0x00c00000) {       /* RAM */
+	  *(uint16_t *)&MEM[addr] = (uint16_t)(val & 0xffff);
+	} else if (addr < 0x00e00000) {/*GVRAM*/
+	  GVRAM_Write(addr, (val>>8) & 0xff);
+	  GVRAM_Write(addr+1, val & 0xff);
+	} else if (addr < 0x00e80000) {/*TVRAM*/
+	  TVRAM_Write(addr, (val>>8) & 0xff);
+	  TVRAM_Write(addr+1, val & 0xff);
+	} else {
+	  wm_cnt(addr, (val >> 8) & 0xff);
+	  wm_main(addr + 1, val & 0xff);
+	}
 
 	if (BusErrFlag & 2) {
 		Memory_ErrTrace();
@@ -233,10 +244,8 @@ cpu_writemem24_dword(uint32_t addr, uint32_t val)
 
 	BusErrFlag = 0;
 
-	wm_cnt(addr, (val >> 24) & 0xff);
-	wm_main(addr + 1, (val >> 16) & 0xff);
-	wm_main(addr + 2, (val >> 8) & 0xff);
-	wm_main(addr + 3, val & 0xff);
+	cpu_writemem24_word(addr  ,(val >> 16) & 0xffff);
+	cpu_writemem24_word(addr+2, val & 0xffff);
 
 	if (BusErrFlag & 2) {
 		Memory_ErrTrace();
@@ -257,13 +266,13 @@ wm_cnt(uint32_t addr, uint8_t val)
 {
 
 	addr &= 0x00ffffff;
-	if (addr < 0x00c00000) {	// Use RAM upto 12MB
+	if (addr < 0x00c00000) {	/* Use RAM upto 12MB*/
 #ifndef C68K_BIG_ENDIAN
 		MEM[addr ^ 1] = val;
 #else
 		MEM[addr    ] = val;
 #endif
-	} else if (addr < 0x00e00000) {
+	} else if (addr < 0x00e00000) {/*GVRAM*/
 		GVRAM_Write(addr, val);
 	} else {
 		MemWriteTable[(addr >> 13) & 0xff](addr, val);
@@ -388,8 +397,17 @@ cpu_readmem24_word(uint32_t addr)
 
 	BusErrFlag = 0;
 
-	v = rm_main(addr++) << 8;
-	v |= rm_main(addr);
+	if (addr < 0x00c00000) {       /* RAM */
+	  v=(uint16_t)*(uint16_t *)&MEM[addr];
+	} else if (addr >= 0x00fc0000) {/*IPL-ROM*/
+	  v=(uint16_t)*(uint16_t *)&IPL[(addr & 0x3ffff)];
+	} else if (addr >= 0x00f00000) {/*FONT-ROM*/
+	  v=(uint16_t)*(uint16_t *)&FONT[(addr & 0xfffff)];
+	} else {
+	  v = rm_main(addr++) << 8;
+	  v |= rm_main(addr);
+	}
+
 	if (BusErrFlag & 1) {
 		p6logd("func = %s addr = %x flag = %d\n", __func__, addr, BusErrFlag);
 		Memory_ErrTrace();
@@ -413,10 +431,8 @@ cpu_readmem24_dword(uint32_t addr)
 
 	BusErrFlag = 0;
 
-	v = rm_main(addr++) << 24;
-	v |= rm_main(addr++) << 16;
-	v |= rm_main(addr++) << 8;
-	v |= rm_main(addr);
+	v  = (cpu_readmem24_word(addr) << 16);
+	v |= cpu_readmem24_word(addr+2);
 	return v;
 }
 
@@ -444,8 +460,11 @@ rm_main(uint32_t addr)
 static uint8_t
 rm_font(uint32_t addr)
 {
-
-	return FONT[addr & 0xfffff];
+#ifndef C68K_BIG_ENDIAN
+	return FONT[(addr & 0xfffff) ^ 1];
+#else
+	return FONT[(addr & 0xfffff)    ];
+#endif
 }
 
 static uint8_t
