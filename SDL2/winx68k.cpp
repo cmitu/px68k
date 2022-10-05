@@ -227,7 +227,7 @@ WinX68k_SCSICheck()
 		memset(&SCSIIPL[0x000440], 0, (0x2000-0x440));
 		memcpy( &SCSIIPL[0x000440], EX_SCSIIOCS, sizeof(EX_SCSIIOCS));//IOCS Patch
 	}
-		// for little endian 
+	// for little endian 
 #ifndef C68K_BIG_ENDIAN
 	for (i = 0; i < 0x02000; i += 2) {
 	 tmp = SCSIIPL[i];
@@ -268,7 +268,7 @@ WinX68k_LoadROMs(void)
 
 	WinX68k_SCSICheck();	// Load SCSI IPL in:$fc0000～ ex:ea0000
 
-	// for little endian 
+// for little endian 
 #ifndef C68K_BIG_ENDIAN
 	for (i = 0; i < 0x40000; i += 2) {
 		tmp = IPL[i];
@@ -291,7 +291,7 @@ WinX68k_LoadROMs(void)
 	File_Read(fp, FONT, 0xc0000);
 	File_Close(fp);
 
-	// for little endian 
+// for little endian 
 #ifndef C68K_BIG_ENDIAN
 	for (i = 0; i < 0xc0000; i += 2) {
 		tmp = FONT[i];

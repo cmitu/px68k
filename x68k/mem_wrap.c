@@ -399,6 +399,11 @@ cpu_readmem24_word(uint32_t addr)
 
 	if (addr < 0x00c00000) {       /* RAM */
 	  v=(uint16_t)*(uint16_t *)&MEM[addr];
+	} else if (addr < 0x00e00000) {/*GVRAM*/
+	  v  = GVRAM_Read(addr) << 8;
+	  v |= GVRAM_Read(addr +1);
+	} else if (addr < 0x00e80000) {/*TVRAM*/
+	  v=(uint16_t)*(uint16_t *)&TVRAM[(addr & 0x7ffff)];
 	} else if (addr >= 0x00fc0000) {/*IPL-ROM*/
 	  v=(uint16_t)*(uint16_t *)&IPL[(addr & 0x3ffff)];
 	} else if (addr >= 0x00f00000) {/*FONT-ROM*/
