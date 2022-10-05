@@ -99,11 +99,7 @@ INLINE void TVRAM_WriteByte(uint32_t adr, uint8_t data)
 // -----------------------------------------------------------------------
 INLINE void TVRAM_WriteByteMask(int32_t adr, uint8_t data)
 {
-#ifndef C68K_BIG_ENDIAN
 	data = (TVRAM[adr] & CRTC_Regs[0x2e + ((adr^1) & 1)]) | (data & (~CRTC_Regs[0x2e + ((adr ^1) & 1)]));
-#else
-	data = (TVRAM[adr] & CRTC_Regs[0x2e + ((adr  ) & 1)]) | (data & (~CRTC_Regs[0x2e + ((adr   ) & 1)]));
-#endif
 
 	if (TVRAM[adr] != data)
 	{
@@ -157,11 +153,7 @@ void FASTCALL TVRAM_Write(uint32_t adr, uint8_t data)
 	int32_t tvram_addr = adr & 0x1ffff;
 	int32_t t0, t1;
 	uint8_t pat;
-#ifndef C68K_BIG_ENDIAN
 	int32_t workadr = ((adr & 0x1ff80) + ((adr ^ 1) & 0x7f)) << 3;
-#else
-	int32_t workadr = ((adr & 0x1ff80) + ((adr    ) & 0x7f)) << 3;
-#endif
 
 	pat = TVRAM[tvram_addr + 0x60000];
 	t0 = ptr[(pat * 2) + 1536];
@@ -201,11 +193,7 @@ void FASTCALL TVRAM_RCUpdate(void)
 	int_fast16_t i;
 
 	for (i = 0; i < 512; i++, adr++) {
-#ifndef C68K_BIG_ENDIAN
 		tadr = adr ^ 1;
-#else
-		tadr = adr    ;
-#endif
 
 		pat = TVRAM[tadr + 0x60000];
 		t0 = ptr[(pat * 2) + 1536];

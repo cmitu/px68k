@@ -1468,7 +1468,7 @@ static void draw_char(uint16_t sjis)
 	int32_t f;
 	uint16_t *p;
 	int32_t i, j, k, wc, w;
-	uint8_t c;
+	uint16_t c;
 	uint16_t bc,ch;
 
 	int32_t h = p6m.mfs;
@@ -1504,14 +1504,12 @@ static void draw_char(uint16_t sjis)
 	for (i = 0; i < h; i++) {
 		wc = w;
 		for (j = 0; j < ((w % 8 == 0)? w / 8 : w / 8 + 1); j++) {
-#ifndef C68K_BIG_ENDIAN
-			c = FONT[f++ ^ 1];
-#else
-			c = FONT[f++    ];
-#endif
+			c =(uint16_t)*(uint16_t *)&FONT[(f & 0xfffffe)];
+			if(f & 1){ c = c << 8; } /*奇数byte*/
+			f++;
 			for (k = 0; k < 8 ; k++) {
 				bc = p6m.mbcolor? p6m.mbcolor : *p;
-				*p = (c & 0x80)? p6m.mcolor : bc;
+				*p = (c & 0x8000)? p6m.mcolor : bc;
 				p++;
 				c = c << 1;
 				wc--;
