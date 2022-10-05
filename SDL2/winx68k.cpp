@@ -197,7 +197,7 @@ WinX68k_SCSICheck()
 		if (fp == 0) {
 			//p6logd("NO-SCSI-IPL for built-in.\n"); // No InSCSI-IPL
 			memset(IPL, 0, 0x10000);		// clear
-			//memcpy(IPL, IN_SCSIIMG, sizeof(IN_SCSIIMG));	// Dummy-SCSI BIOS Load
+			memcpy(IPL, IN_SCSIIMG, sizeof(IN_SCSIIMG));	// Dummy-SCSI BIOS Load
 		}
 		else{
 			strcat(window_title," SCSIin");
@@ -205,8 +205,10 @@ WinX68k_SCSICheck()
 			File_Read(fp, IPL, 0x02000);/*0xfc0000~8KB*/
 			File_Close(fp);
 			memcpy( &IPL[0x00041A], EX_SCSIIOCS, sizeof(EX_SCSIIOCS));//IOCS Patch
-			//Memory_SetSCSIMode(2);
 		}
+	}
+	else{
+		//Memory_SetSCSIMode();
 	}
 
 	// ExSCSI(origin X68000) CZ-6BS1を常に有効にする
@@ -214,7 +216,7 @@ WinX68k_SCSICheck()
 	if (fp == 0) {
 		//p6logd("NO-SCSI-IPL for CZ-6BS1.\n");// No CZ-6BS1-IPL
 		memset(SCSIIPL, 0, 0x02000);		// clear
-		//memcpy(&SCSIIPL[0x20], EX_SCSIIMG, sizeof(EX_SCSIIMG));	// Dummy-SCSI BIOS Load
+		memcpy(&SCSIIPL[0x20], EX_SCSIIMG, sizeof(EX_SCSIIMG));	// Dummy-SCSI BIOS Load
 	}
 	else{
 		//p6logd("SCSI-IPL for CZ-6BS1.\n");// Yes CZ-6BS1-IPL
@@ -242,7 +244,7 @@ int32_t
 WinX68k_LoadROMs(void)
 {
 	static const char *BIOSFILE[] = {
-		"iplrom.dat", "iplrom30.dat", "iplromco.dat", "iplromxv.dat"
+		"iplrom.dat", "iplromxv.dat", "iplromco.dat", "iplrom30.dat"
 	};
 	static const char FONTFILE[] = "cgrom.dat";
 	static const char FONTFILETMP[] = "cgrom.tmp";
@@ -260,9 +262,9 @@ WinX68k_LoadROMs(void)
 	File_Read(fp, &IPL[0x20000], 0x20000);/*128K*/
 	File_Close(fp);
 	if(i==1) strcat(window_title," EXPERT");//ver 1.0
-	if(i==2) strcat(window_title," X68030");//ver 1.3
+	if(i==2) strcat(window_title," XVI");   //ver 1.1
 	if(i==3) strcat(window_title," XVIcpt");//ver 1.2
-	if(i==4) strcat(window_title," XVI");   //ver 1.1
+	if(i==4) strcat(window_title," X68030");//ver 1.3
 
 	WinX68k_SCSICheck();	// Load SCSI IPL in:$fc0000～ ex:ea0000
 
@@ -697,6 +699,7 @@ int32_t main(int32_t argc, char *argv[])
 		err_msg_no = 2;
 		//exit (1);
 	}
+	memcpy(&MEM[0xbffffc], &SCSIIPL[0x20], 4); /*RST Vect patch for ROM v1.0*/
 
 	Keyboard_Init(); //WinDraw_Init()前に移動
 	Keymap_Init(); //Load Key Map file
