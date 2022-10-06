@@ -178,9 +178,8 @@ OP_0x1008:
 {
 	u32 res;
 	// can't read byte from Ax registers !
-	CPU->Status |= C68K_FAULTED;
 	CCnt = 0;
-	goto C68k_Exec_Really_End;
+	goto C68k_Exec_End;
 	CPU->flag_C = 0;
 	CPU->flag_V = 0;
 	CPU->flag_notZ = res;
@@ -195,9 +194,8 @@ OP_0x1088:
 	u32 adr;
 	u32 res;
 	// can't read byte from Ax registers !
-	CPU->Status |= C68K_FAULTED;
 	CCnt = 0;
-	goto C68k_Exec_Really_End;
+	goto C68k_Exec_End;
 	CPU->flag_C = 0;
 	CPU->flag_V = 0;
 	CPU->flag_notZ = res;
@@ -215,9 +213,8 @@ OP_0x10C8:
 	u32 adr;
 	u32 res;
 	// can't read byte from Ax registers !
-	CPU->Status |= C68K_FAULTED;
 	CCnt = 0;
-	goto C68k_Exec_Really_End;
+	goto C68k_Exec_End;
 	CPU->flag_C = 0;
 	CPU->flag_V = 0;
 	CPU->flag_notZ = res;
@@ -236,9 +233,8 @@ OP_0x1108:
 	u32 adr;
 	u32 res;
 	// can't read byte from Ax registers !
-	CPU->Status |= C68K_FAULTED;
 	CCnt = 0;
-	goto C68k_Exec_Really_End;
+	goto C68k_Exec_End;
 	CPU->flag_C = 0;
 	CPU->flag_V = 0;
 	CPU->flag_notZ = res;
@@ -257,9 +253,8 @@ OP_0x1148:
 	u32 adr;
 	u32 res;
 	// can't read byte from Ax registers !
-	CPU->Status |= C68K_FAULTED;
 	CCnt = 0;
-	goto C68k_Exec_Really_End;
+	goto C68k_Exec_End;
 	CPU->flag_C = 0;
 	CPU->flag_V = 0;
 	CPU->flag_notZ = res;
@@ -278,9 +273,8 @@ OP_0x1188:
 	u32 adr;
 	u32 res;
 	// can't read byte from Ax registers !
-	CPU->Status |= C68K_FAULTED;
 	CCnt = 0;
-	goto C68k_Exec_Really_End;
+	goto C68k_Exec_End;
 	CPU->flag_C = 0;
 	CPU->flag_V = 0;
 	CPU->flag_notZ = res;
@@ -299,9 +293,8 @@ OP_0x11C8:
 	u32 adr;
 	u32 res;
 	// can't read byte from Ax registers !
-	CPU->Status |= C68K_FAULTED;
 	CCnt = 0;
-	goto C68k_Exec_Really_End;
+	goto C68k_Exec_End;
 	CPU->flag_C = 0;
 	CPU->flag_V = 0;
 	CPU->flag_notZ = res;
@@ -320,9 +313,8 @@ OP_0x13C8:
 	u32 adr;
 	u32 res;
 	// can't read byte from Ax registers !
-	CPU->Status |= C68K_FAULTED;
 	CCnt = 0;
-	goto C68k_Exec_Really_End;
+	goto C68k_Exec_End;
 	CPU->flag_C = 0;
 	CPU->flag_V = 0;
 	CPU->flag_notZ = res;
@@ -341,9 +333,8 @@ OP_0x1EC8:
 	u32 adr;
 	u32 res;
 	// can't read byte from Ax registers !
-	CPU->Status |= C68K_FAULTED;
 	CCnt = 0;
-	goto C68k_Exec_Really_End;
+	goto C68k_Exec_End;
 	CPU->flag_C = 0;
 	CPU->flag_V = 0;
 	CPU->flag_notZ = res;
@@ -362,9 +353,8 @@ OP_0x1F08:
 	u32 adr;
 	u32 res;
 	// can't read byte from Ax registers !
-	CPU->Status |= C68K_FAULTED;
 	CCnt = 0;
-	goto C68k_Exec_Really_End;
+	goto C68k_Exec_End;
 	CPU->flag_C = 0;
 	CPU->flag_V = 0;
 	CPU->flag_notZ = res;

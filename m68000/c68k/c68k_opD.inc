@@ -22,9 +22,8 @@ OP_0xD008:
 	pointer dst;
 	pointer src;
 	// can't read byte from Ax registers !
-	CPU->Status |= C68K_FAULTED;
 	CCnt = 0;
-	goto C68k_Exec_Really_End;
+	goto C68k_Exec_End;
 	dst = (u8)CPU->D[(Opcode >> 9) & 7];
 	res = (u32)(dst + src);
 	CPU->flag_N = CPU->flag_X = CPU->flag_C = res;

@@ -22,6 +22,7 @@
 #define CORE_H
 
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 
 #ifndef ALIGNED
