@@ -42,7 +42,7 @@
 
  ## Limitation
  * SCSI対応は現状IOCSレベル。 よってNetBSD/X68kはbootできません。
- * WinのMIDIはMIDI_MAPPER固定(あとはOS任せ)
+ * WinのMIDIはMIDI_MAPPERとデバイスリストから選択可
  * macのMIDIは内蔵シンセ(CoreAudio)、MuntやUSB-MIDIはCoreMIDIで
  * LinuxのMIDIは現状fluidsynthのみ
  * MIDI-INには非対応

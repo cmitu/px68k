@@ -202,33 +202,42 @@ void
 cpu_writemem24_word(uint32_t addr, uint32_t val)
 {
 
-	MemByteAccess = 0;
+  MemByteAccess = 0;
 
-	if (addr & 1) {
-		AdrError(addr, val);
-		return;
-	}
+  if (addr & 1) {
+  	AdrError(addr, val);
+  	return;
+  }
 
-	BusErrFlag = 0;
+  BusErrFlag = 0;
 
-	addr &= 0x00ffffff;
-	if (addr < 0x00c00000) {       /* RAM */
-	  *(uint16_t *)&MEM[addr] = (uint16_t)(val & 0xffff);
-	} else if (addr < 0x00e00000) {/*GVRAM*/
-	  GVRAM_Write(addr, (val>>8) & 0xff);
-	  GVRAM_Write(addr+1, val & 0xff);
-	} else if (addr < 0x00e80000) {/*TVRAM*/
-	  TVRAM_Write(addr, (val>>8) & 0xff);
-	  TVRAM_Write(addr+1, val & 0xff);
-	} else {
-	  wm_cnt(addr, (val >> 8) & 0xff);
-	  wm_main(addr + 1, val & 0xff);
-	}
+  addr &= 0x00ffffff;
 
-	if (BusErrFlag & 2) {
-		Memory_ErrTrace();
-		BusError(addr, val);
-	}
+  switch(addr){
+  case 0x000000 ... 0xbfffff: /* RAM */
+    *(uint16_t *)&MEM[addr] = (uint16_t)(val & 0xffff);
+    return;
+    break;
+  case 0xc00000 ... 0xdfffff: /*GVRAM*/
+    GVRAM_Write(addr, (val>>8) & 0xff);
+    GVRAM_Write(addr+1, val & 0xff);
+    break;
+  case 0xe00000 ... 0xe7ffff: /*TVRAM*/
+    TVRAM_Write(addr, (val>>8) & 0xff);
+    TVRAM_Write(addr+1, val & 0xff);
+    break;
+  default:
+    wm_cnt(addr, (val >> 8) & 0xff);
+    wm_main(addr + 1, val & 0xff);
+    break;
+  }
+
+  if (BusErrFlag & 2) {
+  	Memory_ErrTrace();
+  	BusError(addr, val);
+  }
+
+  return;
 }
 
 void 
@@ -265,18 +274,25 @@ static void
 wm_cnt(uint32_t addr, uint8_t val)
 {
 
-	addr &= 0x00ffffff;
-	if (addr < 0x00c00000) {	/* Use RAM upto 12MB*/
+  addr &= 0x00ffffff;
+
+  switch(addr){
+  case 0x000000 ... 0xbfffff: /* RAM */
 #ifndef C68K_BIG_ENDIAN
-		MEM[addr ^ 1] = val;
+    MEM[addr ^ 1] = val;
 #else
-		MEM[addr    ] = val;
+    MEM[addr    ] = val;
 #endif
-	} else if (addr < 0x00e00000) {/*GVRAM*/
-		GVRAM_Write(addr, val);
-	} else {
-		MemWriteTable[(addr >> 13) & 0xff](addr, val);
-	}
+    break;
+  case 0xc00000 ... 0xdfffff: /*GVRAM*/
+    GVRAM_Write(addr, val);
+    break;
+  default:
+    MemWriteTable[(addr >> 13) & 0xff](addr, val);
+    break;
+  }
+
+  return;
 }
 
 static void 
@@ -388,37 +404,50 @@ cpu_readmem24(uint32_t addr)
 uint32_t
 cpu_readmem24_word(uint32_t addr)
 {
-	uint16_t v;
+  uint16_t v;
 
-	if (addr & 1) {
-		AdrError(addr, 0);
-		return 0;
-	}
+  if (addr & 1) {
+  	AdrError(addr, 0);
+  	return 0;
+  }
 
-	BusErrFlag = 0;
+  BusErrFlag = 0;
 
-	if (addr < 0x00c00000) {       /* RAM */
-	  v=(uint16_t)*(uint16_t *)&MEM[addr];
-	} else if (addr < 0x00e00000) {/*GVRAM*/
-	  v  = GVRAM_Read(addr) << 8;
-	  v |= GVRAM_Read(addr +1);
-	} else if (addr < 0x00e80000) {/*TVRAM*/
-	  v=(uint16_t)*(uint16_t *)&TVRAM[(addr & 0x7ffff)];
-	} else if (addr >= 0x00fc0000) {/*IPL-ROM*/
-	  v=(uint16_t)*(uint16_t *)&IPL[(addr & 0x3ffff)];
-	} else if (addr >= 0x00f00000) {/*FONT-ROM*/
-	  v=(uint16_t)*(uint16_t *)&FONT[(addr & 0xfffff)];
-	} else {
-	  v = rm_main(addr++) << 8;
-	  v |= rm_main(addr);
-	}
+  addr &= 0x00ffffff;
 
-	if (BusErrFlag & 1) {
-		p6logd("func = %s addr = %x flag = %d\n", __func__, addr, BusErrFlag);
-		Memory_ErrTrace();
-		BusError(addr, 0);
-	}
-	return (uint32_t) v;
+  switch(addr){
+  case 0x000000 ... 0xbfffff: /* RAM */
+    return((uint16_t)*(uint16_t *)&MEM[addr]);
+    break;
+  case 0xc00000 ... 0xdfffff: /*GVRAM*/
+    v  = GVRAM_Read(addr) << 8;
+    v |= GVRAM_Read(addr +1);
+    break;
+  case 0xe00000 ... 0xe7ffff: /*TVRAM*/
+    return((uint16_t)*(uint16_t *)&TVRAM[(addr & 0x7ffff)]);
+    break;
+  case 0xed0000 ... 0xed3fff: /*SRAM*/
+    return((uint16_t)*(uint16_t *)&SRAM[(addr & 0x003fff)]);
+    break;
+  case 0xf00000 ... 0xfbffff: /*FONT-ROM*/
+    return((uint16_t)*(uint16_t *)&FONT[(addr & 0xfffff)]);
+    break;
+  case 0xfc0000 ... 0xffffff: /*IPL-ROM*/
+    return((uint16_t)*(uint16_t *)&IPL[(addr & 0x3ffff)]);
+    break;
+  default:
+    v = rm_main(addr++) << 8;
+    v |= rm_main(addr);
+    break;
+  }
+
+  if (BusErrFlag & 1) {
+  	p6logd("func = %s addr = %x flag = %d\n", __func__, addr, BusErrFlag);
+  	Memory_ErrTrace();
+  	BusError(addr, 0);
+  }
+
+  return (uint32_t) v;
 }
 
 uint32_t
@@ -444,42 +473,42 @@ cpu_readmem24_dword(uint32_t addr)
 static uint8_t
 rm_main(uint32_t addr)
 {
-	uint8_t v;
 
-	addr &= 0x00ffffff;
-	if (addr < 0x00c00000) {	// Use RAM upto 12MB
-#ifndef C68K_BIG_ENDIAN
-		v = MEM[addr ^ 1];
-#else
-		v = MEM[addr    ];
-#endif
-	} else if (addr < 0x00e00000) {
-		v = GVRAM_Read(addr);
-	} else {
-		v = MemReadTable[(addr >> 13) & 0xff](addr);
-	}
+  addr &= 0x00ffffff;
 
-	return v;
+  switch(addr){
+  case 0x000000 ... 0xbfffff: /* RAM */
+    if(addr & 1){
+    return(*(uint16_t *)&MEM[(addr & 0xfffffe)] & 0xff);   /*奇数Byte*/
+    }
+    return((*(uint16_t *)&MEM[(addr & 0xfffffe)] >> 8) & 0xff);/*偶数Byte*/
+    break;
+  case 0xc00000 ... 0xdfffff: /*GVRAM*/
+    return(GVRAM_Read(addr));
+    break;
+  default:
+    return(MemReadTable[(addr >> 13) & 0xff](addr));
+    break;
+  }
+
 }
 
 static uint8_t
 rm_font(uint32_t addr)
 {
-#ifndef C68K_BIG_ENDIAN
-	return FONT[(addr & 0xfffff) ^ 1];
-#else
-	return FONT[(addr & 0xfffff)    ];
-#endif
+if(addr & 1){
+return(*(uint16_t *)&FONT[(addr & 0xffffe)] & 0xff);   /*奇数Byte*/
+}
+return((*(uint16_t *)&FONT[(addr & 0xffffe)] >> 8) & 0xff);/*偶数Byte*/
 }
 
 static uint8_t
 rm_ipl(uint32_t addr)
 {
-#ifndef C68K_BIG_ENDIAN
-	return IPL[(addr & 0x3ffff) ^ 1];
-#else
-	return IPL[(addr & 0x3ffff)    ];
-#endif
+if(addr & 1){
+return(*(uint16_t *)&IPL[(addr & 0x3fffe)] & 0xff);   /*奇数Byte*/
+}
+return((*(uint16_t *)&IPL[(addr & 0x3fffe)] >> 8) & 0xff);/*偶数Byte*/
 }
 
 static uint8_t
@@ -529,7 +558,6 @@ rm_buserr(uint32_t addr)
 void Memory_Init(void)
 {
 
-//cpu_setOPbase24((DWORD)C68k_Get_Reg(&C68K, C68K_PC));
   cpu_setOPbase24((uint32_t)m68000_get_reg(M68K_PC));
 }
 

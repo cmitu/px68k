@@ -1326,9 +1326,9 @@ static void _ea_read_(u32 ea, u32 rsft, char dest[4])
             if (current_size == SIZE_BYTE)
             {
                 wf_op("\t// can't read byte from Ax registers !\n");
-                wf_op("\tCPU->Status |= C68K_FAULTED;\n");
+//                wf_op("\tCPU->Status |= C68K_FAULTED;\n");
                 wf_op("\tCCnt = 0;\n");
-                wf_op("\tgoto C68k_Exec_Really_End;\n");
+                wf_op("\tgoto C68k_Exec_End;\n");
             }
             else wf_op("\t%s = (%s)CPU->A[(Opcode >> %d) & 7];\n", dest, szc, rsft);
 			break;
@@ -1418,9 +1418,9 @@ static void _ea_read_sx_(u32 ea, u32 rsft, char dest[4])
             if (current_size == SIZE_BYTE)
             {
                 wf_op("\t// can't read byte from Ax registers !\n");
-                wf_op("\tCPU->Status |= C68K_FAULTED;\n");
+//                wf_op("\tCPU->Status |= C68K_FAULTED;\n");
                 wf_op("\tCCnt = 0;\n");
-                wf_op("\tgoto C68k_Exec_Really_End;\n");
+                wf_op("\tgoto C68k_Exec_End;\n");
             }
             else wf_op("\t%s = (s32)(%s)CPU->A[(Opcode >> %d) & 7];\n", dest, szcs, rsft);
 			break;
