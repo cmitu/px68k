@@ -1509,7 +1509,7 @@ static void draw_char(uint16_t sjis)
 			f++;
 			for (k = 0; k < 8 ; k++) {
 				bc = p6m.mbcolor? p6m.mbcolor : *p;
-				*p = (c & 0x8000)? p6m.mcolor : bc;
+				*p = (c & 0x80)? p6m.mcolor : bc;
 				p++;
 				c = c << 1;
 				wc--;
