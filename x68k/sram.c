@@ -14,7 +14,7 @@
 // ------------------------------------------------------------------------------
 
 #include	"common.h"
-#include	"fileio.h"
+#include	"dosio.h"
 #include	"prop.h"
 #include	"winx68k.h"
 #include	"sysport.h"
@@ -162,14 +162,14 @@ void SRAM_Init(void)
 	{
 		File_Read(fp, SRAM, 0x4000);
 		File_Close(fp);
-		/*for little endian guys!*/
 #ifndef C68K_BIG_ENDIAN
-		for (i=0; i<0x4000; i+=2)
-		{
-			tmp = SRAM[i];
-			SRAM[i] = SRAM[i+1];
-			SRAM[i+1] = tmp;
-		}
+	/*for little endian guys!*/
+	for (i=0; i<0x4000; i+=2)
+	{
+		tmp = SRAM[i];
+		SRAM[i] = SRAM[i+1];
+		SRAM[i+1] = tmp;
+	}
 #endif
 	}
 }
@@ -207,16 +207,18 @@ void SRAM_Cleanup(void)
 // -----------------------------------------------------------------------
 //   りーど(Read S-RAM)
 // -----------------------------------------------------------------------
-uint8_t FASTCALL SRAM_Read(uint32_t adr)
+uint8_t FASTCALL SRAM_Read(uint32_t addr)
 {
-	adr &= 0xffff;
-#ifndef C68K_BIG_ENDIAN
-	adr ^= 1;
-#endif
-	if (adr<0x4000)
-		return SRAM[adr];
-	else
-		return 0xff;
+  addr &= 0xffff;
+
+  if (addr<0x4000){
+    if(addr & 1){
+     return(*(uint16_t *)&SRAM[(addr & 0x3ffe)] & 0xff);   /*奇数Byte*/
+    }
+    return((*(uint16_t *)&SRAM[(addr & 0x3ffe)] >> 8) & 0xff);/*偶数Byte*/
+  }
+
+  return 0xff;
 }
 
 
@@ -243,7 +245,7 @@ void FASTCALL SRAM_Write(uint32_t adr, uint8_t data)
 #endif /* XXX */
 			}
 		}
-		adr &= 0xffff;
+		adr &= 0x3fff;
 #ifndef C68K_BIG_ENDIAN
 		adr ^= 1;
 #endif
