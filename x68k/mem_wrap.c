@@ -1,5 +1,6 @@
 /*	$Id: mem_wrap.c,v 1.2 2003/12/05 18:07:19 nonaka Exp $	*/
-/*	Add SCSI_iocs fuck address 2022/3/21 kameya */
+/*	Add Support 16bit(WORD)Access 2022/10/4 kameya */
+/*	Add SCSI_iocs fuck address 2022/3/21*/
 
 #include "common.h"
 //#include <string.h>
@@ -33,13 +34,14 @@ void AdrError(uint32_t, int32_t);
 void BusError(uint32_t, int32_t);
 
 static void wm_main(uint32_t addr, uint8_t val);
-static void wm_cnt(uint32_t addr, uint8_t val);
+static void wm16_main(uint32_t addr, uint16_t val);
 static void wm_buserr(uint32_t addr, uint8_t val);
 static void wm_opm(uint32_t addr, uint8_t val);
 static void wm_e82(uint32_t addr, uint8_t val);
 static void wm_nop(uint32_t addr, uint8_t val);
 
 static uint8_t rm_main(uint32_t addr);
+static uint16_t rm16_main(uint32_t addr);
 static uint8_t rm_font(uint32_t addr);
 static uint8_t rm_ipl(uint32_t addr);
 static uint8_t rm_nop(uint32_t addr);
@@ -149,7 +151,10 @@ dma_writemem24(uint32_t addr, uint8_t val)
 
 	MemByteAccess = 0;
 
-	wm_main(addr, val);
+	if ((BusErrFlag & 7) == 0){
+	  wm_main(addr, val);
+	}
+
 }
 
 void 
@@ -163,8 +168,10 @@ dma_writemem24_word(uint32_t addr, uint16_t val)
 		return;
 	}
 
-	wm_main(addr, (val >> 8) & 0xff);
-	wm_main(addr + 1, val & 0xff);
+	if ((BusErrFlag & 7) == 0){
+	  wm16_main(addr  ,val);
+	}
+
 }
 
 void 
@@ -178,10 +185,11 @@ dma_writemem24_dword(uint32_t addr, uint32_t val)
 		return;
 	}
 
-	wm_main(addr, (val >> 24) & 0xff);
-	wm_main(addr + 1, (val >> 16) & 0xff);
-	wm_main(addr + 2, (val >> 8) & 0xff);
-	wm_main(addr + 3, val & 0xff);
+	if ((BusErrFlag & 7) == 0){
+	  wm16_main(addr  ,(val >> 16) & 0xffff);
+	  wm16_main(addr+2, val & 0xffff);
+	}
+
 }
 
 void 
@@ -191,7 +199,8 @@ cpu_writemem24(uint32_t addr, uint32_t val)
 	MemByteAccess = 0;
 	BusErrFlag = 0;
 
-	wm_cnt(addr, val & 0xff);
+	wm_main(addr, val & 0xff);
+
 	if (BusErrFlag & 2) {
 		Memory_ErrTrace();
 		BusError(addr, val);
@@ -211,26 +220,7 @@ cpu_writemem24_word(uint32_t addr, uint32_t val)
 
   BusErrFlag = 0;
 
-  addr &= 0x00ffffff;
-
-  switch(addr){
-  case 0x000000 ... 0xbfffff: /* RAM */
-    *(uint16_t *)&MEM[addr] = (uint16_t)(val & 0xffff);
-    return;
-    break;
-  case 0xc00000 ... 0xdfffff: /*GVRAM*/
-    GVRAM_Write(addr, (val>>8) & 0xff);
-    GVRAM_Write(addr+1, val & 0xff);
-    break;
-  case 0xe00000 ... 0xe7ffff: /*TVRAM*/
-    TVRAM_Write(addr, (val>>8) & 0xff);
-    TVRAM_Write(addr+1, val & 0xff);
-    break;
-  default:
-    wm_cnt(addr, (val >> 8) & 0xff);
-    wm_main(addr + 1, val & 0xff);
-    break;
-  }
+  wm16_main(addr  ,val & 0xffff);
 
   if (BusErrFlag & 2) {
   	Memory_ErrTrace();
@@ -253,8 +243,10 @@ cpu_writemem24_dword(uint32_t addr, uint32_t val)
 
 	BusErrFlag = 0;
 
-	cpu_writemem24_word(addr  ,(val >> 16) & 0xffff);
-	cpu_writemem24_word(addr+2, val & 0xffff);
+	wm16_main(addr  ,(val >> 16) & 0xffff);
+	if ((BusErrFlag & 7) == 0){
+	wm16_main(addr+2, val & 0xffff);
+	}
 
 	if (BusErrFlag & 2) {
 		Memory_ErrTrace();
@@ -262,18 +254,10 @@ cpu_writemem24_dword(uint32_t addr, uint32_t val)
 	}
 }
 
+
 static void 
 wm_main(uint32_t addr, uint8_t val)
 {
-
-	if ((BusErrFlag & 7) == 0)
-		wm_cnt(addr, val);
-}
-
-static void 
-wm_cnt(uint32_t addr, uint8_t val)
-{
-
   addr &= 0x00ffffff;
 
   switch(addr){
@@ -294,6 +278,39 @@ wm_cnt(uint32_t addr, uint8_t val)
 
   return;
 }
+
+static void 
+wm16_main(uint32_t addr, uint16_t val)
+{
+  addr &= 0x00fffffe;
+
+  switch(addr){
+  case 0x000000 ... 0xbfffff: /* RAM */
+    *(uint16_t *)&MEM[addr] = (uint16_t)(val & 0xffff);
+    return;
+    break;
+  case 0xc00000 ... 0xdfffff: /*GVRAM*/
+    GVRAM_Write(addr, (val>>8) & 0xff);
+    GVRAM_Write(addr+1, val & 0xff);
+    break;
+  case 0xe00000 ... 0xe7ffff: /*TVRAM*/
+    TVRAM_Write(addr, (val>>8) & 0xff);
+    TVRAM_Write(addr+1, val & 0xff);
+    break;
+  case 0xed0000 ... 0xed3fff: /*SRAM*/
+    *(uint16_t *)&SRAM[addr & 0x3fff] = (uint16_t)(val & 0xffff);
+    return;
+    break;
+  default:
+	MemWriteTable[(addr >> 13) & 0xff](addr, (val>>8) & 0xff);
+	addr++;
+	MemWriteTable[(addr >> 13) & 0xff](addr, val & 0xff);
+    break;
+  }
+
+  return;
+}
+
 
 static void 
 wm_buserr(uint32_t addr, uint8_t val)
@@ -365,8 +382,8 @@ dma_readmem24_word(uint32_t addr)
 		return 0;
 	}
 
-	v = rm_main(addr++) << 8;
-	v |= rm_main(addr);
+	v = rm16_main(addr);
+
 	return v;
 }
 
@@ -380,10 +397,9 @@ dma_readmem24_dword(uint32_t addr)
 		return 0;
 	}
 
-	v = rm_main(addr++) << 24;
-	v |= rm_main(addr++) << 16;
-	v |= rm_main(addr++) << 8;
-	v |= rm_main(addr);
+	v  = rm16_main(addr) << 16;
+	v |= rm16_main(addr+2);
+
 	return v;
 }
 
@@ -392,7 +408,12 @@ cpu_readmem24(uint32_t addr)
 {
 	uint8_t v;
 
-	v = rm_main(addr);
+	if(addr & 1){
+	 v = rm16_main(addr & 0xfffffe) & 0xff;
+	}else{
+	 v = (rm16_main(addr & 0xfffffe) >> 8) & 0xff;
+	}
+
 	if (BusErrFlag & 1) {
 		p6logd("func = %s addr = %x flag = %d\n", __func__, addr, BusErrFlag);
 		Memory_ErrTrace();
@@ -413,33 +434,7 @@ cpu_readmem24_word(uint32_t addr)
 
   BusErrFlag = 0;
 
-  addr &= 0x00ffffff;
-
-  switch(addr){
-  case 0x000000 ... 0xbfffff: /* RAM */
-    return((uint16_t)*(uint16_t *)&MEM[addr]);
-    break;
-  case 0xc00000 ... 0xdfffff: /*GVRAM*/
-    v  = GVRAM_Read(addr) << 8;
-    v |= GVRAM_Read(addr +1);
-    break;
-  case 0xe00000 ... 0xe7ffff: /*TVRAM*/
-    return((uint16_t)*(uint16_t *)&TVRAM[(addr & 0x7ffff)]);
-    break;
-  case 0xed0000 ... 0xed3fff: /*SRAM*/
-    return((uint16_t)*(uint16_t *)&SRAM[(addr & 0x003fff)]);
-    break;
-  case 0xf00000 ... 0xfbffff: /*FONT-ROM*/
-    return((uint16_t)*(uint16_t *)&FONT[(addr & 0xfffff)]);
-    break;
-  case 0xfc0000 ... 0xffffff: /*IPL-ROM*/
-    return((uint16_t)*(uint16_t *)&IPL[(addr & 0x3ffff)]);
-    break;
-  default:
-    v = rm_main(addr++) << 8;
-    v |= rm_main(addr);
-    break;
-  }
+  v = rm16_main(addr);
 
   if (BusErrFlag & 1) {
   	p6logd("func = %s addr = %x flag = %d\n", __func__, addr, BusErrFlag);
@@ -464,11 +459,48 @@ cpu_readmem24_dword(uint32_t addr)
 	}
 
 	BusErrFlag = 0;
+	v  = rm16_main(addr) << 16;
+	v |= rm16_main(addr+2);
 
-	v  = (cpu_readmem24_word(addr) << 16);
-	v |= cpu_readmem24_word(addr+2);
 	return v;
 }
+
+static uint16_t
+rm16_main(uint32_t addr)
+{
+  uint16_t v;
+
+  addr &= 0x00fffffe;
+
+  switch(addr){
+  case 0x000000 ... 0xbfffff: /* RAM */
+    return((uint16_t)*(uint16_t *)&MEM[addr]);
+    break;
+  case 0xc00000 ... 0xdfffff: /*GVRAM*/
+    v  = GVRAM_Read(addr) << 8;
+    v |= GVRAM_Read(addr +1);
+    break;
+  case 0xe00000 ... 0xe7ffff: /*TVRAM*/
+    return((uint16_t)*(uint16_t *)&TVRAM[(addr & 0x7ffff)]);
+    break;
+  case 0xed0000 ... 0xed3fff: /*SRAM*/
+    return((uint16_t)*(uint16_t *)&SRAM[(addr & 0x003fff)]);
+    break;
+  case 0xf00000 ... 0xfbffff: /*FONT-ROM*/
+    return((uint16_t)*(uint16_t *)&FONT[(addr & 0xfffff)]);
+    break;
+  case 0xfc0000 ... 0xffffff: /*IPL-ROM*/
+    return((uint16_t)*(uint16_t *)&IPL[(addr & 0x3ffff)]);
+    break;
+  default:
+	v  = MemReadTable[(addr >> 13) & 0xff](addr) << 8;
+	addr++;
+	v |= MemReadTable[(addr >> 13) & 0xff](addr);
+    break;
+  }
+ return v;
+}
+
 
 static uint8_t
 rm_main(uint32_t addr)

@@ -43,6 +43,7 @@
 #include "tvram.h"
 #include "joystick.h"
 #include "keyboard.h"
+#include "x68kmemory.h"
 
 #if 0
 #include "../icons/keropi.xpm"
@@ -1503,12 +1504,11 @@ static void draw_char(uint16_t sjis)
 	for (i = 0; i < h; i++) {
 		wc = w;
 		for (j = 0; j < ((w % 8 == 0)? w / 8 : w / 8 + 1); j++) {
-			c =(uint16_t)*(uint16_t *)&FONT[(f & 0xfffffe)];
-			if(f & 1){ c = c << 8; } /*奇数byte*/
+			c = Memory_ReadB(f + 0xf00000);/*FONT-ROM*/
 			f++;
 			for (k = 0; k < 8 ; k++) {
 				bc = p6m.mbcolor? p6m.mbcolor : *p;
-				*p = (c & 0x8000)? p6m.mcolor : bc;
+				*p = (c & 0x80)? p6m.mcolor : bc;
 				p++;
 				c = c << 1;
 				wc--;

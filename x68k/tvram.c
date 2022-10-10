@@ -72,11 +72,12 @@ void TVRAM_Cleanup(void)
 // -----------------------------------------------------------------------
 uint8_t FASTCALL TVRAM_Read(uint32_t adr)
 {
-	adr &= 0x7ffff;
-#ifndef C68K_BIG_ENDIAN
-	adr ^= 1;
-#endif
-	return TVRAM[adr];
+
+  if(adr & 1){
+  return(*(uint16_t *)&TVRAM[(adr & 0x07fffe)] & 0xff);   /*奇数Byte*/
+  }
+  return((*(uint16_t *)&TVRAM[(adr & 0x07fffe)] >> 8) & 0xff);/*偶数Byte*/
+
 }
 
 
