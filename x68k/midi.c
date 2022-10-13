@@ -317,7 +317,11 @@ void MIDI_Init(void) {
 	MIDI_EXCVWAIT = 0;
 
 	if (!hOut) {
-		if(mid_DevList(&hOut) > 0){ /* if MIDI found?*/
+		if(!Config.MIDI_SW){ /* if MIDI inactive?*/
+		 strcpy(menu_items[8][0],"inactive.");
+		 strcpy(menu_items[8][1],"\0"); /* Menu END*/
+		 hOut = 0;
+		}else if(mid_DevList(&hOut) > 0){ /* if MIDI found?*/
 		 midOutChg(0,0); /*Select Port0 Bank 0*/
 		}
 		else{
