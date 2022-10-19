@@ -7040,7 +7040,8 @@ static const uint32_t conv_unicode[][4] = {
  {0x2121, 0x00DE, 0xEFBE9E, 0xFF9E, },   /*ﾞ*/
  {0x2121, 0x00DF, 0xEFBE9F, 0xFF9F, },   /*ﾟ*/
 
- {0x0000, 0x0000, 0x000000, 0x0000, },   /* End */
+ {0x0000, 0x0000, 0x000000, 0x0000, },   /* End0 */
+ {0x0000, 0x0000, 0x000000, 0x0000, },   /* End1 */
 };
 
 /*SJIS文字列をUTF8に変換*/
@@ -7086,10 +7087,15 @@ int32_t conv_utf8tosjis(char *dst,char *src)
 	 }
 	 else{
 		c2 = 0x8140;/*SPC*/
-		for(i=0; conv_unicode[i][0]; i++)
+		for(i=0; conv_unicode[i][0]; i+=2)
 		{
 			if(conv_unicode[i][2] == c){
 				c2 = conv_unicode[i][1];
+				if(flg<500) flg++;/*2/3byte code count*/
+				break;
+			}
+			if(conv_unicode[i+1][2] == c){
+				c2 = conv_unicode[i+1][1];
 				if(flg<500) flg++;/*2/3byte code count*/
 				break;
 			}

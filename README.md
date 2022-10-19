@@ -7,6 +7,7 @@
 ## About
 * 単独アプリ形式のエミュレータの改良を目指します。
 * ソースコードをutf8に変換
+* ソースコードをstdint形式に変数変更
 * (DWORD)-1 で頻繁に異常終了する問題に対処
 * SDL2のRenderer(GPU)を活用、よって"sdl-gfx"は不要
 * Support Full-Screen Mode.(`F11`)
@@ -16,7 +17,7 @@
 * `Support MIDI-Play` (Internal/Munt/fluidsynth/USB-MIDI)
 * MIDI音源FileにSoundFont2使用可(CoreAudio,fluidsynth)
 * Support US-KeyBoard. `keyconf.dat` put into .keropi folder.
-* stdint 形式に変数を変更
+* Printer出力をFileに保存
 * `FileNameのutf8/sjis` 自動判別(iconvではなく専用table変換)
 * Mac用SDL1/2.frameworkでのbuildスクリプト添付
 * Mac用単独アプリ化ラッパー追加

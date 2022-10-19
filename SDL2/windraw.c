@@ -1366,41 +1366,40 @@ static uint16_t jis2idx(uint16_t jc)
 #define MENU_WIDTH 800
 #endif
 
-// fs : font size : 16 or 24
+// fs : font size : 8 or 16/24
 // 半角文字の場合は16bitの上位8bitにデータを入れておくこと
 // (半角or全角の判断ができるように)
-static int32_t get_font_addr(uint16_t sjis, int32_t fs)
+static uint32_t get_font_addr(uint16_t sjis, int32_t fs)
 {
-	uint16_t jis, j_idx;
-	uint8_t jhi;
-	int32_t fsb; // file size in bytes
 
-	// 半角文字
-	if (isHankaku(sjis >> 8)) {
+	// 1Byte code
+	uint8_t half_byte = (sjis >> 8);
+	if (isHankaku(half_byte)) {
 		switch (fs) {
 		case 8:
-			return (0x3a000 + (sjis >> 8) * (1 * 8));
+			return (0x3a000 + half_byte * (1 * 8));
 		case 16:
-			return (0x3a800 + (sjis >> 8) * (1 * 16));
+			return (0x3a800 + half_byte * (1 * 16));
 		case 24:
-			return (0x3d000 + (sjis >> 8) * (2 * 24));
+			return (0x3d000 + half_byte * (2 * 24));
 		default:
-			return -1;
+			return FALSE;
 		}
 	}
 
-	// 全角文字
+	// 2byte code(S-JIS)
+	uint16_t jis = sjis2jis(sjis);
+	uint16_t j_idx = (uint32_t)jis2idx(jis);
+	uint8_t jhi = (uint8_t)(jis >> 8);
+	int32_t fsb; // file size in bytes
+
 	if (fs == 16) {
 		fsb = 2 * 16;
 	} else if (fs == 24) {
 		fsb = 3 * 24;
 	} else {
-		return -1;
+		return FALSE;
 	}
-
-	jis = sjis2jis(sjis);
-	j_idx = (uint32_t)jis2idx(jis);
-	jhi = (uint8_t)(jis >> 8);
 
 #if 0
 	printf("sjis code = 0x%x\n", sjis);
@@ -1414,10 +1413,10 @@ static int32_t get_font_addr(uint16_t sjis, int32_t fs)
 	} else if (jhi >= 0x30 && jhi <= 0x74) {
 		// 第一水準/第二水準
 		return  ((fs == 16)? 0x5e00 : 0x4d380) + j_idx * fsb;
-	} else {
-		// ここにくることはないはず
-		return -1;
 	}
+
+	// ここにくることはないはず
+	return FALSE;
 }
 
 // RGB565
@@ -1466,7 +1465,7 @@ static uint16_t *get_ml_ptr()
 // ・表示した分cursorは先に移動する
 static void draw_char(uint16_t sjis)
 {
-	int32_t f;
+	uint32_t f;
 	uint16_t *p;
 	int32_t i, j, k, wc, w;
 	uint8_t c;
@@ -1490,12 +1489,12 @@ static void draw_char(uint16_t sjis)
 	  }
 	}
 
-	/*Font data address*/
+	/*draw pointer*/
 	p = get_ml_ptr();
-	/*Font for sjis*/
-	f = get_font_addr(sjis, h);
 
-	if (f == -1){
+	/*Font data address*/
+	f = get_font_addr(sjis, h);
+	if ((f == FALSE) || (f > 0x0c0000)){
 		return;
 	}
 
@@ -1594,7 +1593,6 @@ int32_t WinDraw_MenuInit(void)
 	return TRUE;
 }
 
-// #include "menu_str_sjis.txt"
 #include "menu_str_utf8.txt"
 
 #ifdef USE_OGLES11
