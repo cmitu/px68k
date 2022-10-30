@@ -184,6 +184,7 @@ endif
 
 
 WIN32APIOBJS= win32api/dosio.o win32api/fake.o win32api/peace.o
+MKCGROMOBJS= win32api/dosio.o win32api/fake.o win32api/peace.o SDL2/tool/mkcgrom.o
 
 COBJS=		$(X68KOBJS) $(SDL2OBJS) $(SDLOBJS) $(WIN32APIOBJS) $(CPUOBJS) $(C68KOBJS) $(MIDIOBJS)
 CXXOBJS=	$(FMGENOBJS) $(SDLCXXOBJS)
@@ -233,3 +234,7 @@ c68k::
 	-rm -rf ./m68000/c68k/CMakeFiles
 	cmake $(C68KFLAGS) -S ./m68000/c68k -B ./m68000/c68k
 	cmake --build ./m68000/c68k
+
+cgrom::
+	$(CC) -o SDL2/tool/mkcgrom.o $(CFLAGS) -c SDL2/tool/mkcgrom.c
+	$(CXXLINK) -o SDL2/tool/mkcgrom  $(MKCGROMOBJS)
