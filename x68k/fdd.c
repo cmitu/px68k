@@ -3,7 +3,6 @@
 // ---------------------------------------------------------------------------------------
 
 #include "common.h"
-#include "fileio.h"
 #include "status.h"
 #include "irqh.h"
 #include "ioc.h"

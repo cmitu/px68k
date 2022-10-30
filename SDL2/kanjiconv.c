@@ -7045,7 +7045,7 @@ static const uint32_t conv_unicode[][4] = {
 };
 
 /*SJIS文字列をUTF8に変換*/
-int32_t conv_utf8tosjis(char *dst,char *src)
+uint32_t conv_utf8tosjis(char *dst,char *src)
 {
 	uint8_t h;
 	uint32_t i,c,c2;

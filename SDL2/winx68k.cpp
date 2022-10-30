@@ -7,7 +7,7 @@ extern "C" {
 #include "SDL2/SDL_opengles.h"
 #endif
 #include "common.h"
-#include "fileio.h"
+#include "dosio.h"
 #include "timer.h"
 #include "keyboard.h"
 #include "prop.h"

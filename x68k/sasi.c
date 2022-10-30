@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------------------
 
 #include "common.h"
-#include "fileio.h"
+#include "dosio.h"
 #include "prop.h"
 #include "status.h"
 #include "../m68000/m68000.h"

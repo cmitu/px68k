@@ -3,6 +3,13 @@
 // -----------------------------------------------------------------------
 #include	<windows.h>
 
+#include "common.h"
+#include "dosio.h"
+#include "mkcgrom.h"
+
+uint8_t FONT[0xc0000 + 0x10000];
+
+int
 main(){
 	static const char FONTFILE[] = "cgrom.dat";
 	static const char FONTFILETMP[] = "cgrom.tmp";
@@ -11,10 +18,13 @@ main(){
 	uint8_t tmp;
 	HWND hWndMain;
 
+#ifdef _WIN32
 			MessageBox(hWndMain,
 				"フォントROMイメージが見つかりません.\nWindowsフォントから新規に作成します.",
 				"けろぴーのメッセージ", MB_ICONWARNING | MB_OK);
 			SSTP_SendMes(SSTPMES_MAKEFONT);
+#endif
+			printf("フォントROMイメージを生成します。\n");
 			make_cgromdat(FONT, FALSE, "ＭＳ ゴシック", "ＭＳ 明朝");
 			//WinX68k_MakeFont();
 			//DialogBox(hInst, MAKEINTRESOURCE(IDD_PROGBAR),
@@ -24,9 +34,9 @@ main(){
 			{
 				File_Write(fp, FONT, 0xc0000);
 				File_Close(fp);
-				return;
+				return 0;
 			}
-			return;
+			return 0;
 }
 
 
@@ -840,26 +850,25 @@ static WORD x68k24[] = {
 
 // ---------------------------------------------------------------------------
 
-static __declspec(naked) WORD __fastcall jis2sjis(WORD jis) {
+uint16_t jis2sjis(uint16_t jis) {
 
-		__asm {
-				mov		ax, cx
-				xor		dl, dl
-				add		ah, 21h
-				test	ah, 1
-				je		short jis2sjis1a
-				mov		dl, 5eh
-jis2sjis1a:		sar		ah, 1
-				add		al, dl
-				xor		ah, 20h
-				or		ah, 80h
-				cmp		al, 60h
-				jb		short jis2sjis1b
-				inc		al
-jis2sjis1b:		add		al, 1fh
-				xchg	al, ah
-				ret
-		}
+    uint8_t sjis_h = (jis>>8) & 0xff;
+    uint8_t sjis_l = jis & 0xff;
+
+    if( sjis_h & 1 )
+        sjis_l += 0x1f;
+    else
+        sjis_l += 0x7d;
+
+    sjis_h = ((sjis_h - 0x21) >> 1) + 0x81;
+
+    if( sjis_l >= 0x7f )
+        sjis_l++;
+
+    if( sjis_h > 0x9f )
+        sjis_h += 0x40;
+
+    return (sjis_h << 8) | sjis_l;
 }
 
 

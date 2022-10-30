@@ -8,7 +8,7 @@
 // ---------------------------------------------------------------------
 
 #include	"common.h"
-#include	"fileio.h"
+#include	"dosio.h"
 #include	"winx68k.h"
 #include	"../m68000/m68000.h"
 #include	"../SDL2/prop.h"

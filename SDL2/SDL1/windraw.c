@@ -91,7 +91,7 @@ extern int32_t VID_MODE, CHANGEAV_TIMING;
 int32_t WinDraw_Init(uint32_t err_msg_no);
 void WinDraw_Draw(void);
 int32_t WinDraw_ChangeSize(void);
-int32_t conv_utf8tosjis();
+uint32_t conv_utf8tosjis();
 int32_t WinDraw_MenuInit(void);
 
 #define	APPNAME	"Keropi"

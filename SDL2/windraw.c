@@ -99,7 +99,7 @@ int32_t WinDraw_Init(uint32_t err_msg_no);
 void WinDraw_StartupScreen(void);
 void WinDraw_Draw(void);
 int32_t WinDraw_ChangeSize(void);
-int32_t conv_utf8tosjis();
+uint32_t conv_utf8tosjis();
 
 #define	APPNAME	"Keropi"
 
@@ -1670,7 +1670,7 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 		set_mlocateC(0, 0);
 		sprintf(tmp, "%s%s", pc98_title1_str[Config.MenuLanguage], PX68KVERSTR);
 		draw_str(tmp,1);
-		set_mlocateC(0, 2);
+		set_mlocateC(0, 3);
 		draw_str(pc98_title3_str[Config.MenuLanguage],1);
 		set_mcolor(0x07ff);
 		set_mlocateC(0, 1);

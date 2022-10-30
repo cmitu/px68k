@@ -10,7 +10,6 @@
 #include "irqh.h"
 #include "dmac.h"
 #include "m68000.h"
-#include "fileio.h"
 #include "winx68k.h"
 
 static const uint8_t CMD_TABLE[32] = {0, 0, 8, 2, 1, 8, 8, 1, 0, 8, 1, 0, 8, 5, 0, 2,

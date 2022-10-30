@@ -1,5 +1,5 @@
 #include "common.h"
-#include "fileio.h"
+#include "dosio.h"
 #include "fdc.h"
 #include "fdd.h"
 #include "disk_dim.h"

@@ -37,7 +37,7 @@
 #include "keyboard.h"
 #include "mfp.h"
 #include "windraw.h"
-#include "fileio.h"
+#include "dosio.h"
 
 // key input buffer
 uint8_t	KeyBufWP;

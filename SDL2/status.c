@@ -35,7 +35,7 @@
 #include "winx68k.h"
 #include "prop.h"
 #include "status.h"
-#include "fileio.h"
+#include "dosio.h"
 #include "fdd.h"
 
 #if 0

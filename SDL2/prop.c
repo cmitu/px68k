@@ -36,7 +36,6 @@
 #endif
 #include "winx68k.h"
 #include "keyboard.h"
-#include "fileio.h"
 #include "prop.h"
 #include "x68kmemory.h"
 
