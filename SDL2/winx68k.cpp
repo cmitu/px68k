@@ -13,7 +13,7 @@ extern "C" {
 #include "prop.h"
 #include "status.h"
 #include "joystick.h"
-//#include "mkcgrom.h"
+#include "mkcgrom.h"
 #include "winx68k.h"
 #include "windraw.h"
 #include "winui.h"
@@ -251,6 +251,7 @@ WinX68k_LoadROMs(void)
 	FILEH fp;
 	int32_t i;
 	uint8_t tmp;
+	int32_t flg = TRUE;
 
 	for (fp = 0, i = 0; fp == 0 && i < NELEMENTS(BIOSFILE); i++) {
 		fp = File_OpenCurDir((char *)BIOSFILE[i]);
@@ -282,14 +283,17 @@ WinX68k_LoadROMs(void)
 		// cgrom.tmpがある？
 		fp = File_OpenCurDir((char *)FONTFILETMP);
 		if (fp == 0) {
-			/*make_cgrom(); フォント生成 */
+			if (make_cgromdat(FONT, FALSE )==0){/* 暫定フォント生成 */
 			memset(IPL, 0, 0x40000);/*IPL clear*/
+			}
 			Error("フォントROMイメージが見つかりません\n");
-			return FALSE;
+			flg = FALSE;
 		}
 	}
+	else{
 	File_Read(fp, FONT, 0xc0000);
 	File_Close(fp);
+	}
 
 // for little endian 
 #ifndef C68K_BIG_ENDIAN
@@ -302,7 +306,7 @@ WinX68k_LoadROMs(void)
 
 	SDL_SetWindowTitle(sdl_window, window_title); /*SDL2 only*/
 
-	return TRUE;
+	return flg;
 }
 
 /*==  CPU-Reset ==*/

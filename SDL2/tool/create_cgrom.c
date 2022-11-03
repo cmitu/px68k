@@ -1,11 +1,11 @@
 // -----------------------------------------------------------------------
-//   CGROMì¬`  ‚ä‚¢‚³‚ñ‚Éì‚Á‚Ä‚à‚ç‚Á‚½‚¨
+//   CGROMä½œæˆã€œ  ã‚†ã„ã•ã‚“ã«ä½œã£ã¦ã‚‚ã‚‰ã£ãŸãŠ
 // -----------------------------------------------------------------------
 #include	<windows.h>
 
 #include "common.h"
 #include "dosio.h"
-#include "mkcgrom.h"
+#include "create_cgrom.h"
 
 uint8_t FONT[0xc0000 + 0x10000];
 
@@ -20,12 +20,12 @@ main(){
 
 #ifdef _WIN32
 			MessageBox(hWndMain,
-				"ƒtƒHƒ“ƒgROMƒCƒ[ƒW‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ.\nWindowsƒtƒHƒ“ƒg‚©‚çV‹K‚Éì¬‚µ‚Ü‚·.",
-				"‚¯‚ë‚Ò[‚ÌƒƒbƒZ[ƒW", MB_ICONWARNING | MB_OK);
+				"ãƒ•ã‚©ãƒ³ãƒˆROMã‚¤ãƒ¡ãƒ¼ã‚¸ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“.\nWindowsãƒ•ã‚©ãƒ³ãƒˆã‹ã‚‰æ–°è¦ã«ä½œæˆã—ã¾ã™.",
+				"ã‘ã‚ã´ãƒ¼ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸", MB_ICONWARNING | MB_OK);
 			SSTP_SendMes(SSTPMES_MAKEFONT);
 #endif
-			printf("ƒtƒHƒ“ƒgROMƒCƒ[ƒW‚ð¶¬‚µ‚Ü‚·B\n");
-			make_cgromdat(FONT, FALSE, "‚l‚r ƒSƒVƒbƒN", "‚l‚r –¾’©");
+			printf("ãƒ•ã‚©ãƒ³ãƒˆROMã‚¤ãƒ¡ãƒ¼ã‚¸ã‚’ç”Ÿæˆã—ã¾ã™ã€‚\n");
+			make_cgromdat(FONT, FALSE, "ï¼­ï¼³ ã‚´ã‚·ãƒƒã‚¯", "ï¼­ï¼³ æ˜Žæœ");
 			//WinX68k_MakeFont();
 			//DialogBox(hInst, MAKEINTRESOURCE(IDD_PROGBAR),
 			//		hWndMain, (DLGPROC)MakeFontProc);
@@ -42,20 +42,20 @@ main(){
 
 
 static char *str_x68k[14] = {
-						"@Ih”“•fij–{C|D^",
-						"‚O‚P‚Q‚R‚S‚T‚U‚V‚W‚XFGƒ„H",
-						"—‚`‚a‚b‚c‚d‚e‚f‚g‚h‚i‚j‚k‚l‚m‚n",
-						"‚o‚p‚q‚r‚s‚t‚u‚v‚w‚x‚ymnOQ",
-						"e‚‚‚‚ƒ‚„‚…‚†‚‡‚ˆ‚‰‚Š‚‹‚Œ‚‚Ž‚",
-						"‚‚‘‚’‚“‚”‚•‚–‚—‚˜‚™‚šobpP@",
-						"_`b@@@‚ð‚Ÿ‚¡‚£‚¥‚§‚á‚ã‚å‚Á",
-						"@‚ ‚¢‚¤‚¦‚¨‚©‚«‚­‚¯‚±‚³‚µ‚·‚¹‚»",
-						"@BuvAEƒ’ƒ@ƒBƒDƒFƒHƒƒƒ…ƒ‡ƒb",
-						"[ƒAƒCƒEƒGƒIƒJƒLƒNƒPƒRƒTƒVƒXƒZƒ\",
-						"ƒ^ƒ`ƒcƒeƒgƒiƒjƒkƒlƒmƒnƒqƒtƒwƒzƒ}",
-						"ƒ~ƒ€ƒƒ‚ƒ„ƒ†ƒˆƒ‰ƒŠƒ‹ƒŒƒƒƒ“JK",
-						"‚½‚¿‚Â‚Ä‚Æ‚È‚É‚Ê‚Ë‚Ì‚Í‚Ð‚Ó‚Ö‚Ù‚Ü",
-						"‚Ý‚Þ‚ß‚à‚â‚ä‚æ‚ç‚è‚é‚ê‚ë‚í‚ñ@@"};
+						"ã€€ï¼â€ï¼ƒï¼„ï¼…ï¼†â€™ï¼ˆï¼‰ï¼Šï¼‹ï¼Œâˆ’ï¼Žï¼",
+						"ï¼ï¼‘ï¼’ï¼“ï¼”ï¼•ï¼–ï¼—ï¼˜ï¼™ï¼šï¼›ï¼œï¼ï¼žï¼Ÿ",
+						"ï¼ ï¼¡ï¼¢ï¼£ï¼¤ï¼¥ï¼¦ï¼§ï¼¨ï¼©ï¼ªï¼«ï¼¬ï¼­ï¼®ï¼¯",
+						"ï¼°ï¼±ï¼²ï¼³ï¼´ï¼µï¼¶ï¼·ï¼¸ï¼¹ï¼ºï¼»ï¿¥ï¼½ï¼¾ï¼¿",
+						"â€˜ï½ï½‚ï½ƒï½„ï½…ï½†ï½‡ï½ˆï½‰ï½Šï½‹ï½Œï½ï½Žï½",
+						"ï½ï½‘ï½’ï½“ï½”ï½•ï½–ï½—ï½˜ï½™ï½šï½›ï½œï½ï¿£ã€€",
+						"ï¼¼ã€œï½œã€€ã€€ã€€ã‚’ããƒã…ã‡ã‰ã‚ƒã‚…ã‚‡ã£",
+						"ã€€ã‚ã„ã†ãˆãŠã‹ããã‘ã“ã•ã—ã™ã›ã",
+						"ã€€ã€‚ã€Œã€ã€ãƒ»ãƒ²ã‚¡ã‚£ã‚¥ã‚§ã‚©ãƒ£ãƒ¥ãƒ§ãƒƒ",
+						"ãƒ¼ã‚¢ã‚¤ã‚¦ã‚¨ã‚ªã‚«ã‚­ã‚¯ã‚±ã‚³ã‚µã‚·ã‚¹ã‚»ã‚½",
+						"ã‚¿ãƒãƒ„ãƒ†ãƒˆãƒŠãƒ‹ãƒŒãƒãƒŽãƒãƒ’ãƒ•ãƒ˜ãƒ›ãƒž",
+						"ãƒŸãƒ ãƒ¡ãƒ¢ãƒ¤ãƒ¦ãƒ¨ãƒ©ãƒªãƒ«ãƒ¬ãƒ­ãƒ¯ãƒ³ã‚›ã‚œ",
+						"ãŸã¡ã¤ã¦ã¨ãªã«ã¬ã­ã®ã¯ã²ãµã¸ã»ã¾",
+						"ã¿ã‚€ã‚ã‚‚ã‚„ã‚†ã‚ˆã‚‰ã‚Šã‚‹ã‚Œã‚ã‚ã‚“ã€€ã€€"};
 
 static int deltable[] = {
 		//     del         del        del          del         del
@@ -1098,12 +1098,12 @@ int make_cgromdat(BYTE *buf, int x68030, LPSTR primaryface, LPSTR secondaryface)
 		cpy12fnt2cgrom(buf + 0x3d000 + (i+ 2)*16*2*24,
 							fnt + (i+0)*8*3, 12*256, 24);
 	}
-	// ƒJƒ^ƒJƒi
+	// ã‚«ã‚¿ã‚«ãƒŠ
 	for (i=0; i<4; i++) {
 		cpy12fnt2cgrom(buf + 0x3d000 + (i+10)*16*2*24,
 							fnt + (i+6)*8*3, 12*256, 24);
 	}
-	// •½‰¼–¼
+	// å¹³ä»®å
 	for (i=0; i<2; i++) {
 		getfont_sub(fnt, str_x68k[i+6], secondaryface, 6, 24, 256, 24);
 		cpy12fnt2cgrom(buf + 0x3d000 + (i+ 8)*16*2*24, fnt, 256, 24);
