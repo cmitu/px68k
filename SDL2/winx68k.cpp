@@ -283,16 +283,17 @@ WinX68k_LoadROMs(void)
 		// cgrom.tmpがある？
 		fp = File_OpenCurDir((char *)FONTFILETMP);
 		if (fp == 0) {
-			if (make_cgromdat(FONT, FALSE )==0){/* 暫定フォント生成 */
+			//if (make_cgromdat(FONT, NULL, NULL, FALSE )==0){/* 暫定フォント生成 */
 			memset(IPL, 0, 0x40000);/*IPL clear*/
-			}
-			Error("フォントROMイメージが見つかりません\n");
+			//}
+			Error("フォントROMイメージが見つかりません.\n");
 			flg = FALSE;
 		}
 	}
-	else{
-	File_Read(fp, FONT, 0xc0000);
-	File_Close(fp);
+
+	if (fp != 0){
+	 File_Read(fp, FONT, 0xc0000);
+	 File_Close(fp);
 	}
 
 // for little endian 

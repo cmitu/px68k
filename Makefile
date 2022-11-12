@@ -27,27 +27,35 @@ endif
 ifeq "$(PLATFORM)" "Darwin"
 ifdef SDL
 SDL_CONFIG?= ./osx/sdl-config-mac
+SDL_TTF_INC = -I/Library/Frameworks/SDL_ttf.framework/Headers
+SDL_TTF_LIB = -F/Library/Frameworks -framework SDL_ttf
 PROGRAM = px68k.sdl
 else
 SDL_CONFIG?= ./osx/sdl2-config-mac
+SDL_TTF_INC = -I/Library/Frameworks/SDL2_ttf.framework/Headers
+SDL_TTF_LIB = -F/Library/Frameworks -framework SDL2_ttf
 PROGRAM = px68k.sdl2
 endif
 else
 ifeq "$(PLATFORM)" "Linux"
 ifdef SDL
 SDL_CONFIG?= sdl-config
+SDL_TTF_LIB = -lSDL_ttf
 PROGRAM = px68k.sdl
 else
 SDL_CONFIG?= sdl2-config
+SDL_TTF_LIB = -lSDL2_ttf
 PROGRAM = px68k.sdl2
 endif
 else
 # for CygWin(windows)
 ifdef SDL
 SDL_CONFIG?= sdl-config
+SDL_TTF_LIB = -lSDL_ttf
 PROGRAM = px68k.sdl.exe
 else
 SDL_CONFIG?= sdl2-config
+SDL_TTF_LIB = -lSDL2_ttf
 PROGRAM = px68k.sdl2.exe
 endif
 endif
@@ -172,7 +180,7 @@ X68KOBJS= x68k/adpcm.o x68k/bg.o x68k/crtc.o x68k/dmac.o x68k/fdc.o x68k/fdd.o x
 
 FMGENOBJS= fmgen/fmgen.o fmgen/fmg_wrap.o fmgen/file.o fmgen/fmtimer.o fmgen/opm.o fmgen/opna.o fmgen/psg.o
 
-SDL2OBJS= SDL2/juliet.o SDL2/mouse.o SDL2/status.o SDL2/timer.o SDL2/about.o SDL2/common.o SDL2/prop.o SDL2/joystick.o SDL2/winui.o SDL2/dswin.o SDL2/keyboard.o SDL2/mkcgrom.o
+SDL2OBJS= SDL2/juliet.o SDL2/mouse.o SDL2/status.o SDL2/timer.o SDL2/about.o SDL2/common.o SDL2/prop.o SDL2/joystick.o SDL2/winui.o SDL2/dswin.o SDL2/keyboard.o
 
 ifdef SDL
 SDLOBJS= SDL2/SDL1/windraw.o
@@ -184,7 +192,7 @@ endif
 
 
 WIN32APIOBJS= win32api/dosio.o win32api/fake.o win32api/peace.o
-MKCGROMOBJS= win32api/dosio.o win32api/fake.o win32api/peace.o SDL2/tool/create_cgrom.o
+MKCGROMOBJS= win32api/dosio.o win32api/fake.o win32api/peace.o SDL2/mkcgrom.o SDL2/tool/create_cgrom.o
 
 COBJS=		$(X68KOBJS) $(SDL2OBJS) $(SDLOBJS) $(WIN32APIOBJS) $(CPUOBJS) $(C68KOBJS) $(MIDIOBJS)
 CXXOBJS=	$(FMGENOBJS) $(SDLCXXOBJS)
@@ -236,5 +244,6 @@ c68k::
 	cmake --build ./m68000/c68k
 
 cgrom::
-	$(CC) -o SDL2/tool/create_cgrom.o $(CFLAGS) -c SDL2/tool/create_cgrom.c
-	$(CXXLINK) -o SDL2/tool/mkcgrom  $(MKCGROMOBJS)
+	$(CC) -o SDL2/mkcgrom.o $(CFLAGS) $(SDL_INCLUDE) $(SDL_TTF_INC) -c SDL2/mkcgrom.c
+	$(CC) -o SDL2/tool/create_cgrom.o $(CFLAGS) $(SDL_INCLUDE) $(SDL_TTF_INC) -c SDL2/tool/create_cgrom.c
+	$(CXXLINK) -o SDL2/tool/mkcgrom $(SDL_LIB) $(SDL_TTF_LIB) $(MKCGROMOBJS)
