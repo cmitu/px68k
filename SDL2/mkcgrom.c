@@ -31,21 +31,21 @@ by kameya 2022/11/02
 #include "mkcgrom.h"
 
 #ifdef __MACH__
-#define FONT_PATH16 "./KH-Dot-Kagurazaka-16.ttf"
-#define FONT_PATH24 "./KH-Dot-Hibiya-24.ttf"
-#define FONT_PATH   "/System/Library/Fonts/ヒラギノ明朝 ProN.ttc"
+#define FONT_PATH16 "./KH-Dot-Kagurazaka-16.ttf"//16x16
+#define FONT_PATH24 "./KH-Dot-Hibiya-24.ttf"//24x24
+#define FONT_PATH   "/System/Library/Fonts/ヒラギノ明朝 ProN.ttc"//default
 #endif
 
 #ifdef __linux__
-#define FONT_PATH16 "~/.fonts/KH-Dot-Kagurazaka-16.ttf"
-#define FONT_PATH24 "~/.fonts/KH-Dot-Hibiya-24.ttf"
-#define FONT_PATH   "/usr/share/fonts/truetype/fonts-japanese-mincho.ttf"
+#define FONT_PATH16 "~/.fonts/KH-Dot-Kagurazaka-16.ttf"//16x16
+#define FONT_PATH24 "~/.fonts/KH-Dot-Hibiya-24.ttf"//24x24
+#define FONT_PATH   "/usr/share/fonts/truetype/fonts-japanese-mincho.ttf"//default
 #endif
 
 #ifdef _WIN32
-#define FONT_PATH16 "C:\Windows\Fonts\msmincho.ttc"
-#define FONT_PATH24 "C:\Windows\Fonts\yumin.ttf"
-#define FONT_PATH   "C:\Windows\Fonts\msmincho.ttc"
+#define FONT_PATH16 "c://Windows/Fonts/msgothic.ttc"//16x16
+#define FONT_PATH24 "c://Windows/Fonts/msmincho.ttc"//24x24
+#define FONT_PATH   "c://Windows/Fonts/msmincho.ttc"//default
 #endif
 
 

@@ -164,7 +164,7 @@ endif
 endif
 endif
 
-EXTRA_INCLUDES= -I./SDL2 -I./x68k -I./fmgen -I./win32api $(SDL_INCLUDE) $(FLUID_INCLUDE)
+EXTRA_INCLUDES= -I./SDL2 -I./x68k -I./fmgen -I./win32api $(SDL_INCLUDE) $(FLUID_INCLUDE) $(SDL_TTF_INC)
 
 CXXDEBUGFLAGS= $(CDEBUGFLAGS)
 
@@ -243,7 +243,6 @@ c68k::
 	cmake $(C68KFLAGS) -S ./m68000/c68k -B ./m68000/c68k
 	cmake --build ./m68000/c68k
 
-cgrom::
-	$(CC) -o SDL2/mkcgrom.o $(CFLAGS) $(SDL_INCLUDE) $(SDL_TTF_INC) -c SDL2/mkcgrom.c
-	$(CC) -o SDL2/tool/create_cgrom.o $(CFLAGS) $(SDL_INCLUDE) $(SDL_TTF_INC) -c SDL2/tool/create_cgrom.c
-	$(CXXLINK) -o SDL2/tool/mkcgrom $(SDL_LIB) $(SDL_TTF_LIB) $(MKCGROMOBJS)
+cgrom:: $(MKCGROMOBJS)
+	$(RM) SDL2/tool/mkcgrom
+	$(CXXLINK) -o SDL2/tool/mkcgrom $(MKCGROMOBJS) $(SDL_LIB) $(SDL_TTF_LIB)
