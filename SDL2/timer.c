@@ -24,13 +24,19 @@ uint16_t Timer_GetCount(void)
 	uint32_t dif = ticknow-tick;
 	uint32_t TIMEBASE = ((CRTC_Regs[0x29]&0x10)?VSYNC_HIGH:VSYNC_NORM);
 
-	timercnt += dif*10000;
+	timercnt += dif*10000;//0.1μs
 	tick = ticknow;
 	if ( timercnt>=TIMEBASE ) {
 //		timercnt = 0;
 		timercnt -= TIMEBASE;
 		if ( timercnt>=(TIMEBASE*2) ) timercnt = 0;
 		return 1;
-	} else
+	}
+	else{
+		if((TIMEBASE-timercnt)>150){//over 1500μs
+		 usleep(500);//500μs sleep
+		}
 		return 0;
+	}
+
 }
