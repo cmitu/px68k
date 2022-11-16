@@ -292,7 +292,7 @@ make_cgromdat(uint8_t *buf, char *FONT1, char *FONT2, uint32_t x68030)
   uint32_t size_y = 16;
 
 	// Clear buffer
-	ZeroMemory(buf, 0xc0000);
+	memset(buf, 0, 0xc0000);
 
 	//SDL2_TTF initialize
 	if ( TTF_Init() < 0 ){ return FALSE; }
@@ -302,10 +302,10 @@ make_cgromdat(uint8_t *buf, char *FONT1, char *FONT2, uint32_t x68030)
 	size_y = 16;
 	if (set_font(FONT1, 16) == 0){ return FALSE; }
 	getfont(buf + 0x3a800,size_x,size_y,1);//全フォントを16x16->8/16にスケーリングで生成
-	ZeroMemory(buf+0x3a800+(0x20*16), (94*16));
+	memset(buf+0x3a800+(0x20*16), 0, (94*16));
 	getfont(buf + 0x3a800,size_x,size_y,0); //部分的に8/16で置き換え
 	TTF_CloseFont(font);
-	ZeroMemory(buf+0x3a800+(0x82*16)+7, 2);//「｜」の真ん中に切れ目を入れる
+	memset(buf+0x3a800+(0x82*16)+7, 0, 2);//「｜」の真ん中に切れ目を入れる
 
 	// 8x8 (8x16からスケーリング)
 	cpy2fnt8(buf + 0x3a800, buf + 0x3a000,8,8);
@@ -316,7 +316,7 @@ make_cgromdat(uint8_t *buf, char *FONT1, char *FONT2, uint32_t x68030)
 	if (set_font(FONT1, size_y) == 0){ return FALSE; }
 	getfont(buf + 0x3b800,size_x,size_y,1);
 	TTF_CloseFont(font);
-	ZeroMemory(buf+0x3b800+(0x82*24)+10, 4);
+	memset(buf+0x3b800+(0x82*24)+10, 0, 4);
 	//cpy2fnt12(buf + 0x3a000, buf + 0x3b800,12,12);//8x8->12x12にスケーリングで生成
 
 	// 16(12)x24
@@ -324,10 +324,10 @@ make_cgromdat(uint8_t *buf, char *FONT1, char *FONT2, uint32_t x68030)
 	size_y = 24;
 	if (set_font(FONT2, 24) == 0){ return FALSE; }
 	getfont(buf + 0x3d000,size_x,size_y,1);//全フォントを24x24->12/24にスケーリングで生成
-	ZeroMemory(buf+0x3d000+(0x20*48), (94*48));
+	memset(buf+0x3d000+(0x20*48), 0, (94*48));
 	getfont(buf + 0x3d000,size_x,size_y,0);//部分的に8/16で置き換え
 	TTF_CloseFont(font);
-	ZeroMemory(buf+0x3d000+(0x82*48)+22, 4);//「｜」の真ん中に切れ目を入れる
+	memset(buf+0x3d000+(0x82*48)+22, 0, 4);//「｜」の真ん中に切れ目を入れる
 	//cpy2fnt24(buf + 0x3a000, buf + 0x3d000,12,24);//8x8->12x24にスケーリングで生成
 
   /*16x16 JIS非漢字752文字*/

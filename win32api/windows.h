@@ -144,10 +144,7 @@ typedef	void *		DRAWITEMSTRUCT;
 /*
  * replace
  */
-#define	wsprintf		sprintf
-#define	ZeroMemory(d,n)		memset(d,0,n)
-#define	CopyMemory(d,s,n)	memcpy(d,s,n)
-#define	timeGetTime()		FAKE_GetTickCount()
+#define	timeGetTime()		Get_msecCount()
 
 /*
  * WIN32 structure

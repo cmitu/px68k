@@ -226,7 +226,7 @@ void MIDI_SetModule(void)
 void MIDI_Sendexclusive(uint8_t *excv, int32_t length)
 {
 	// エクスクルーシヴを送ります
-	CopyMemory(MIDI_EXCVBUF, excv, length);
+	memcpy(MIDI_EXCVBUF, excv, length);
 	hHdr.lpData = (char*)MIDI_EXCVBUF;
 	hHdr.dwFlags = 0;
 	hHdr.dwBufferLength = length;

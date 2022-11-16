@@ -111,13 +111,24 @@ struct internal_file {
 #endif	/* DEBUG */
 
 
+/* for POSIX Kernel Time 0.1μs/unit 100秒周期 */
 uint32_t
-FAKE_GetTickCount(void)
+Get_usecCount(void)
 {
-	struct timeval tv;
+  struct timespec ts;
 
-	gettimeofday(&tv, 0);
-	return tv.tv_usec / 1000 + tv.tv_sec * 1000;
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  return(((ts.tv_sec%100) * 10000000) + (ts.tv_nsec/100));
+}
+
+/* for WIN-API compatible ms単位/49日周期 */
+uint32_t
+Get_msecCount(void)
+{
+  struct timespec ts;
+
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  return((ts.tv_nsec / 1000000) + (ts.tv_sec * 1000));
 }
 
 BOOL

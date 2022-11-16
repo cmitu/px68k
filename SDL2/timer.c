@@ -1,6 +1,7 @@
 // -----------------------------------------------------------------------
 //   55.6fpsキープ用たいまー
 // -----------------------------------------------------------------------
+#include <unistd.h>
 #include "common.h"
 #include "crtc.h"
 #include "mfp.h"
@@ -10,21 +11,23 @@ uint32_t	tick = 0;
 
 void Timer_Init(void)
 {
-	tick = timeGetTime();
+	tick = Get_usecCount();
 }
 
 void Timer_Reset(void)
 {
-	tick = timeGetTime();
+	tick = Get_usecCount();
 }
 
 uint16_t Timer_GetCount(void)
 {
-	uint32_t ticknow = timeGetTime();
-	uint32_t dif = ticknow-tick;
+	uint32_t ticknow = Get_usecCount();//0.1μs単位
 	uint32_t TIMEBASE = ((CRTC_Regs[0x29]&0x10)?VSYNC_HIGH:VSYNC_NORM);
+	uint32_t dif;
+	if(ticknow>tick){dif = ticknow-tick; }
+	else{dif = 1000000000-tick+ticknow;}//100秒周期補正
 
-	timercnt += dif*10000;//0.1μs
+	timercnt += dif;//0.1μs単位
 	tick = ticknow;
 	if ( timercnt>=TIMEBASE ) {
 //		timercnt = 0;
@@ -33,10 +36,9 @@ uint16_t Timer_GetCount(void)
 		return 1;
 	}
 	else{
-		if((TIMEBASE-timercnt)>150){//over 1500μs
-		 usleep(500);//500μs sleep
+		if((TIMEBASE-timercnt)>1500){//over 1500μs
+		 usleep(1000);//1000μs sleep
 		}
 		return 0;
 	}
-
 }

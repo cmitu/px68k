@@ -115,7 +115,6 @@ int32_t WinDraw_ChangeSize(void)
 /* jadgment change or not.  */
 int32_t WinDraw_ChangeSizeGO(void)
 {
-	Mouse_ChangePos();	/*nothing do....*/
 
 	if((HLINE_TOTAL<100) || (HLINE_TOTAL>1200)) return FALSE; 	/*H-DrawArea check*/
 	if((VLINE_TOTAL<100) || (VLINE_TOTAL>700)) return FALSE; 	/*V-DrawArea check*/
@@ -161,9 +160,6 @@ int32_t WinDraw_ChangeSizeGO(void)
 	CRTC_VEND_1=CRTC_VEND;
 	CRTC_VStep_1=CRTC_VStep;
 
-	/*nothing do....*/
-	StatBar_Show(Config.WindowFDDStat);
-	Mouse_ChangePos();
 
 	return TRUE;
 }

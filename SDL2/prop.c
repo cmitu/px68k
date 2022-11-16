@@ -382,32 +382,32 @@ void SaveConfig(void)
 	int		i, j;
 	char	buf[CFGLEN], buf2[CFGLEN];
 
-	wsprintf(buf, "%d", Config.MenuLanguage);
+	sprintf(buf, "%d", Config.MenuLanguage);
 	WritePrivateProfileString((const char*)ini_title, "MenuLanguage", buf, winx68k_ini);
-	wsprintf(buf, "%d", Config.DisplayNo);
+	sprintf(buf, "%d", Config.DisplayNo);
 	WritePrivateProfileString((const char*)ini_title, "DisplayNo", buf, winx68k_ini);
-	wsprintf(buf, "%d", Config.WinPosX);
+	sprintf(buf, "%d", Config.WinPosX);
 	WritePrivateProfileString((const char*)ini_title, "WinPosX", buf, winx68k_ini);
-	wsprintf(buf, "%d", Config.WinPosY);
+	sprintf(buf, "%d", Config.WinPosY);
 	WritePrivateProfileString((const char*)ini_title, "WinPosY", buf, winx68k_ini);
-	wsprintf(buf, "%d", Config.FrameRate);
+	sprintf(buf, "%d", Config.FrameRate);
 	WritePrivateProfileString((const char*)ini_title, "FrameRate", buf, winx68k_ini);
-	//wsprintf(buf, "%d", Config.ram_size);  SRAMに保存してあるのでconfigには保存しない
+	//sprintf(buf, "%d", Config.ram_size);  SRAMに保存してあるのでconfigには保存しない
 	//WritePrivateProfileString((const char*)ini_title, "RAM(MB)", buf, winx68k_ini);
 	WritePrivateProfileString((const char*)ini_title, "StartDir", filepath, winx68k_ini);
 
-	wsprintf(buf, "%d", Config.OPM_VOL);
+	sprintf(buf, "%d", Config.OPM_VOL);
 	WritePrivateProfileString((const char*)ini_title, "OPM_Volume", buf, winx68k_ini);
-	wsprintf(buf, "%d", Config.PCM_VOL);
+	sprintf(buf, "%d", Config.PCM_VOL);
 	WritePrivateProfileString((const char*)ini_title, "PCM_Volume", buf, winx68k_ini);
-	wsprintf(buf, "%d", Config.MCR_VOL);
+	sprintf(buf, "%d", Config.MCR_VOL);
 	WritePrivateProfileString((const char*)ini_title, "MCR_Volume", buf, winx68k_ini);
-	wsprintf(buf, "%d", Config.SampleRate);
+	sprintf(buf, "%d", Config.SampleRate);
 	WritePrivateProfileString((const char*)ini_title, "SampleRate", buf, winx68k_ini);
-	wsprintf(buf, "%d", Config.BufferSize);
+	sprintf(buf, "%d", Config.BufferSize);
 	WritePrivateProfileString((const char*)ini_title, "BufferSize", buf, winx68k_ini);
 
-	wsprintf(buf, "%d", Config.MouseSpeed);
+	sprintf(buf, "%d", Config.MouseSpeed);
 	WritePrivateProfileString((const char*)ini_title, "MouseSpeed", buf, winx68k_ini);
 
 	WritePrivateProfileString((const char*)ini_title, "FDDStatWin", makeBOOL((uint8_t)Config.WindowFDDStat), winx68k_ini);
@@ -418,7 +418,7 @@ void SaveConfig(void)
 	WritePrivateProfileString((const char*)ini_title, "UseRomeo", makeBOOL((uint8_t)Config.SoundROMEO), winx68k_ini);
 	WritePrivateProfileString((const char*)ini_title, "MIDI_SW", makeBOOL((uint8_t)Config.MIDI_SW), winx68k_ini);
 	WritePrivateProfileString((const char*)ini_title, "MIDI_Reset", makeBOOL((uint8_t)Config.MIDI_Reset), winx68k_ini);
-	wsprintf(buf, "%d", Config.MIDI_Type);
+	sprintf(buf, "%d", Config.MIDI_Type);
 	WritePrivateProfileString((const char*)ini_title, "MIDI_Type", buf, winx68k_ini);
 
 	WritePrivateProfileString((const char*)ini_title, "JoySwap", makeBOOL((uint8_t)Config.JoySwap), winx68k_ini);
@@ -431,50 +431,50 @@ void SaveConfig(void)
 	WritePrivateProfileString((const char*)ini_title, "WinDrvLFN", makeBOOL((uint8_t)Config.LongFileName), winx68k_ini);
 	WritePrivateProfileString((const char*)ini_title, "WinDrvFDD", makeBOOL((uint8_t)Config.WinDrvFD), winx68k_ini);
 
-	wsprintf(buf, "%d", Config.WinStrech);
+	sprintf(buf, "%d", Config.WinStrech);
 	WritePrivateProfileString((const char*)ini_title, "WinStretch", buf, winx68k_ini);
 
 	WritePrivateProfileString((const char*)ini_title, "DSMixing", makeBOOL((uint8_t)Config.DSMixing), winx68k_ini);
 
-	wsprintf(buf, "%d", Config.XVIMode);
+	sprintf(buf, "%d", Config.XVIMode);
 	WritePrivateProfileString((const char*)ini_title, "XVIMode", buf, winx68k_ini);
 
 	WritePrivateProfileString((const char*)ini_title, "CDROM_ASPI", makeBOOL((uint8_t)Config.CDROM_ASPI), winx68k_ini);
-	wsprintf(buf, "%d", Config.CDROM_SCSIID);
+	sprintf(buf, "%d", Config.CDROM_SCSIID);
 	WritePrivateProfileString((const char*)ini_title, "CDROM_SCSIID", buf, winx68k_ini);
-	wsprintf(buf, "%d", Config.CDROM_ASPI_Drive);
+	sprintf(buf, "%d", Config.CDROM_ASPI_Drive);
 	WritePrivateProfileString((const char*)ini_title, "CDROM_ASPIDrv", buf, winx68k_ini);
-	wsprintf(buf, "%d", Config.CDROM_IOCTRL_Drive);
+	sprintf(buf, "%d", Config.CDROM_IOCTRL_Drive);
 	WritePrivateProfileString((const char*)ini_title, "CDROM_CTRLDrv", buf, winx68k_ini);
 	WritePrivateProfileString((const char*)ini_title, "CDROM_Enable", makeBOOL((uint8_t)Config.CDROM_Enable), winx68k_ini);
 
 	WritePrivateProfileString((const char*)ini_title, "SSTP_Enable", makeBOOL((uint8_t)Config.SSTP_Enable), winx68k_ini);
-	wsprintf(buf, "%d", Config.SSTP_Port);
+	sprintf(buf, "%d", Config.SSTP_Port);
 	WritePrivateProfileString((const char*)ini_title, "SSTP_Port", buf, winx68k_ini);
 
 	WritePrivateProfileString((const char*)ini_title, "ToneMapping", makeBOOL((uint8_t)Config.ToneMap), winx68k_ini);
 	WritePrivateProfileString((const char*)ini_title, "ToneMapFile", (char *)Config.ToneMapFile, winx68k_ini);
 	WritePrivateProfileString((const char*)ini_title, "SoundFontFile", (char *)Config.SoundFontFile, winx68k_ini);
-	wsprintf(buf, "%d", Config.MIDIDelay);
+	sprintf(buf, "%d", Config.MIDIDelay);
 	WritePrivateProfileString((const char*)ini_title, "MIDIDelay", buf, winx68k_ini);
 	WritePrivateProfileString((const char*)ini_title, "MIDIAutoDelay", makeBOOL((uint8_t)Config.MIDIAutoDelay), winx68k_ini);
 
-	wsprintf(buf, "%d", Config.VkeyScale);
+	sprintf(buf, "%d", Config.VkeyScale);
 	WritePrivateProfileString((const char*)ini_title, "VkeyScale", buf, winx68k_ini);
 
-	wsprintf(buf, "%d", Config.VbtnSwap);
+	sprintf(buf, "%d", Config.VbtnSwap);
 	WritePrivateProfileString((const char*)ini_title, "VbtnSwap", buf, winx68k_ini);
 
-	wsprintf(buf, "%d", Config.JoyOrMouse);
+	sprintf(buf, "%d", Config.JoyOrMouse);
 	WritePrivateProfileString((const char*)ini_title, "JoyOrMouse", buf, winx68k_ini);
 
-	wsprintf(buf, "%d", Config.HwJoyAxis[0]);
+	sprintf(buf, "%d", Config.HwJoyAxis[0]);
 	WritePrivateProfileString((const char*)ini_title, "HwJoyAxis0", buf, winx68k_ini);
 
-	wsprintf(buf, "%d", Config.HwJoyAxis[1]);
+	sprintf(buf, "%d", Config.HwJoyAxis[1]);
 	WritePrivateProfileString((const char*)ini_title, "HwJoyAxis1", buf, winx68k_ini);
 
-	wsprintf(buf, "%d", Config.HwJoyHat);
+	sprintf(buf, "%d", Config.HwJoyHat);
 	WritePrivateProfileString((const char*)ini_title, "HwJoyHat", buf, winx68k_ini);
 
 	for (i = 0; i < 8; i++) {
@@ -483,7 +483,7 @@ void SaveConfig(void)
 		WritePrivateProfileString((const char*)ini_title, buf, buf2, winx68k_ini);
 	}
 
-	wsprintf(buf, "%d", Config.NoWaitMode);
+	sprintf(buf, "%d", Config.NoWaitMode);
 	WritePrivateProfileString((const char*)ini_title, "NoWaitMode", buf, winx68k_ini);
 
 	for (i=0; i<2; i++)
@@ -491,7 +491,7 @@ void SaveConfig(void)
 		for (j=0; j<8; j++)
 		{
 			sprintf(buf, "Joy%dButton%d", i+1, j+1);
-			wsprintf(buf2, "%d", Config.JOY_BTN[i][j]);
+			sprintf(buf2, "%d", Config.JOY_BTN[i][j]);
 			WritePrivateProfileString((const char*)ini_title, buf, buf2, winx68k_ini);
 		}
 	}
