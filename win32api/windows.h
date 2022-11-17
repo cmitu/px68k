@@ -104,12 +104,6 @@ typedef	void *		DRAWITEMSTRUCT;
 
 #define	GPTR			64
 
-/* for BITMAP */
-#define BI_RGB			0
-#define BI_RLE8			1
-#define BI_RLE4			2
-#define	BI_BITFIELDS	3
-
 /* for dosio.c */
 #define	GENERIC_READ		1
 #define	GENERIC_WRITE		2
@@ -146,54 +140,6 @@ typedef	void *		DRAWITEMSTRUCT;
  */
 #define	timeGetTime()		Get_msecCount()
 
-/*
- * WIN32 structure
- */
-typedef struct {
-	uint16_t	bfType;
-	uint32_t	bfSize;
-	uint16_t	bfReserved1;
-	uint16_t	bfReserved2;
-	uint32_t	bfOffBits;
-} __attribute__ ((packed)) BITMAPFILEHEADER;
-
-typedef struct {
-	uint32_t	biSize;
-//	int32_t	biWidth;
-//	int32_t	biHeight;
-	uint16_t	biPlanes;
-	uint16_t	biBitCount;
-	uint32_t	biCompression;
-	uint32_t	biSizeImage;
-//	int32_t	biXPelsPerMeter;
-//	int32_t	biYPelsPerMeter;
-	uint32_t	biClrUsed;
-	uint32_t	biClrImportant;
-} __attribute__ ((packed)) BITMAPINFOHEADER;
-
-typedef struct {
-	uint8_t	rgbBlue;
-	uint8_t	rgbGreen;
-	uint8_t	rgbRed;
-	uint8_t	rgbReserved;
-} __attribute__ ((packed)) RGBQUAD;
-
-typedef struct {
-	BITMAPINFOHEADER	bmiHeader;
-	RGBQUAD			bmiColors[1];
-} __attribute__ ((packed)) BITMAPINFO;
-
-typedef struct {
-	uint32_t	top;
-	uint32_t	left;
-	uint32_t	bottom;
-	uint32_t	right;
-} RECT;
-
-typedef struct {
-	uint16_t	x;
-	uint16_t	y;
-} POINT;
 
 /*
  * prototype

@@ -225,10 +225,10 @@ mid_DevList(LPHMIDIOUT phmo)
 	uint32_t Device_numM = 0;
 	uint32_t Total_Device_num = 0;
 
-	/*CoreAudio Device Serce*/
+	/*CoreAudio Device get*/
 	Device_numA = mid_synthA_open(0);
 
-	/*CoreMIDI Device serch*/
+	/*CoreMIDI Device search*/
 	Total_Device_num = mid_synthM_open(Device_numA);
 
 	if(Total_Device_num != 0){

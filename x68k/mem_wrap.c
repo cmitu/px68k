@@ -408,11 +408,7 @@ cpu_readmem24(uint32_t addr)
 {
 	uint8_t v;
 
-	if(addr & 1){
-	 v = rm16_main(addr & 0xfffffe) & 0xff;
-	}else{
-	 v = (rm16_main(addr & 0xfffffe) >> 8) & 0xff;
-	}
+	v = rm_main(addr);
 
 	if (BusErrFlag & 1) {
 		p6logd("func = %s addr = %x flag = %d\n", __func__, addr, BusErrFlag);

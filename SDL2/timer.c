@@ -36,8 +36,8 @@ uint16_t Timer_GetCount(void)
 		return 1;
 	}
 	else{
-		if((TIMEBASE-timercnt)>1500){//over 1500μs
-		 usleep(1000);//1000μs sleep
+		if((TIMEBASE-timercnt)>8000){//over 800μs
+		 usleep(100);//100μs sleep
 		}
 		return 0;
 	}
