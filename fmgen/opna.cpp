@@ -46,7 +46,7 @@ OPNBase::OPNBase()
 }
 
 //	パラメータセット
-void OPNBase::SetParameter(Channel4* ch, int32_t addr, uint32_t data)
+void OPNBase::SetParameter(Channel4* ch, uint32_t addr, uint32_t data)
 {
 	static const uint32_t slottable[4] = { 0, 2, 1, 3 };
 	static const uint8_t sltable[16] = 
@@ -224,7 +224,7 @@ void OPN::Reset()
 
 
 //	レジスタ読み込み
-uint32_t OPN::GetReg(int32_t addr)
+uint32_t OPN::GetReg(uint32_t addr)
 {
 	if (addr < 0x10)
 		return psg.GetReg(addr);
@@ -234,7 +234,7 @@ uint32_t OPN::GetReg(int32_t addr)
 
 
 //	レジスタアレイにデータを設定
-void OPN::SetReg(int32_t addr, uint32_t data)
+void OPN::SetReg(uint32_t addr, uint32_t data)
 {
 //	LOG2("reg[%.2x] <- %.2x\n", addr, data);
 	if (addr >= 0x100)
@@ -503,9 +503,9 @@ void OPNABase::SetChannelMask(uint32_t mask)
 // ---------------------------------------------------------------------------
 //	レジスタアレイにデータを設定
 //
-void OPNABase::SetReg(int32_t addr, uint32_t data)
+void OPNABase::SetReg(uint32_t addr, uint32_t data)
 {
-	int32_t	c = addr & 3;
+	uint32_t  c = addr & 3;
 	switch (addr)
 	{
 		uint32_t modified;
@@ -611,7 +611,7 @@ void OPNABase::SetReg(int32_t addr, uint32_t data)
 // ---------------------------------------------------------------------------
 //	ADPCM B
 //
-void OPNABase::SetADPCMBReg(int32_t addr, uint32_t data)
+void OPNABase::SetADPCMBReg(uint32_t addr, uint32_t data)
 {
 	switch (addr)
 	{
@@ -697,7 +697,7 @@ void OPNABase::SetADPCMBReg(int32_t addr, uint32_t data)
 // ---------------------------------------------------------------------------
 //	レジスタ取得
 //
-uint32_t OPNA::GetReg(int32_t addr)
+uint32_t OPNA::GetReg(uint32_t addr)
 {
 	if (addr < 0x10)
 		return psg.GetReg(addr);
@@ -1350,7 +1350,7 @@ bool OPNA::LoadRhythmSample(const char* path)
 // ---------------------------------------------------------------------------
 //	レジスタアレイにデータを設定
 //
-void OPNA::SetReg(int32_t addr, uint32_t data)
+void OPNA::SetReg(uint32_t addr, uint32_t data)
 {
 	addr &= 0x1ff;
 
@@ -1610,7 +1610,7 @@ bool OPNB::SetRate(uint32_t c, uint32_t r, bool ipflag)
 // ---------------------------------------------------------------------------
 //	レジスタアレイにデータを設定
 //
-void OPNB::SetReg(int32_t addr, uint32_t data)
+void OPNB::SetReg(uint32_t addr, uint32_t data)
 {
 	addr &= 0x1ff;
 
@@ -1736,7 +1736,7 @@ void OPNB::SetReg(int32_t addr, uint32_t data)
 // ---------------------------------------------------------------------------
 //	レジスタ取得
 //
-uint32_t OPNB::GetReg(int32_t addr)
+uint32_t OPNB::GetReg(uint32_t addr)
 {
 	if (addr < 0x10)
 		return psg.GetReg(addr);
@@ -2055,7 +2055,7 @@ bool Y288::LoadRhythmSample(const char* path)
 // ---------------------------------------------------------------------------
 //	レジスタアレイにデータを設定
 //
-void Y288::SetReg(int32_t addr, uint32_t data)
+void Y288::SetReg(uint32_t addr, uint32_t data)
 {
 	addr &= 0x1ff;
 
@@ -2168,7 +2168,7 @@ void Y288::SetVolumeRhythm(int32_t index, int32_t db)
 // ---------------------------------------------------------------------------
 //	レジスタ取得
 //
-uint32_t Y288::GetReg(int32_t addr)
+uint32_t Y288::GetReg(uint32_t addr)
 {
 	if (addr < 0x10)
 		return psg.GetReg(addr);

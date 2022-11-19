@@ -23,7 +23,7 @@ namespace FM
 		virtual void ResetStatus(uint32_t bit) = 0;
 
 		void	SetTimerBase(uint32_t clock);
-		void	SetTimerA(int32_t addr, uint32_t data);
+		void	SetTimerA(uint32_t addr, uint32_t data);
 		void	SetTimerB(uint32_t data);
 		void	SetTimerControl(uint32_t data);
 		

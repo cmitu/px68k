@@ -163,7 +163,7 @@ void OPM::ResetStatus(uint32_t bits)
 // ---------------------------------------------------------------------------
 //	レジスタアレイにデータを設定
 //
-void OPM::SetReg(int32_t addr, uint32_t data)
+void OPM::SetReg(uint32_t addr, uint32_t data)
 {
 	if (addr >= 0x100)
 		return;
@@ -268,7 +268,7 @@ void OPM::SetReg(int32_t addr, uint32_t data)
 // ---------------------------------------------------------------------------
 //	パラメータセット
 //
-void OPM::SetParameter(int32_t addr, uint32_t data)
+void OPM::SetParameter(uint32_t addr, uint32_t data)
 {
 	static const uint8_t sltable[16] = 
 	{

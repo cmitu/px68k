@@ -84,8 +84,8 @@ namespace FM
 		void	SetLPFCutoff(uint32_t freq);
 		void	Reset();
 		
-		void 	SetReg(int32_t addr, uint32_t data);
-		uint32_t	GetReg(int32_t addr);
+		void 	SetReg(uint32_t addr, uint32_t data);
+		uint32_t	GetReg(uint32_t addr);
 		uint32_t	ReadStatus() { return status & 0x03; }
 		
 		void 	Mix(Sample* buffer, int32_t nsamples, int32_t rate, uint8_t* pbsp, uint8_t* pbep);
@@ -104,7 +104,7 @@ namespace FM
 		
 		void	SetStatus(uint32_t bit);
 		void	ResetStatus(uint32_t bit);
-		void	SetParameter(int32_t addr, uint32_t data);
+		void	SetParameter(uint32_t addr, uint32_t data);
 		void	TimerA();
 		void	RebuildTimeTable();
 		void	MixSub(int32_t activech, ISample**);

@@ -35,7 +35,7 @@ void Timer::SetTimerControl(uint32_t data)
 // ---------------------------------------------------------------------------
 //	タイマーA 周期設定
 //
-void Timer::SetTimerA(int32_t addr, uint32_t data)
+void Timer::SetTimerA(uint32_t addr, uint32_t data)
 {
 	uint32_t tmp;
 	regta[addr & 1] = uint8_t(data);
@@ -114,7 +114,7 @@ void Timer::SetTimerBase(uint32_t clock)
 // ---------------------------------------------------------------------------
 //	タイマーA 周期設定
 //
-void Timer::SetTimerA(int32_t addr, uint32_t data)
+void Timer::SetTimerA(uint32_t addr, uint32_t data)
 {
 	regta[addr & 1] = uint8_t(data);
 	timera = (1024 - ((regta[0] << 2) + (regta[1] & 3))) << 16;

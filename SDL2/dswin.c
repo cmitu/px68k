@@ -225,11 +225,10 @@ sdlaudio_callback(void *userdata, uint8_t *stream, int32_t len)
 {
 	int32_t lena, lenb, datalen, rate;
 	uint8_t *buf;
-	static uint32_t bef;
-	uint32_t now;
 
-	now = timeGetTime();
-
+	// 実行時間測定用(デバック)
+	//static uint32_t bef;
+	//uint32_t now = timeGetTime();
 	//p6logd("tdiff %4d : len %d ", now - bef, len);
 
 cb_start:
@@ -302,7 +301,7 @@ cb_start:
 	SDL_MixAudio(stream, buf, len, SDL_MIX_MAXVOLUME);
 #endif
 
-	bef = now;
+	//bef = now; //デバック用
 }
 
 #else	/* NOSOUND */

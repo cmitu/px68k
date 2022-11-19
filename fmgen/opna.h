@@ -95,7 +95,7 @@ namespace FM
 		void	SetLPFCutoff(uint32_t freq) {}	// obsolete
 
 	protected:
-		void	SetParameter(Channel4* ch, int32_t addr, uint32_t data);
+		void	SetParameter(Channel4* ch, uint32_t addr, uint32_t data);
 		void	SetPrescaler(uint32_t p);
 		void	RebuildTimeTable();
 		
@@ -140,9 +140,9 @@ namespace FM
 		bool	SetRate(uint32_t c, uint32_t r, bool);
 
 		void	Reset();
-		void 	SetReg(int32_t addr, uint32_t data);
-		void	SetADPCMBReg(int32_t addr, uint32_t data);
-		uint32_t	GetReg(int32_t addr);	
+		void 	SetReg(uint32_t addr, uint32_t data);
+		void	SetADPCMBReg(uint32_t addr, uint32_t data);
+		uint32_t	GetReg(uint32_t addr);	
 	
 	protected:
 		void	FMMix(Sample* buffer, int32_t nsamples);
@@ -233,8 +233,8 @@ namespace FM
 		
 		void	Reset();
 		void 	Mix(Sample* buffer, int32_t nsamples);
-		void 	SetReg(int32_t addr, uint32_t data);
-		uint32_t	GetReg(int32_t addr);
+		void 	SetReg(uint32_t addr, uint32_t data);
+		uint32_t	GetReg(uint32_t addr);
 		uint32_t	ReadStatus() { return status & 0x03; }
 		uint32_t	ReadStatusEx() { return 0xff; }
 		
@@ -271,8 +271,8 @@ namespace FM
 		void 	Mix(Sample* buffer, int32_t nsamples);
 
 		void	Reset();
-		void 	SetReg(int32_t addr, uint32_t data);
-		uint32_t	GetReg(int32_t addr);
+		void 	SetReg(uint32_t addr, uint32_t data);
+		uint32_t	GetReg(uint32_t addr);
 
 		void	SetVolumeADPCM(int32_t db);
 		void	SetVolumeRhythmTotal(int32_t db);
@@ -322,8 +322,8 @@ namespace FM
 		void 	Mix(Sample* buffer, int32_t nsamples);
 
 		void	Reset();
-		void 	SetReg(int32_t addr, uint32_t data);
-		uint32_t	GetReg(int32_t addr);
+		void 	SetReg(uint32_t addr, uint32_t data);
+		uint32_t	GetReg(uint32_t addr);
 		uint32_t	ReadStatusEx();
 
 		void	SetVolumeADPCMATotal(int32_t db);
@@ -379,8 +379,8 @@ namespace FM
 		
 		void	Reset();
 		void 	Mix(Sample* buffer, int32_t nsamples);
-		void 	SetReg(int32_t addr, uint32_t data);
-		uint32_t	GetReg(int32_t addr);
+		void 	SetReg(uint32_t addr, uint32_t data);
+		uint32_t	GetReg(uint32_t addr);
 		uint32_t	ReadStatus() { return status & 0x03; }
 		uint32_t	ReadStatusEx() { return 0xff; }
 		
@@ -419,8 +419,8 @@ namespace FM
 		void	SetVolumeRhythm(int32_t index, int32_t db);
 
 		void	Reset();
-		void 	SetReg(int32_t addr, uint32_t data);
-		uint32_t	GetReg(int32_t addr);
+		void 	SetReg(uint32_t addr, uint32_t data);
+		uint32_t	GetReg(uint32_t addr);
 
 	private:
 		struct Rhythm

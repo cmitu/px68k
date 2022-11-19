@@ -41,7 +41,7 @@ class MyOPM : public FM::OPM
 public:
 	MyOPM();
 	virtual ~MyOPM() {}
-	void WriteIO(int32_t adr, uint8_t data);
+	void WriteIO(uint32_t adr, uint8_t data);
 	void Count2(uint32_t clock);
 private:
 	virtual void Intr(bool);
@@ -55,7 +55,7 @@ MyOPM::MyOPM()
 	CurReg = 0;
 }
 
-void MyOPM::WriteIO(int32_t adr, uint8_t data)
+void MyOPM::WriteIO(uint32_t adr, uint8_t data)
 {
 	if( adr&1 ) {
 		if ( CurReg==0x1b ) {
@@ -161,7 +161,7 @@ uint8_t FASTCALL OPM_Read(uint16_t adr)
 }
 
 
-void FASTCALL OPM_Write(int32_t adr, uint8_t data)
+void FASTCALL OPM_Write(uint32_t adr, uint8_t data)
 {
 	if ( opm ) opm->WriteIO(adr, data);
 }
@@ -211,8 +211,8 @@ class YMF288 : public FM::Y288
 public:
 	YMF288();
 	virtual ~YMF288() {}
-	void WriteIO(int32_t adr, uint8_t data);
-	uint8_t ReadIO(int32_t adr);
+	void WriteIO(uint32_t adr, uint8_t data);
+	uint8_t ReadIO(uint32_t adr);
 	void Count2(uint32_t clock);
 	void SetInt(int32_t f) { IntrFlag = f; };
 private:
@@ -229,17 +229,17 @@ YMF288::YMF288()
 	IntrFlag = 0;
 }
 
-void YMF288::WriteIO(int32_t adr, uint8_t data)
+void YMF288::WriteIO(uint32_t adr, uint8_t data)
 {
 	if( adr&1 ) {
-		SetReg(((adr&2)?(CurReg[1]+0x100):CurReg[0]), (int32_t)data);
+		SetReg(((adr&2)?(CurReg[1]+0x100):CurReg[0]), (uint32_t)data);
 	} else {
-		CurReg[(adr>>1)&1] = (int32_t)data;
+		CurReg[(adr>>1)&1] = (uint32_t)data;
 	}
 }
 
 
-uint8_t YMF288::ReadIO(int32_t adr)
+uint8_t YMF288::ReadIO(uint32_t adr)
 {
 	uint8_t ret = 0;
 	if ( adr&1 ) {
@@ -325,7 +325,7 @@ uint8_t FASTCALL M288_Read(uint16_t adr)
 }
 
 
-void FASTCALL M288_Write(int32_t adr, uint8_t data)
+void FASTCALL M288_Write(uint32_t adr, uint8_t data)
 {
 	if ( adr<=3 ) {
 		if ( ymf288a ) ymf288a->WriteIO(adr, data);
