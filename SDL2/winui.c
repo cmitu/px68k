@@ -428,7 +428,7 @@ static void menu_create_flist(int32_t v)
 			Config.HDImage[drv - 2][0] = '\0';
 			Config.SCSIEXHDImage[drv - 2][0] = '\0';
 		}
-		strcpy(mfl.dir[drv], cur_dir_str);
+		//strcpy(mfl.dir[drv], cur_dir_str); いちいちカレントに戻さない方がいい！
 		return;
 	}
 
@@ -447,8 +447,7 @@ static void menu_create_flist(int32_t v)
 	char srt[100];
 
 	dp = opendir(mfl.dir[drv]);
-
-	// xxx check if dp is null...
+	if(dp == NULL ) {return;} // xxx check if dp is null...
 
 	// xxx You can get only MFL_MAX files.
 	for (i = 0 ; i < MFL_MAX; i++) {

@@ -2,6 +2,9 @@
 extern "C" {
 #endif 
 
+#include <sys/stat.h>
+#include <errno.h>
+
 #include "SDL2/SDL.h"
 #ifdef USE_OGLES11
 #include "SDL2/SDL_opengles.h"
@@ -554,6 +557,57 @@ void WinX68k_Exec(void)
 	}
 }
 
+/*command lineから実行 (引数あり)*/
+void
+get_cmd_line(int32_t argc, char *argv[])
+{
+	// *.HDS、*.HDFはHDD、他はFDD
+	char fdimg[] = "D8888DHDMDUP2HDDIMXDFIMG";
+	char saimg[] = "HDF";
+	char scimg[] = "HDS";
+
+	char strwork[20];
+	char *p;
+	uint32_t i,len,f1=0,h1=0,s1=0;
+
+	for(i=1; i<argc; i++){
+	  if(argv[i][0]=='-' && argv[i][1]=='h'){
+	   p6logd("for useage.\n$ px68k.sdl2 hoge0.xdf hoge1.xdf scsi0.hds\n");
+	  }
+	  else{
+	    len = strlen(argv[i]);
+	    strcpy(strwork, argv[i] + len - 3);//拡張子GET
+		if (strwork[0] >= 'a' && strwork[0] <= 'z') {//大文字に変換
+			strwork[0] = 'A' + strwork[0] - 'a';
+		}
+		if (strwork[1] >= 'a' && strwork[1] <= 'z') {
+			strwork[1] = 'A' + strwork[1] - 'a';
+		}
+		if (strwork[2] >= 'a' && strwork[2] <= 'z') {
+			strwork[2] = 'A' + strwork[2] - 'a';
+		}
+	    p = strstr(fdimg, strwork);
+	    if(p != NULL){
+	      strcpy((char *)Config.FDDImage[f1], argv[i]);
+	      if(f1 < 2){f1++;}
+	    }
+	    p = strstr(saimg, strwork);
+	    if(p != NULL){
+	      strcpy((char *)Config.HDImage[h1], argv[i]);
+	      if(h1 < 15){h1++;}
+	    }
+	    p = strstr(scimg, strwork);
+	    if(p != NULL){
+	      strcpy((char *)Config.SCSIEXHDImage[s1], argv[i]);
+	      s1++;
+	      if(s1 < 6){s1++;}
+	    }
+	  }
+	}
+
+ return;
+}
+
 //
 // main
 //
@@ -752,15 +806,9 @@ int32_t main(int32_t argc, char *argv[])
 #endif
 	DSound_Play();
 
-	// command line から指定した場合
-	if(argc==3 && argv[1][0]=='-' && argv[1][1]=='h')
-		strcpy((char *)Config.HDImage[0], argv[2]);
-	switch (argc) {
-	case 3:
-		strcpy((char *)Config.FDDImage[1], argv[2]);
-	case 2:
-		strcpy((char *)Config.FDDImage[0], argv[1]);
-		break;
+	// command lineから実行 引数あり
+	if(argc > 1){
+	  get_cmd_line(argc, (char **)argv);
 	}
 
 	FDD_SetFD(0, (char *)Config.FDDImage[0], 0);

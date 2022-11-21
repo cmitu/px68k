@@ -181,7 +181,7 @@ WinDraw_InitWindowSize(uint32_t ScreenX, uint32_t ScreenY, uint32_t StartX, uint
 	switch(ScreenX){
 	  case 513 ... 900: //====768x512/256   640x480/400/240/200====
 		 switch(ScreenY){
-		 case 257 ... 511:
+		 case 257 ... 600:
 		   surfaceW=ScreenX; drawW=StartX-224;
 		   surfaceH=ScreenY; drawH=StartY-40;
 		  break;
@@ -235,8 +235,10 @@ WinDraw_InitWindowSize(uint32_t ScreenX, uint32_t ScreenY, uint32_t StartX, uint
 	if(drawH<0){ drawH=0; }
 
 	//nealy full screen...
-	if((surfaceW - TextDotX)<30){surfaceW=TextDotX;drawW=0;}
-	if((surfaceH - TextDotY)<16){surfaceH=TextDotY;drawH=0;}
+	if((TextDotX!=768)||(TextDotY!=512)){//dot2dot以外
+	  if((surfaceW - TextDotX)<(surfaceW*0.2)){surfaceW=TextDotX;drawW=0;}
+	  if((surfaceH - TextDotY)<(surfaceH*0.2)){surfaceH=TextDotY;drawH=0;}
+	}
 
 	return;
 }
