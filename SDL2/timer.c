@@ -1,10 +1,11 @@
 // -----------------------------------------------------------------------
-//   55.6fpsキープ用たいまー
+//   55.6/61fpsキープ用たいまー
 // -----------------------------------------------------------------------
 #include <unistd.h>
 #include "common.h"
 #include "crtc.h"
 #include "mfp.h"
+#include "winx68k.h"
 
 uint32_t	timercnt = 0;
 uint32_t	tick = 0;
@@ -22,10 +23,20 @@ void Timer_Reset(void)
 uint16_t Timer_GetCount(void)
 {
 	uint32_t ticknow = Get_usecCount();//0.1μs単位
-	uint32_t TIMEBASE = ((CRTC_Regs[0x29]&0x10)?VSYNC_HIGH:VSYNC_NORM);
 	uint32_t dif;
 	if(ticknow>tick){dif = ticknow-tick; }
 	else{dif = 1000000000-tick+ticknow;}//100秒周期補正
+
+	uint32_t TIMEBASE;
+	if(CRTC_Regs[0x29]&0x10){
+	  TIMEBASE = VSYNC_HIGH * 567 / VLINE_TOTAL;//HSYNC:31KHz
+	}
+	else{
+	  TIMEBASE = VSYNC_NORM * 283 / VLINE_TOTAL;//HSYNC:15.75KHz
+	}
+	if((TIMEBASE < (VSYNC_NORM - 5000)) && (TIMEBASE > (VSYNC_HIGH + 5000))){
+	  TIMEBASE = ((CRTC_Regs[0x29]&0x10)?VSYNC_HIGH:VSYNC_NORM);
+	}
 
 	timercnt += dif;//0.1μs単位
 	tick = ticknow;

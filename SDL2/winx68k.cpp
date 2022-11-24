@@ -589,7 +589,7 @@ get_cmd_line(int32_t argc, char *argv[])
 	    p = strstr(fdimg, strwork);
 	    if(p != NULL){
 	      strcpy((char *)Config.FDDImage[f1], argv[i]);
-	      if(f1 < 2){f1++;}
+	      if(f1 < 1){f1++;}
 	    }
 	    p = strstr(saimg, strwork);
 	    if(p != NULL){
