@@ -258,7 +258,7 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 		case 0x29:
 			HSYNC_CLK = ((CRTC_Regs[0x29]&0x10)?VSYNC_HIGH:VSYNC_NORM)/VLINE_TOTAL;
 			VID_MODE = !!(CRTC_Regs[0x29]&0x10);
-			TextDotY = CRTC_VEND-CRTC_VSTART;
+			if(CRTC_VEND>CRTC_VSTART){ TextDotY = CRTC_VEND-CRTC_VSTART; }//設定途中対策
 			if ((CRTC_Regs[0x29]&0x14)==0x10)
 			{
 				TextDotY/=2;
