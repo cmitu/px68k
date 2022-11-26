@@ -266,7 +266,7 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 			WinDraw_ChangeSize();
 			break;
 		case 0x28:
-			CRTC_Regs[reg] &= 0x03;
+			CRTC_Regs[reg] &= 0x07;
 			TVRAM_SetAllDirty();
 			break;
 		case 0x29:
@@ -369,7 +369,6 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 	}
 	else if (adr==0xe80481)
 	{					// CRTC動作ポート
-		CRTC_Regs[reg] &= 0x0f;
 		CRTC_Mode = (data|(CRTC_Mode&2));
 		if (CRTC_Mode&8)
 		{				// Raster Copy
