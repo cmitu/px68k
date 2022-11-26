@@ -195,9 +195,15 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 		switch(reg)
 		{
 		case 0x00:
+			CRTC_Regs[0x00] &= 0x00;//not use
 		case 0x01:
 			HLINE_TOTAL = (((uint16_t)CRTC_Regs[0]<<8)+CRTC_Regs[1]) * 8;
+			break;
+		case 0x02:
+			CRTC_Regs[0x02] &= 0x00;//not use
+			break;
 		case 0x04:
+			CRTC_Regs[0x04] &= 0x00;//not use
 		case 0x05:
 			CRTC_HSTART = (((uint16_t)CRTC_Regs[0x4]<<8)+CRTC_Regs[0x5]);
 			if(CRTC_HEND>CRTC_HSTART){ TextDotX = (CRTC_HEND-CRTC_HSTART)*8; }//設定途中対策
@@ -205,17 +211,23 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 			WinDraw_ChangeSize();
 			break;
 		case 0x06:
+			CRTC_Regs[reg] &= 0x00;//not use
 		case 0x07:
 			CRTC_HEND = (((uint16_t)CRTC_Regs[0x6]<<8)+CRTC_Regs[0x7]);
 			if(CRTC_HEND>CRTC_HSTART){ TextDotX = (CRTC_HEND-CRTC_HSTART)*8; }//設定途中対策
 			WinDraw_ChangeSize();
 			break;
 		case 0x08:
+			CRTC_Regs[reg] &= 0x03;
 		case 0x09:
 			VLINE_TOTAL = (((uint16_t)CRTC_Regs[8]<<8)+CRTC_Regs[9]);
 			HSYNC_CLK = ((CRTC_Regs[0x29]&0x10)?VSYNC_HIGH:VSYNC_NORM)/VLINE_TOTAL;
 			break;
+		case 0x0a:
+			CRTC_Regs[reg] &= 0x03;
+			break;
 		case 0x0c:
+			CRTC_Regs[reg] &= 0x03;
 		case 0x0d:
 			CRTC_VSTART = (((uint16_t)CRTC_Regs[0xc]<<8)+CRTC_Regs[0xd]);
 			BG_VLINE = ((long)BG_Regs[0x0f]-CRTC_VSTART)/((BG_Regs[0x11]&4)?1:2);	// BGとその他がずれてる時の差分
@@ -235,6 +247,7 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 			WinDraw_ChangeSize();
 			break;
 		case 0x0e:
+			CRTC_Regs[reg] &= 0x03;
 		case 0x0f:
 			CRTC_VEND = (((uint16_t)CRTC_Regs[0xe]<<8)+CRTC_Regs[0xf]);
 			if(CRTC_VEND>CRTC_VSTART){ TextDotY = CRTC_VEND-CRTC_VSTART; }//設定途中対策
@@ -253,9 +266,11 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 			WinDraw_ChangeSize();
 			break;
 		case 0x28:
+			CRTC_Regs[reg] &= 0x03;
 			TVRAM_SetAllDirty();
 			break;
 		case 0x29:
+			CRTC_Regs[reg] &= 0x1f;
 			HSYNC_CLK = ((CRTC_Regs[0x29]&0x10)?VSYNC_HIGH:VSYNC_NORM)/VLINE_TOTAL;
 			VID_MODE = !!(CRTC_Regs[0x29]&0x10);
 			if(CRTC_VEND>CRTC_VSTART){ TextDotY = CRTC_VEND-CRTC_VSTART; }//設定途中対策
@@ -278,51 +293,66 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 			}
 			WinDraw_ChangeSize();
 			break;
+		case 0x10:
+			CRTC_Regs[reg] &= 0x00;
+			break;
 		case 0x12:
+			CRTC_Regs[reg] &= 0x03;
 		case 0x13:
-			CRTC_IntLine = (((uint16_t)CRTC_Regs[0x12]<<8)+CRTC_Regs[0x13])&1023;
+			CRTC_IntLine = (((uint16_t)CRTC_Regs[0x12]<<8)+CRTC_Regs[0x13]);
 			break;
 		case 0x14:
+			CRTC_Regs[reg] &= 0x03;
 		case 0x15:
-			TextScrollX = (((uint32_t)CRTC_Regs[0x14]<<8)+CRTC_Regs[0x15])&1023;
+			TextScrollX = (((uint32_t)CRTC_Regs[0x14]<<8)+CRTC_Regs[0x15]);
 			break;
 		case 0x16:
+			CRTC_Regs[reg] &= 0x03;
 		case 0x17:
-			TextScrollY = (((uint32_t)CRTC_Regs[0x16]<<8)+CRTC_Regs[0x17])&1023;
+			TextScrollY = (((uint32_t)CRTC_Regs[0x16]<<8)+CRTC_Regs[0x17]);
 			break;
 		case 0x18:
+			CRTC_Regs[reg] &= 0x03;
 		case 0x19:
-			GrphScrollX[0] = (((uint32_t)CRTC_Regs[0x18]<<8)+CRTC_Regs[0x19])&1023;
+			GrphScrollX[0] = (((uint32_t)CRTC_Regs[0x18]<<8)+CRTC_Regs[0x19]);
 			break;
 		case 0x1a:
+			CRTC_Regs[reg] &= 0x03;
 		case 0x1b:
-			GrphScrollY[0] = (((uint32_t)CRTC_Regs[0x1a]<<8)+CRTC_Regs[0x1b])&1023;
+			GrphScrollY[0] = (((uint32_t)CRTC_Regs[0x1a]<<8)+CRTC_Regs[0x1b]);
 			break;
 		case 0x1c:
+			CRTC_Regs[reg] &= 0x01;
 		case 0x1d:
-			GrphScrollX[1] = (((uint32_t)CRTC_Regs[0x1c]<<8)+CRTC_Regs[0x1d])&511;
+			GrphScrollX[1] = (((uint32_t)CRTC_Regs[0x1c]<<8)+CRTC_Regs[0x1d]);
 			break;
 		case 0x1e:
+			CRTC_Regs[reg] &= 0x01;
 		case 0x1f:
-			GrphScrollY[1] = (((uint32_t)CRTC_Regs[0x1e]<<8)+CRTC_Regs[0x1f])&511;
+			GrphScrollY[1] = (((uint32_t)CRTC_Regs[0x1e]<<8)+CRTC_Regs[0x1f]);
 			break;
 		case 0x20:
+			CRTC_Regs[reg] &= 0x01;
 		case 0x21:
-			GrphScrollX[2] = (((uint32_t)CRTC_Regs[0x20]<<8)+CRTC_Regs[0x21])&511;
+			GrphScrollX[2] = (((uint32_t)CRTC_Regs[0x20]<<8)+CRTC_Regs[0x21]);
 			break;
 		case 0x22:
+			CRTC_Regs[reg] &= 0x01;
 		case 0x23:
-			GrphScrollY[2] = (((uint32_t)CRTC_Regs[0x22]<<8)+CRTC_Regs[0x23])&511;
+			GrphScrollY[2] = (((uint32_t)CRTC_Regs[0x22]<<8)+CRTC_Regs[0x23]);
 			break;
 		case 0x24:
+			CRTC_Regs[reg] &= 0x01;
 		case 0x25:
-			GrphScrollX[3] = (((uint32_t)CRTC_Regs[0x24]<<8)+CRTC_Regs[0x25])&511;
+			GrphScrollX[3] = (((uint32_t)CRTC_Regs[0x24]<<8)+CRTC_Regs[0x25]);
 			break;
 		case 0x26:
+			CRTC_Regs[reg] &= 0x01;
 		case 0x27:
-			GrphScrollY[3] = (((uint32_t)CRTC_Regs[0x26]<<8)+CRTC_Regs[0x27])&511;
+			GrphScrollY[3] = (((uint32_t)CRTC_Regs[0x26]<<8)+CRTC_Regs[0x27]);
 			break;
 		case 0x2a:
+			CRTC_Regs[reg] &= 0x03;
 		case 0x2b:
 			break;
 		case 0x2c:				// CRTC動作ポートのラスタコピーをONにしておいて（しておいたまま）、
@@ -339,6 +369,7 @@ void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 	}
 	else if (adr==0xe80481)
 	{					// CRTC動作ポート
+		CRTC_Regs[reg] &= 0x0f;
 		CRTC_Mode = (data|(CRTC_Mode&2));
 		if (CRTC_Mode&8)
 		{				// Raster Copy
