@@ -19,8 +19,13 @@
 	uint16_t	Grp_LineBufSP_Tr[1024];
 	uint16_t	Pal16Adr[256];			// 16bit color パレットアドレス計算用
 
-// xxx: for little endian only
-#define GET_WORD_W8(src) (*(uint8_t *)(src) | *((uint8_t *)(src) + 1) << 8)
+#ifndef C68K_BIG_ENDIAN
+	// xxx: for little endian only
+	#define GET_WORD_W8(src) (*(uint8_t *)(src) | *((uint8_t *)(src) + 1) << 8)
+#else
+	// for Big endian
+	#define GET_WORD_W8(src) *(uint16_t *)(src)
+#endif
 
 
 // -----------------------------------------------------------------------
