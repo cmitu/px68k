@@ -116,10 +116,10 @@ extern "C" {
 #define C68K_DISABLE    0x10
 #define C68K_FAULTED    0x40
 
-typedef u32 FASTCALL C68K_READ(const u32 adr);
-typedef void FASTCALL C68K_WRITE(const u32 adr, u32 data);
+typedef uint32_t FASTCALL C68K_READ(const uint32_t adr);
+typedef void FASTCALL C68K_WRITE(const uint32_t adr, uint32_t data);
 
-typedef s32  FASTCALL C68K_INT_CALLBACK(s32 level);
+typedef int32_t  FASTCALL C68K_INT_CALLBACK(int32_t level);
 typedef void FASTCALL C68K_RESET_CALLBACK(void);
 
 typedef struct {
