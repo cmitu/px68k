@@ -175,7 +175,7 @@ WinX68k_SCSICheck()
 	uint16_t *p1, *p2;
 	int32_t scsi;
 	int32_t i;
-	uint8_t tmp;
+	uint16_t tmp;
 	FILEH fp;
 	static const char CZ6BS1IPLFILE[] = "scsiexrom.dat";
 	static const char SCSIINIPLFILE[] = "scsiinrom.dat";
@@ -233,9 +233,8 @@ WinX68k_SCSICheck()
 	// for little endian 
 #ifndef C68K_BIG_ENDIAN
 	for (i = 0; i < 0x02000; i += 2) {
-	 tmp = SCSIIPL[i];
-	 SCSIIPL[i] = SCSIIPL[i + 1];
-	 SCSIIPL[i + 1] = tmp;
+	 tmp = *(uint16_t *)&SCSIIPL[i];
+	 *(uint16_t *)&SCSIIPL[i] = ((tmp >> 8)&0x00ff) | ((tmp << 8)&0xff00);
 	}
 #endif
 
@@ -253,7 +252,7 @@ WinX68k_LoadROMs(void)
 	static const char FONTFILETMP[] = "cgrom.tmp";
 	FILEH fp;
 	int32_t i;
-	uint8_t tmp;
+	uint16_t tmp;
 	int32_t flg = TRUE;
 
 	for (fp = 0, i = 0; fp == 0 && i < NELEMENTS(BIOSFILE); i++) {
@@ -275,9 +274,8 @@ WinX68k_LoadROMs(void)
 // for little endian 
 #ifndef C68K_BIG_ENDIAN
 	for (i = 0; i < 0x40000; i += 2) {
-		tmp = IPL[i];
-		IPL[i] = IPL[i + 1];
-		IPL[i + 1] = tmp;
+	  tmp = *(uint16_t *)&IPL[i];
+	  *(uint16_t *)&IPL[i] = ((tmp >> 8) & 0x00ff) | ((tmp << 8) & 0xff00);
 	}
 #endif
 
@@ -302,9 +300,8 @@ WinX68k_LoadROMs(void)
 // for little endian 
 #ifndef C68K_BIG_ENDIAN
 	for (i = 0; i < 0xc0000; i += 2) {
-		tmp = FONT[i];
-		FONT[i] = FONT[i + 1];
-		FONT[i + 1] = tmp;
+	  tmp = *(uint16_t *)&FONT[i];
+	  *(uint16_t *)&FONT[i] = ((tmp >> 8) & 0x00ff) | ((tmp << 8) & 0xff00);
 	}
 #endif
 

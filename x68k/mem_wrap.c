@@ -298,9 +298,7 @@ wm16_main(uint32_t addr, uint16_t val)
     TVRAM_Write(addr+1, val & 0xff);
     break;
   case 0xed0000 ... 0xed3fff: /*SRAM*/
-    *(uint16_t *)&SRAM[addr & 0x3fff] = (uint16_t)(val & 0xffff);
-    return;
-    break;
+	/* through write control */
   default:
 	MemWriteTable[(addr >> 13) & 0xff](addr, (val>>8) & 0xff);
 	addr++;

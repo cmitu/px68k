@@ -131,7 +131,7 @@ void SRAM_VirusCheck(void)
 		if (ret == IDYES)
 		{
 			for (int_fast16_t i=0x3c00; i<0x4000; i++)
-				SRAM[i] = 0xFF;
+			SRAM[i]    = 0xFF;
 			SRAM[0x11] = 0x00;
 			SRAM[0x10] = 0xed;
 			SRAM[0x13] = 0x01;
@@ -151,11 +151,10 @@ void SRAM_VirusCheck(void)
 void SRAM_Init(void)
 {
 	int_fast32_t i;
-	uint8_t tmp;
+	uint16_t tmp;
 	FILEH fp;
 
-	for (i=0; i<0x4000; i++)
-		SRAM[i] = 0xFF;
+	memset(SRAM, 0xff, 0x4000);
 
 	fp = File_OpenCurDir((char *)SRAMFILE);
 	if (fp)
@@ -166,9 +165,8 @@ void SRAM_Init(void)
 	/*for little endian guys!*/
 	for (i=0; i<0x4000; i+=2)
 	{
-		tmp = SRAM[i];
-		SRAM[i] = SRAM[i+1];
-		SRAM[i+1] = tmp;
+		tmp = *(uint16_t *)&SRAM[i];
+		*(uint16_t *)&SRAM[i] = ((tmp >> 8) & 0x00ff) | ((tmp << 8) & 0xff00);
 	}
 #endif
 	}
@@ -180,16 +178,15 @@ void SRAM_Init(void)
 // -----------------------------------------------------------------------
 void SRAM_Cleanup(void)
 {
-	uint8_t tmp;
+	uint16_t tmp;
 	FILEH fp;
 
 /*for little endian guys!*/
 #ifndef C68K_BIG_ENDIAN
 	for (int_fast32_t i=0; i<0x4000; i+=2)
 	{
-		tmp = SRAM[i];
-		SRAM[i] = SRAM[i+1];
-		SRAM[i+1] = tmp;
+		tmp = *(uint16_t *)&SRAM[i];
+		*(uint16_t *)&SRAM[i] = ((tmp >> 8) & 0x00ff) | ((tmp << 8) & 0xff00);
 	}
 #endif
 
