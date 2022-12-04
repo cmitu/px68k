@@ -39,9 +39,22 @@
 
  $ make clean (お掃除)
  $ make SDL=1 clean (SDL1 お掃除)
- ```
 
- ## Limitation
+ $ make cgromn (app for Generate cgrom.tmp)
+ ```
+## Run on command.
+
+ ```sh
+  $ ./px68k.sdl2
+  $ ./px68k.sdl2 hoge0.xdf hoge1.xdf hame0.hds hame1.hds
+ ```
+ Support image file (mount and boot)
+
+      FDD-image         D88,88D,HDM,DUP,2HD,DIM,XDF,IMG
+      HDD-image(SASI)   HDF(10/20/40MB)
+      HDD-image(SCSI)   HDS(max.900MB)
+
+## Limitation
  * SCSI対応は現状IOCSレベル。 よってNetBSD/X68kはbootできません。
  * WinのMIDIはMIDI_MAPPERとデバイスリストから選択可
  * macのMIDIは内蔵シンセ(CoreAudio)、MuntやUSB-MIDIはCoreMIDIで
@@ -51,6 +64,32 @@
  * SDL1でのkeymapデコードは不完全(¥、ろ)
  * SDL1の描画はCPU依存、よって遅いです。
 
+## How to make `cgrom.tmp`
+ * cgrom.datがない場合用に代替ファイルをTrueTypeから生成できます。
+ * generate from Japanese-TrueType Font.
+ * maked `cgrom.tmp` put into ./keropi folder.
+
+```sh
+  $ ./SDL2/tool/mkcgrom
+  or
+  $ ./SDL2/tool/mkcgrom ./pri.ttf ./sec.ttf
+```
+
+## How to make SCSI Disk image (*.HDS)
+ * まず空のFileを作ります。(例：200MB)
+ * (MacならDiskUtilitiesでdmg作って*.HDSにリネームするのが簡単)
+
+```sh
+  $ dd if=/dev/zero of=TEST.HDS bs=1m count=200
+```
+ * Run px68k.sdl2 with FDD0:Human68k 3.02, HDD0:TEST.HDS
+ * on human68k run `format` `SCSI装置` `0 ハードディスク 199Mバイト` `装置初期化` `Y`
+ * `領域確保` `容量 199` `ボリューム名 hoge` `システム転送 する` `実行` `Y`
+ * `終了` `Y`　return to human68k prompt.
+
+```sh
+  A>copyall a:¥*.* c:
+```
 
 # ----from kenyahiro/px68k----
 

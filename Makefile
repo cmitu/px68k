@@ -40,11 +40,11 @@ else
 ifeq "$(PLATFORM)" "Linux"
 ifdef SDL
 SDL_CONFIG?= sdl-config
-SDL_TTF_LIB = -lSDL_ttf
+SDL_TTF_LIB = -lSDL_ttf -lrt
 PROGRAM = px68k.sdl
 else
 SDL_CONFIG?= sdl2-config
-SDL_TTF_LIB = -lSDL2_ttf
+SDL_TTF_LIB = -lSDL2_ttf -lrt
 PROGRAM = px68k.sdl2
 endif
 else
