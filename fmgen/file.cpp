@@ -171,7 +171,7 @@ bool FileIO::Seek(int32 pos, SeekMethod method)
 		return false;
 	}
 
-	return -1 != SetFilePointer(hfile, pos, 0, wmethod);
+	return 0xffffffff != SetFilePointer(hfile, pos, 0, wmethod);
 }
 
 // ---------------------------------------------------------------------------

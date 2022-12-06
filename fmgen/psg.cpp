@@ -115,13 +115,13 @@ void PSG::SetChannelMask(int32_t c)
 void PSG::MakeEnvelopTable()
 {
 	// 0 lo  1 up 2 down 3 hi
-	static int8_t table1[16*2] =
+	static uint8_t table1[16*2] =
 	{
 		2,0, 2,0, 2,0, 2,0, 1,0, 1,0, 1,0, 1,0,
 		2,2, 2,0, 2,1, 2,3, 1,1, 1,3, 1,2, 1,0,
 	};
-	static int8_t table2[4] = {  0,  0, 31, 31 };
-	static int8_t table3[4] = {  0,  1, -1,  0 };
+	static uint8_t table2[4] = {  0,  0, 31, 31 };
+	static uint8_t table3[4] = {  0,  1, 0xff,  0 };
 
 	uint32_t* ptr = enveloptable[0];
 

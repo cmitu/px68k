@@ -309,7 +309,7 @@ void M288_Reset(void)
 }
 
 
-uint8_t FASTCALL M288_Read(uint16_t adr)
+uint8_t FASTCALL M288_Read(uint8_t adr)
 {
 	if ( adr<=3 ) {
 		if ( ymf288a )
@@ -325,7 +325,7 @@ uint8_t FASTCALL M288_Read(uint16_t adr)
 }
 
 
-void FASTCALL M288_Write(uint32_t adr, uint8_t data)
+void FASTCALL M288_Write(uint8_t adr, uint8_t data)
 {
 	if ( adr<=3 ) {
 		if ( ymf288a ) ymf288a->WriteIO(adr, data);
