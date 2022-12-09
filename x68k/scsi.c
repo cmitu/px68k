@@ -657,6 +657,23 @@ uint32_t j;
 
  switch(adr)
  {
+	case 0xea0000:
+	case 0xea0002:
+	case 0xea0004:
+	case 0xea0006:
+	case 0xea0008:
+	case 0xea000a:
+	case 0xea000c:
+	case 0xea000e:
+	case 0xea0010:
+	case 0xea0012:
+	case 0xea0014:
+	case 0xea0016:
+	case 0xea0018:
+	case 0xea001a:
+	case 0xea001c:
+	case 0xea001e:
+	  break;
 	case 0xea0001:
 	  ret = 0x01 << scsi_bdid;
 	  break;
@@ -703,6 +720,8 @@ uint32_t j;
 	case 0xea001d:
 	  ret = ((scsi_TrCnt      ) & 0xff);
 	  break;
+	case 0xea001f:
+	  break;
 	default:
 #ifndef C68K_BIG_ENDIAN
 	  ret = SCSIIPL[(adr^1)&0x1fff];/*SCSI-IPL_ROM*/
@@ -733,6 +752,23 @@ else{
 
  switch(adr)
  {
+	case 0xea0000:
+	case 0xea0002:
+	case 0xea0004:
+	case 0xea0006:
+	case 0xea0008:
+	case 0xea000a:
+	case 0xea000c:
+	case 0xea000e:
+	case 0xea0010:
+	case 0xea0012:
+	case 0xea0014:
+	case 0xea0016:
+	case 0xea0018:
+	case 0xea001a:
+	case 0xea001c:
+	case 0xea001e:
+	  break;
 	case 0xea0001:
 	  scsi_bdid = (data & 0x07);
 	  break;
@@ -808,10 +844,12 @@ else{
 	case 0xea001d:
 	  scsi_TrCnt = ((scsi_TrCnt &  0xffff00) | (data      ));
 	  break;
+	case 0xea001f:
+	  break;
 	default:
+	  BusErrFlag = 1;
 	  break;
  }
-
 
 return;
 }

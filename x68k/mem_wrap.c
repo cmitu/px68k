@@ -405,6 +405,7 @@ uint32_t
 cpu_readmem24(uint32_t addr)
 {
 	uint8_t v;
+	BusErrFlag = 0;
 
 	v = rm_main(addr);
 
@@ -453,6 +454,7 @@ cpu_readmem24_dword(uint32_t addr)
 	}
 
 	BusErrFlag = 0;
+
 	v  = rm16_main(addr) << 16;
 	v |= rm16_main(addr+2);
 

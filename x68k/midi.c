@@ -521,15 +521,22 @@ void MIDI_Message(uint8_t mes) {
 // -----------------------------------------------------------------------
 uint8_t FASTCALL MIDI_Read(uint32_t adr)
 {
-	uint8_t ret = 0;
+	uint8_t ret = 0xff;
 
-	if ( (adr<0xeafa01)||(adr>=0xeafa10)||(!Config.MIDI_SW) )	// 変なアドレスか、
-	{								// MIDI OFF時にはバスエラーにする
-		BusErrFlag = 1;
-		return 0;
+	switch(adr)
+	{
+	case 0xeafa00 ... 0xeafa0f: /*CZ-6BM1(this 1st MIDI)*/
+	  if(Config.MIDI_SW){break;}
+	case 0xeafa10 ... 0xeafaff: /*CZ-6BM1(2nd MIDI)*/
+	case 0xeafb00 ... 0xeafbff: /*CZ-6BN1(parallel)*/
+	case 0xeafc00 ... 0xeafdff: /*CZ-6BF1(RS232C 5ch)*/
+	case 0xeafe00 ... 0xeaffff: /*CZ-6BG1(GPIB)*/
+	default:
+	 	BusErrFlag = 1;
+		return 0xff;
 	}
 
-	switch(adr&15)
+	switch(adr&15) /*CZ-6BM1(1st MIDI)*/
 	{
 	case 0x01:
 		ret = (MIDI_Vector | MIDI_IntVect);
@@ -649,6 +656,8 @@ uint8_t FASTCALL MIDI_Read(uint32_t adr)
 			break;
 		}
 		break;
+	default:
+		break;
 	}
 	return ret;
 }
@@ -683,11 +692,19 @@ void MIDI_DelayOut(uint32_t delay)
 // -----------------------------------------------------------------------
 void FASTCALL MIDI_Write(uint32_t adr, uint8_t data)
 {
-	if ( (adr<0xeafa01)||(adr>=0xeafa10)||(!Config.MIDI_SW) )	// 変なアドレスか、
-	{								// MIDI OFF時にはバスエラーにする
-		BusErrFlag = 1;
+	switch(adr)
+	{
+	case 0xeafa00 ... 0xeafa0f: /*CZ-6BM1(this 1st MIDI)*/
+	  if(Config.MIDI_SW){break;}
+	case 0xeafa10 ... 0xeafaff: /*CZ-6BM1(2nd MIDI)*/
+	case 0xeafb00 ... 0xeafbff: /*CZ-6BN1(parallel)*/
+	case 0xeafc00 ... 0xeafdff: /*CZ-6BF1(RS232C 5ch)*/
+	case 0xeafe00 ... 0xeaffff: /*CZ-6BG1(GPIB)*/
+	default:
+	 	BusErrFlag = 1;
 		return;
 	}
+
 
 	switch(adr&15)
 	{
@@ -816,7 +833,11 @@ void FASTCALL MIDI_Write(uint32_t adr, uint8_t data)
 			break;
 		}
 		break;
+	default:
+		break;
 	}
+
+ return;
 }
 
 

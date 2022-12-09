@@ -44,12 +44,13 @@ bool FileIO::Open(const char* filename, uint32_t flg)
 	flags = (flg & readonly) | (hfile == INVALID_HANDLE_VALUE ? 0 : open);
 	if (!(flags & open))
 	{
-		switch (FAKE_GetLastError())
+		/*switch (GetLastError())
 		{
 		case ERROR_FILE_NOT_FOUND:		error = file_not_found; break;
 		case ERROR_SHARING_VIOLATION:	error = sharing_violation; break;
 		default: error = unknown; break;
-		}
+		}*/
+		error = file_not_found;
 	}
 	SetLogicalOrigin(0);
 

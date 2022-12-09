@@ -94,7 +94,8 @@ DSound_Init(uint32_t rate, uint32_t buflen)
 	fmt.callback = sdlaudio_callback;
 	fmt.userdata = NULL;
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
+#if 0
+//#if SDL_VERSION_ATLEAST(2, 0, 0)
 	audio_dev = SDL_OpenAudioDevice(NULL, 0, &fmt, &actfmt, 0);//SDL側で合わせてね
 	if (audio_dev == 0) {
 	  p6logd("SDL Audio open device error.\n");
@@ -123,7 +124,8 @@ void
 DSound_Play(void)
 {
 	if (audio_fd >= 0){
-#if SDL_VERSION_ATLEAST(2, 0, 0)
+#if 0
+//#if SDL_VERSION_ATLEAST(2, 0, 0)
 		SDL_PauseAudioDevice(audio_dev,0);
 #else
 		SDL_PauseAudio(0);
@@ -135,7 +137,8 @@ void
 DSound_Stop(void)
 {
 	if (audio_fd >= 0){
-#if SDL_VERSION_ATLEAST(2, 0, 0)
+#if 0
+//#if SDL_VERSION_ATLEAST(2, 0, 0)
 		SDL_PauseAudioDevice(audio_dev,1);
 #else
 		SDL_PauseAudio(1);
@@ -149,7 +152,8 @@ DSound_Cleanup(void)
 	playing = FALSE;
 
 	if (audio_fd >= 0) {
-#if SDL_VERSION_ATLEAST(2, 0, 0)
+#if 0
+//#if SDL_VERSION_ATLEAST(2, 0, 0)
 		SDL_CloseAudioDevice(audio_dev);
 #else
 		SDL_CloseAudio();
@@ -163,8 +167,8 @@ DSound_Cleanup(void)
 static void sound_send(int32_t length)
 {
 	int32_t rate=0;
-
-#if SDL_VERSION_ATLEAST(2, 0, 0)
+#if 0
+//#if SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_LockAudioDevice(audio_dev);
 #else
 	SDL_LockAudio();
@@ -181,8 +185,8 @@ static void sound_send(int32_t length)
 	if (pbwp >= pbep) {
 		pbwp = pbsp + (pbwp - pbep);
 	}
-
-#if SDL_VERSION_ATLEAST(2, 0, 0)
+#if 0
+//#if SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_UnlockAudioDevice(audio_dev);
 #else
 	SDL_UnlockAudio();
@@ -295,7 +299,8 @@ cb_start:
 	}
 
 	memset(stream, 0, len); // clear stream buffer for SDL2.(and SDL1)
-#if SDL_VERSION_ATLEAST(2, 0, 0)
+#if 0
+//#if SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_MixAudioFormat(stream, buf, deviceFormat, len, SDL_MIX_MAXVOLUME);
 #else
 	SDL_MixAudio(stream, buf, len, SDL_MIX_MAXVOLUME);
