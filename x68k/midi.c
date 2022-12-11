@@ -521,7 +521,7 @@ void MIDI_Message(uint8_t mes) {
 // -----------------------------------------------------------------------
 uint8_t FASTCALL MIDI_Read(uint32_t adr)
 {
-	uint8_t ret = 0xff;
+	uint8_t ret = 0x00;
 
 	switch(adr)
 	{
