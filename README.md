@@ -40,7 +40,7 @@
  $ make clean (お掃除)
  $ make SDL=1 clean (SDL1 お掃除)
 
- $ make cgromn (app for Generate cgrom.tmp)
+ $ make cgrom (app for Generate cgrom.tmp)
  ```
 ## Run on command.
 
