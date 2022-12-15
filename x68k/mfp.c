@@ -257,7 +257,7 @@ void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 }
 
 
-short timertrace = 0;
+int16_t timertrace = 0;
 //static int TimerACounted = 0;
 // -----------------------------------------------------------------------
 //   たいまの時間を進める（も少し奇麗に書き直そう……）

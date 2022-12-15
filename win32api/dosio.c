@@ -84,7 +84,7 @@ File_Create(char* filename, int32_t ftype)
 }
 
 uint32_t
-File_Seek(FILEH handle, long pointer, short mode)
+File_Seek(FILEH handle, long pointer, uint16_t mode)
 {
 
 	return SetFilePointer(handle, pointer, 0, mode);

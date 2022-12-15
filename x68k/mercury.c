@@ -108,13 +108,13 @@ void FASTCALL Mcry_Update(int16_t *buffer, int32_t length)
 		data += Mcry_OldL;
 		if (data>32767) data = 32767;
 		else if (data<(-32768)) data = -32768;
-		*(buffer++) = (short)data;
+		*(buffer++) = (int16_t)data;
 
 		data = *buffer;
 		data += Mcry_OldR;
 		if (data>32767) data = 32767;
 		else if (data<(-32768)) data = -32768;
-		*(buffer++) = (short)data;
+		*(buffer++) = (int16_t)data;
 
 		length--;
 	}
@@ -128,8 +128,8 @@ INLINE void Mcry_WriteOne(void)
 {
 	while (Mcry_Count<Mcry_SampleRate)
 	{
-		Mcry_BufL[Mcry_WrPtr] = (short)(Mcry_OutDataL/Mcry_VolumeShift);
-		Mcry_BufR[Mcry_WrPtr] = (short)(Mcry_OutDataR/Mcry_VolumeShift);
+		Mcry_BufL[Mcry_WrPtr] = (int16_t)(Mcry_OutDataL/Mcry_VolumeShift);
+		Mcry_BufR[Mcry_WrPtr] = (int16_t)(Mcry_OutDataR/Mcry_VolumeShift);
 		Mcry_Count += Mcry_ClockRate;
 		Mcry_WrPtr++;
 		if (Mcry_WrPtr>=Mcry_BufSize) Mcry_WrPtr=0;

@@ -111,24 +111,33 @@ struct internal_file {
 #endif	/* DEBUG */
 
 
-/* for POSIX Kernel Time 0.1μs/unit 100秒周期 */
+/* for POSIX Kernel Time 1μs/unit */
 uint32_t
 Get_usecCount(void)
 {
+#define	USEC_PER_SEC	1000000
+#define	NSEC_PER_USEC	1000
+
   struct timespec ts;
 
   clock_gettime(CLOCK_MONOTONIC, &ts);
-  return(((ts.tv_sec%100) * 10000000) + (ts.tv_nsec/100));
+  uint64_t boottime_usec = (ts.tv_sec * USEC_PER_SEC) + (ts.tv_nsec / NSEC_PER_USEC);
+  return((uint32_t)(boottime_usec & 0xffffffff));
+
 }
 
 /* for WIN-API compatible ms単位/49日周期 */
 uint32_t
 Get_msecCount(void)
 {
+#define	MSEC_PER_SEC	1000
+#define	NSEC_PER_MSEC	1000000
+
   struct timespec ts;
 
   clock_gettime(CLOCK_MONOTONIC, &ts);
-  return((ts.tv_nsec / 1000000) + (ts.tv_sec * 1000));
+  uint64_t boottime_msec = (ts.tv_sec * MSEC_PER_SEC) + (ts.tv_nsec / NSEC_PER_MSEC);
+  return((uint32_t)(boottime_msec & 0xffffffff));
 }
 
 BOOL

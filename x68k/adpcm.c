@@ -122,8 +122,8 @@ void FASTCALL ADPCM_Update(int16_t *buffer, int32_t length, int32_t rate, uint8_
 	if ( length<=0 ) return;
 
 	while ( length ) {
-		if (buffer >= (signed short *)pbep) {
-			buffer = (signed short *)pbsp;
+		if (buffer >= (int16_t *)pbep) {
+			buffer = (int16_t *)pbsp;
 		}
 		int32_t tmpl, tmpr;
 
@@ -173,37 +173,37 @@ void FASTCALL ADPCM_Update(int16_t *buffer, int32_t length, int32_t rate, uint8_
 #if 1
 		tmpr = INTERPOLATE(OutsIpR, 0);
 		if ( tmpr>32767 ) tmpr = 32767; else if ( tmpr<(-32768) ) tmpr = -32768;
-		*(buffer++) = (short)tmpr;
+		*(buffer++) = (int16_t)tmpr;
 		tmpl = INTERPOLATE(OutsIpL, 0);
 		if ( tmpl>32767 ) tmpl = 32767; else if ( tmpl<(-32768) ) tmpl = -32768;
-		*(buffer++) = (short)tmpl;
+		*(buffer++) = (int16_t)tmpl;
 		// PSP以外はrateは0
 		if (rate == 22050) {
-			if (buffer >= (signed short *)pbep) {
-				buffer = (signed short *)pbsp;
+			if (buffer >= (int16_t *)pbep) {
+				buffer = (int16_t *)pbsp;
 			}
-			*(buffer++) = (short)tmpr;
-			*(buffer++) = (short)tmpl;
+			*(buffer++) = (int16_t)tmpr;
+			*(buffer++) = (int16_t)tmpl;
 		} else if (rate == 11025) {
-			if (buffer >= (signed short *)pbep) {
-				buffer = (signed short *)pbsp;
+			if (buffer >= (int16_t *)pbep) {
+				buffer = (int16_t *)pbsp;
 			}
-			*(buffer++) = (short)tmpr;
-			*(buffer++) = (short)tmpl;
-			if (buffer >= (signed short *)pbep) {
-				buffer = (signed short *)pbsp;
+			*(buffer++) = (int16_t)tmpr;
+			*(buffer++) = (int16_t)tmpl;
+			if (buffer >= (int16_t *)pbep) {
+				buffer = (int16_t *)pbsp;
 			}
-			*(buffer++) = (short)tmpr;
-			*(buffer++) = (short)tmpl;
-			if (buffer >= (signed short *)pbep) {
-				buffer = (signed short *)pbsp;
+			*(buffer++) = (int16_t)tmpr;
+			*(buffer++) = (int16_t)tmpl;
+			if (buffer >= (int16_t *)pbep) {
+				buffer = (int16_t *)pbsp;
 			}
-			*(buffer++) = (short)tmpr;
-			*(buffer++) = (short)tmpl;
+			*(buffer++) = (int16_t)tmpr;
+			*(buffer++) = (int16_t)tmpl;
 		}
 #else
-		*(buffer++) = (short)OutsIpR[3];
-		*(buffer++) = (short)OutsIpL[3];
+		*(buffer++) = (int16_t)OutsIpR[3];
+		*(buffer++) = (int16_t)OutsIpL[3];
 #endif
 
 		length--;
@@ -242,11 +242,11 @@ INLINE void ADPCM_WriteOne(int32_t val)
 			int32_t tmp = INTERPOLATE(OutsIp, ratio);
 			if ( tmp>ADPCMMAX ) tmp = ADPCMMAX; else if ( tmp<ADPCMMIN ) tmp = ADPCMMIN;
 			if ( !(ADPCM_Pan&1) )
-				ADPCM_BufR[ADPCM_WrPtr] = (short)tmp;
+				ADPCM_BufR[ADPCM_WrPtr] = (int16_t)tmp;
 			else
 				ADPCM_BufR[ADPCM_WrPtr] = 0;
 			if ( !(ADPCM_Pan&2) )
-				ADPCM_BufL[ADPCM_WrPtr++] = (short)tmp;
+				ADPCM_BufL[ADPCM_WrPtr++] = (int16_t)tmp;
 			else
 				ADPCM_BufL[ADPCM_WrPtr++] = 0;
 			if ( ADPCM_WrPtr>=ADPCM_BufSize ) ADPCM_WrPtr = 0;

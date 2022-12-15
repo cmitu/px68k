@@ -22,10 +22,10 @@ void Timer_Reset(void)
 
 uint16_t Timer_GetCount(void)
 {
-	uint32_t ticknow = Get_usecCount();//0.1μs単位
+	uint32_t ticknow = Get_usecCount();//1μs単位
 	uint32_t dif;
 	if(ticknow>tick){dif = ticknow-tick; }
-	else{dif = 1000000000-tick+ticknow;}//100秒周期補正
+	else{dif = 0xffffffff-tick+ticknow;}//補正
 
 	uint32_t TIMEBASE;
 	if(CRTC_Regs[0x29]&0x10){
@@ -38,7 +38,7 @@ uint16_t Timer_GetCount(void)
 	  TIMEBASE = ((CRTC_Regs[0x29]&0x10)?VSYNC_HIGH:VSYNC_NORM);
 	}
 
-	timercnt += dif;//0.1μs単位
+	timercnt += dif*10;//0.1μs単位
 	tick = ticknow;
 	if ( timercnt>=TIMEBASE ) {
 //		timercnt = 0;
@@ -47,8 +47,8 @@ uint16_t Timer_GetCount(void)
 		return 1;
 	}
 	else{
-		if((TIMEBASE-timercnt)>8000){//over 800μs
-		 usleep(100);//100μs sleep
+		if((TIMEBASE-timercnt)>5000){//over 500μs
+		 usleep(50);//50μs sleep
 		}
 		return 0;
 	}

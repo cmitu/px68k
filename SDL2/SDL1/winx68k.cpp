@@ -173,8 +173,8 @@ WinX68k_SCSICheck(void)
 	uint16_t *p1, *p2;
 	int32_t scsi;
 	int32_t i;
+	uint16_t tmp;
 	FILEH fp;
-	uint8_t tmp;
 	static const char CZ6BS1IPLFILE[] = "scsiexrom.dat";
 	static const char SCSIINIPLFILE[] = "scsiinrom.dat";
 
@@ -220,20 +220,35 @@ WinX68k_SCSICheck(void)
 	}
 	else{
 		//p6logd("SCSI-IPL for CZ-6BS1.\n");// Yes CZ-6BS1-IPL
-		strcat(window_title," SCSIex");
-		/*ea0044からSCSIEXが格納されてることをIPLがチェックしている*/
 		File_Read(fp, &SCSIIPL[0x20], 0x01FD0);/*0xea0000~8KB*/
 		File_Close(fp);
-		memset(&SCSIIPL[0x000440], 0, (0x2000-0x440));
-		memcpy( &SCSIIPL[0x000440], EX_SCSIIOCS, sizeof(EX_SCSIIOCS));//IOCS Patch
+		/*ea0044からSCSIEXが格納されてることをIPLがチェックしている*/
+		if(memcmp(&SCSIIPL[0x000044],"SCSIEX",6) != 0){// dump from 0xea0020
+		  if(memcmp(&SCSIIPL[0x000064],"SCSIEX",6) == 0){ //dump from 0xea0000
+		    memcpy(&SCSIIPL[0x000020],&SCSIIPL[0x000040], 0x01fe0);
+		  }
+		  else{
+		   p6logd("SCSI-IPL not found.\n");
+		  }
+		}
+
+		/* IOCS patch */
+		for(i=0x20; i<0x8f; i++){
+		 if(memcmp(&SCSIIPL[i],"NuSCSI",6) == 0){
+		   uint32_t IOCS_adr = SCSIIPL[i+10]<<24 | SCSIIPL[i+11]<<16 | SCSIIPL[i+12]<<8 | SCSIIPL[i+13];
+		   //memset(&SCSIIPL[IOCS_adr - 0xea0000], 0, 0x2000-(IOCS_adr - 0xea0000));
+		   memcpy( &SCSIIPL[IOCS_adr - 0xea0000], EX_SCSIIOCS, sizeof(EX_SCSIIOCS));//IOCS Patch
+		   strcat(window_title," SCSIex");
+		   break;
+		 }
+		}
 	}
 	// for little endian 
 #ifndef C68K_BIG_ENDIAN
-		for (i = 0; i < 0x02000; i += 2) {
-		 tmp = SCSIIPL[i];
-		 SCSIIPL[i] = SCSIIPL[i + 1];
-		 SCSIIPL[i + 1] = tmp;
-		}
+	for (i = 0; i < 0x02000; i += 2) {
+	 tmp = *(uint16_t *)&SCSIIPL[i];
+	 *(uint16_t *)&SCSIIPL[i] = ((tmp >> 8)&0x00ff) | ((tmp << 8)&0xff00);
+	}
 #endif
 
  return;
@@ -250,10 +265,10 @@ WinX68k_LoadROMs(void)
 	static const char FONTFILETMP[] = "cgrom.tmp";
 	FILEH fp;
 	int32_t i;
-	uint8_t tmp;
+	uint16_t tmp;
 	int32_t flg = TRUE;
 
-	for (fp = 0, i = 0; fp == 0 && i < NELEMENTS(BIOSFILE); ++i) {
+	for (fp = 0, i = 0; fp == 0 && i < NELEMENTS(BIOSFILE); i++) {
 		fp = File_OpenCurDir((char *)BIOSFILE[i]);
 	}
 	if (fp == 0) {
@@ -272,9 +287,8 @@ WinX68k_LoadROMs(void)
 // for little endian 
 #ifndef C68K_BIG_ENDIAN
 	for (i = 0; i < 0x40000; i += 2) {
-		tmp = IPL[i];
-		IPL[i] = IPL[i + 1];
-		IPL[i + 1] = tmp;
+	  tmp = *(uint16_t *)&IPL[i];
+	  *(uint16_t *)&IPL[i] = ((tmp >> 8) & 0x00ff) | ((tmp << 8) & 0xff00);
 	}
 #endif
 
@@ -299,9 +313,8 @@ WinX68k_LoadROMs(void)
 // for little endian 
 #ifndef C68K_BIG_ENDIAN
 	for (i = 0; i < 0xc0000; i += 2) {
-		tmp = FONT[i];
-		FONT[i] = FONT[i + 1];
-		FONT[i + 1] = tmp;
+	  tmp = *(uint16_t *)&FONT[i];
+	  *(uint16_t *)&FONT[i] = ((tmp >> 8) & 0x00ff) | ((tmp << 8) & 0xff00);
 	}
 #endif
 
@@ -585,7 +598,7 @@ get_cmd_line(int32_t argc, char *argv[])
 	    p = strstr(fdimg, strwork);
 	    if(p != NULL){
 	      strcpy((char *)Config.FDDImage[f1], argv[i]);
-	      if(f1 < 2){f1++;}
+	      if(f1 < 1){f1++;}
 	    }
 	    p = strstr(saimg, strwork);
 	    if(p != NULL){
@@ -1042,6 +1055,12 @@ int32_t main(int32_t argc, char *argv[])
 
 	}
 end_loop:
+
+	DSound_Stop();
+
+	WinX68k_Reset();
+	for(uint_fast32_t i=0; i<130; i++){WinX68k_Exec();}// Reset and run(few step)
+
 	Memory_WriteB(0xe8e00d, 0x31);	// SRAM書き込み許可
 	Memory_WriteD(0xed0040, Memory_ReadD(0xed0040)+1); // 積算稼働時間(min.)
 	Memory_WriteD(0xed0044, Memory_ReadD(0xed0044)+1); // 積算起動回数

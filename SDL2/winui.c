@@ -82,7 +82,7 @@ extern	uint32_t	hTimerID;
 extern	int32_t		FullScreenFlag;
 		int32_t		UI_MouseFlag = 0;
 		int32_t		UI_MouseX = -1, UI_MouseY = -1;
-extern	short		timertrace;
+extern	int16_t		timertrace;
 
 		int32_t		MenuClearFlag = 0;
 

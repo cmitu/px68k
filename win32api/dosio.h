@@ -49,7 +49,7 @@ void dosio_term(void);
 							// ファイル操作
 FILEH File_Open(char* filename);
 FILEH File_Create(char* filename, int32_t ftype);
-uint32_t File_Seek(FILEH handle, long pointer, short mode);
+uint32_t File_Seek(FILEH handle, long pointer, uint16_t mode);
 uint32_t File_Read(FILEH handle, void *data, uint32_t length);
 uint32_t File_Write(FILEH handle, void *data, uint32_t length);
 int32_t File_ZeroClr(FILEH handle, uint32_t length);
@@ -61,7 +61,7 @@ void File_Setcd(char* exename);
 char* File_Getcd(char* filename);
 FILEH File_OpenCurDir(char* filename);
 FILEH File_CreateCurDir(char* filename, int32_t ftype);
-short File_AttrCurDir(char* filename);
+int16_t File_AttrCurDir(char* filename);
 
 int32_t File_GetFType(char* filename);
 

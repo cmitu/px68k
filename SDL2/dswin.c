@@ -31,7 +31,7 @@
 #include	"mercury.h"
 #include	"fmg_wrap.h"
 
-short	playing = FALSE;
+uint16_t	playing = FALSE;
 
 #define PCMBUF_SIZE 2*2*48000
 uint8_t pcmbuffer[PCMBUF_SIZE];
@@ -63,6 +63,7 @@ SDL_AudioDeviceID audio_dev;
 SDL_AudioFormat deviceFormat;
 #endif
 
+static uint8_t sound_silence = 0;
 
 int32_t
 DSound_Init(uint32_t rate, uint32_t buflen)
@@ -104,7 +105,8 @@ DSound_Init(uint32_t rate, uint32_t buflen)
 	 p6logd("SDL Audio open size error.\n");
 	 return FALSE;
 	}
-	deviceFormat=actfmt.format; //保存
+	deviceFormat  = actfmt.format; //保存
+	sound_silence = actfmt.silence;
 	SDL_PauseAudioDevice(audio_dev, 0); //Start!
 	audio_fd = 1; //flag
 #else
@@ -174,7 +176,7 @@ static void sound_send(int32_t length)
 	OPM_Update((int16_t *)pbwp, length, rate, pbsp, pbep);
 
 #ifndef	NO_MERCURY
-	//Mcry_Update((short *)pcmbufp, length);
+	//Mcry_Update((int16_t *)pcmbufp, length);
 #endif
 
 	pbwp += length * sizeof(uint16_t) * 2;
@@ -231,7 +233,8 @@ sdlaudio_callback(void *userdata, uint8_t *stream, int32_t len)
 	//uint32_t now = timeGetTime();
 	//p6logd("tdiff %4d : len %d ", now - bef, len);
 
-	SDL_memset(stream, 0, len);
+	/* clear stream buffer for SDL2.(and SDL1) */
+	SDL_memset(stream, sound_silence, len);
 
 cb_start:
 	if (pbrp <= pbwp) {
@@ -244,9 +247,11 @@ cb_start:
 		// pbsp     pbrp          pbwp       pbep
 
 		datalen = pbwp - pbrp;
+		if(datalen == 0){;return;}
 		if (datalen < len) {
 			// needs more data
-			DSound_Send((len - datalen) / 4);
+			//DSound_Send((len - datalen) / 4);
+			sound_send((len - datalen) / 4);
 		}
 #if 0
 		datalen = pbwp - pbrp;
@@ -280,23 +285,22 @@ cb_start:
 			//printf("TYPEC: ");
 		} else {
 			lenb = len - lena;
-			if (pbwp - pbsp < lenb) {
-				DSound_Send((lenb - (pbwp - pbsp)) / 4);
+			if ((pbwp - pbsp) < lenb) {
+				//DSound_Send((lenb - (pbwp - pbsp)) / 4);
+				sound_send((lenb - (pbwp - pbsp)) / 4);
 			}
 #if 0
-			if (pbwp - pbsp < lenb) {
+			if ((pbwp - pbsp) < lenb) {
 				printf("xxxxx not enough sound data xxxxx\n");
 			}
 #endif
-			memcpy(sdlsndbuf, pbrp, lena);
-			memcpy(&sdlsndbuf[lena], pbsp, lenb);
+			if(lena != 0){ SDL_memcpy(sdlsndbuf, pbrp, lena); }
+			if(lenb != 0){ SDL_memcpy(&sdlsndbuf[lena], pbsp, lenb); }
 			buf = sdlsndbuf;
 			pbrp = pbsp + lenb;
 			//printf("TYPED: ");
 		}
 	}
-
-	//memset(stream, 0, len); // clear stream buffer for SDL2.(and SDL1)
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_MixAudioFormat(stream, buf, deviceFormat, len, SDL_MIX_MAXVOLUME);
