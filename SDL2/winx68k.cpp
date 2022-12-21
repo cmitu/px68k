@@ -227,7 +227,7 @@ WinX68k_SCSICheck()
 		/*ea0044からSCSIEXが格納されてることをIPLがチェックしている*/
 		if(memcmp(&SCSIIPL[0x000044],"SCSIEX",6) != 0){// dump from 0xea0020
 		  if(memcmp(&SCSIIPL[0x000064],"SCSIEX",6) == 0){ //dump from 0xea0000
-		    memcpy(&SCSIIPL[0x000020],&SCSIIPL[0x000040], 0x01fe0);
+		    memcpy(&SCSIIPL[0x000020],&SCSIIPL[0x000040], 0x02000-0x40);
 		  }
 		  else{
 		   p6logd("SCSI-IPL not found.\n");

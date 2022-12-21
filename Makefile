@@ -75,7 +75,7 @@ DEPEND_DEFINES =
 
 # for debug
 # CDEBUGFLAGS += -g -O0 -fno-strict-aliasing
-# CDEBUGFLAGS += -O0  -fstrict-aliasing
+CDEBUGFLAGS += -O0  -fstrict-aliasing
 
 #
 # disable sound
@@ -85,7 +85,7 @@ DEPEND_DEFINES =
 #
 # disable mercury unit
 #
-# CDEBUGFLAGS+= -DNO_MERCURY
+CDEBUGFLAGS+= -DNO_MERCURY
 
 #
 # enable RFMDRV(Over TCP/IP)

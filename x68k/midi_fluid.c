@@ -122,14 +122,13 @@ midiOutShortMsg(HMIDIOUT hmo, uint32_t msg)
 	int32_t val;
 
 	/* (uint32)msg を 4byte に分解 */
-	messg[0] =   msg       & 0xff; //status byte
-	messg[1] =  (msg >> 8) & 0xff; //note No.
-	messg[2] =  (msg >> 16) & 0xff;//velocity
-	messg[3] =  (msg >> 24) & 0xff;// none
+	  messg[0] = (uint8_t)(msg & 0xff);//status byte
+	  msg>>=8;
+	  messg[1] = (uint8_t)(msg & 0xff);//note No.
+	  msg>>=8;
+	  messg[2] = (uint8_t)(msg & 0xff);//velocity
 
-
-	/* length of msg */
-	uint32_t len;
+	/* Send msg */
 	switch(messg[0] & 0xf0){
 		case 0xc0://prog. chg
 			fluid_synth_program_change(synth,messg[0]&0x0f, messg[1]);
@@ -153,11 +152,9 @@ midiOutShortMsg(HMIDIOUT hmo, uint32_t msg)
 			val = (messg[2] << 7 | messg[1]) - 2^13 ;
 			fluid_synth_pitch_wheel_sens(synth, messg[0]&0x0f, val);
 			break;
-		case 0xf0:
-			len = 1; //ないと思うけど
+		case 0xf0://ないと思うけど
 			break;
-		default:
-			len = 0; //ありえないハズ
+		default://ありえないハズ
 			break;
 	}
 

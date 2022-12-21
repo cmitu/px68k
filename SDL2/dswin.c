@@ -247,7 +247,7 @@ cb_start:
 		// pbsp     pbrp          pbwp       pbep
 
 		datalen = pbwp - pbrp;
-		if(datalen == 0){;return;}
+		if(datalen == 0){return;}
 		if (datalen < len) {
 			// needs more data
 			//DSound_Send((len - datalen) / 4);

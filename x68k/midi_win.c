@@ -23,15 +23,6 @@ mid_DevList(LPHMIDIOUT phmo)
   uint32_t num, devid, menu_no;
 
   menu_no=0;
-  /*Open MIDI port(MIDI_MAPPER)*/
-  if (midiOutOpen(phmo, MIDI_MAPPER, 0, 0, CALLBACK_NULL) == MMSYSERR_NOERROR)
-  {
-   midiOutReset(*phmo);
-   /*Store MIDI port*/
-   strcpy(menu_items[8][menu_no], "MIDI_MAPPER");
-   menu_no++;
-   strcpy(menu_items[8][menu_no],"\0"); /* Menu END */
-  }
 
   /* What's No ? */
   num = midiOutGetNumDevs();
@@ -64,19 +55,10 @@ midOutChg(uint32_t port_no, uint32_t bank)
 	}
 
 	midiOutClose(hOut);
-	if(port_no == 0)
+
+	if (midiOutOpen(&hOut, (port_no), 0, 0, CALLBACK_NULL) == MMSYSERR_NOERROR)
 	{
-	  if (midiOutOpen(&hOut, MIDI_MAPPER, 0, 0, CALLBACK_NULL) == MMSYSERR_NOERROR)
-	  {
 	  midiOutReset(hOut);
-	  }
-	}
-	else
-	{
-	  if (midiOutOpen(&hOut, (port_no-1), 0, 0, CALLBACK_NULL) == MMSYSERR_NOERROR)
-	  {
-	  midiOutReset(hOut);
-	  }
 	}
 
 	/* select BANK CC20 LSB */
