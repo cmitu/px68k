@@ -125,32 +125,63 @@ void Pal_Init(void)
 // -----------------------------------------------------------------------
 //   I/O Read
 // -----------------------------------------------------------------------
-uint8_t FASTCALL Pal_Read(int32_t adr)
+uint16_t FASTCALL Pal_Read16(int32_t adr)
 {
-	if (adr<0xe82400)
-		return Pal_Regs[adr-0xe82000];
-	else return 0xff;
+	if (adr<0xe82400){
+	  adr &= 0x0003fe;
+	  return (uint16_t)((Pal_Regs[adr]<<8) | Pal_Regs[adr | 1]);
+	}
+	return 0xffff;
 }
 
+uint8_t FASTCALL Pal_Read(int32_t adr)
+{
+	if (adr<0xe82400){
+	  adr &= 0x0003ff;
+	  return Pal_Regs[adr];
+	}
+	return 0xff;
+}
 
 // -----------------------------------------------------------------------
 //   I/O Write
 // -----------------------------------------------------------------------
+void FASTCALL Pal_Write16(int32_t adr, uint16_t data)
+{
+
+	if (adr>=0xe82400) return;
+
+	adr &= 0x0003ff;
+	if (((Pal_Regs[adr&0x3fe]<<8) | Pal_Regs[adr | 1]) == data) return;
+
+	Pal_Regs[adr&0x3fe] = (uint8_t)(data>>8 & 0xff);
+	Pal_Regs[adr | 1]   = (uint8_t)(data    & 0xff);
+	TVRAM_SetAllDirty();
+
+	if (adr<0x200)
+	{
+		GrphPal[adr/2] = Pal16[data];
+	}
+	else if (adr<0x400)
+	{
+		TextPal[(adr-0x200)/2] = Pal16[data];
+	}
+}
+
 void FASTCALL Pal_Write(int32_t adr, uint8_t data)
 {
 	uint16_t pal;
 
 	if (adr>=0xe82400) return;
 
-	adr -= 0xe82000;
+	adr &= 0x0003ff;
 	if (Pal_Regs[adr] == data) return;
 
 	if (adr<0x200)
 	{
 		Pal_Regs[adr] = data;
 		TVRAM_SetAllDirty();
-		pal = Pal_Regs[adr&0xfffe];
-		pal = (pal<<8)+Pal_Regs[adr|1];
+		pal = (Pal_Regs[adr&0xffe] << 8) | Pal_Regs[adr|1];
 		GrphPal[adr/2] = Pal16[pal];
 	}
 	else if (adr<0x400)
@@ -158,12 +189,10 @@ void FASTCALL Pal_Write(int32_t adr, uint8_t data)
 		if (MemByteAccess) return;		// TextPalはバイトアクセスは出来ないらしい（神戸恋愛物語）
 		Pal_Regs[adr] = data;
 		TVRAM_SetAllDirty();
-		pal = Pal_Regs[adr&0xfffe];
-		pal = (pal<<8)+Pal_Regs[adr|1];
+		pal = (Pal_Regs[adr&0xffe] << 8) | Pal_Regs[adr | 1];
 		TextPal[(adr-0x200)/2] = Pal16[pal];
 	}
 }
-
 
 // -----------------------------------------------------------------------
 //   こんとらすと変更（パレットに対するWin側の表示色で実現してます ^^;）

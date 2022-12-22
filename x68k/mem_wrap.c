@@ -297,6 +297,15 @@ wm16_main(uint32_t addr, uint16_t val)
     TVRAM_Write(addr, (val>>8) & 0xff);
     TVRAM_Write(addr+1, val & 0xff);
     break;
+  case 0xe80000 ... 0xe80480: /*CRTC*/
+	CRTC_Write16(addr,val,0x03);
+	break;
+  case 0xe82000 ... 0xe823ff: /*Pallette*/
+	Pal_Write16(addr,val);
+	break;
+  case 0xe82400 ... 0xe826ff: /*VCtrl*/
+	VCtrl_Write16(addr,val);
+	break;
   case 0xed0000 ... 0xed3fff: /*SRAM*/
 	/* through write control */
   default:
@@ -343,12 +352,18 @@ wm_opm(uint32_t addr, uint8_t val)
 static void 
 wm_e82(uint32_t addr, uint8_t val) /* VIDEO WRITE */
 {
+  switch(addr){
+  case 0xe82000 ... 0xe823ff: /* Pallette */
+   Pal_Write(addr, val);
+   break;
+  case 0xe82400 ... 0xe826ff: /* Video Control */
+   VCtrl_Write(addr, val);
+   break;
+  default:
+   break;
+  }
 
-	if (addr < 0x00e82400) {
-		Pal_Write(addr, val);
-	} else if (addr < 0x00e82700) {
-		VCtrl_Write(addr, val);
-	}
+  return;
 }
 
 static void 
@@ -479,6 +494,12 @@ rm16_main(uint32_t addr)
   case 0xe00000 ... 0xe7ffff: /*TVRAM*/
     return((uint16_t)*(uint16_t *)&TVRAM[(addr & 0x7ffff)]);
     break;
+  case 0xe80000 ... 0xe80480: /*CRTC*/
+	return CRTC_Read16(addr);
+	break;
+  case 0xe82000 ... 0xe823ff: /*Pallette*/
+	return Pal_Read16(addr);
+	break;
   case 0xed0000 ... 0xed3fff: /*SRAM*/
     return((uint16_t)*(uint16_t *)&SRAM[(addr & 0x003fff)]);
     break;
@@ -560,13 +581,18 @@ rm_opm(uint32_t addr)
 static uint8_t
 rm_e82(uint32_t addr)
 {
+  switch(addr){
+  case 0xe82000 ... 0xe823ff: /* Pallette */
+   return Pal_Read(addr);
+   break;
+  case 0xe82400 ... 0xe826ff: /* Video Control */
+   return VCtrl_Read(addr);
+   break;
+  default:
+   break;
+  }
 
-	if (addr < 0x00e82400) {
-		return Pal_Read(addr);
-	} else if (addr < 0x00e83000) {
-		return VCtrl_Read(addr);
-	}
-	return 0;
+  return 0;
 }
 
 static uint8_t

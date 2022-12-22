@@ -76,14 +76,15 @@ mid_synthM_open(uint32_t num)
 	}
 
 	/* Store MIDI out port LIST */
+	uint32_t UTF8 = 134217984; //CFStringBuiltInEncodings.UTF8
 	CFStringRef strRef;
 	char mididevicename[64];
 	Device_num = num;
 	 for(uint32_t i = 0; i<core_mid_num; i++){
 		mid_endpoint = MIDIGetDestination(i);
-		MIDIObjectGetStringProperty(mid_endpoint, kMIDIPropertyName, &strRef);
+		MIDIObjectGetStringProperty(mid_endpoint, kMIDIPropertyDisplayName, &strRef);
 		if(i<8){// MAX item check(８個までLISTに制限)
-			CFStringGetCString(strRef, menu_items[8][Device_num], sizeof(menu_items[8][Device_num]), 0);
+			CFStringGetCString(strRef, menu_items[8][Device_num], sizeof(menu_items[8][Device_num]), UTF8);
 			p6logd("Find MIDI:%s\n",menu_items[8][Device_num]);
 			Device_num ++;
 		}
@@ -128,8 +129,8 @@ void midOutChg(uint32_t port_no, uint32_t bank)
 
 	/* CoreMIDI endpoint change */
 	mid_endpoint = MIDIGetDestination(port_no);
-	if (err_sts != noErr){
-		mid_endpoint = MIDIGetDestination((uint32_t)0);/* エラーだったらとりあえずPort0に再セットしておく*/
+	if (mid_endpoint == 0){
+		p6logd("MIDI Change error.\n");
 	}
 
 	/* select BANK CC20 LSB */
