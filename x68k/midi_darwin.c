@@ -9,7 +9,6 @@
 
 #import <CoreMIDI/MIDIServices.h>
 #import <CoreMIDI/CoreMIDI.h>
-#import <CoreServices/CoreServices.h>
 #import <mach/mach_time.h>
 #include "prop.h"
 #include "winui.h"

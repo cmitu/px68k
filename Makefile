@@ -139,7 +139,7 @@ FLUID_INCLUDE=  -I/Library/Frameworks/FluidSynth.framework/Headers
 FLUID_LIB= -F/Library/Frameworks -framework FluidSynth
 MIDIOBJS= x68k/midi_fluid.o
 else
-LDLIBS+= -framework Cocoa -framework CoreMIDI -framework AudioToolbox
+LDLIBS+= -framework Cocoa -framework CoreMIDI
 MIDIOBJS= x68k/midi_darwin.o
 endif
 else
