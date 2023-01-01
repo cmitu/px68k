@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# Get the canonical path of the folder containing this script
+bindir=$(cd -P -- "$(dirname -- "$0")" && printf '%s\n' "$(pwd -P)")
+
+# Calculate the canonical path of the prefix, relative to the folder of this script
 prefix=/Library/Frameworks
 exec_prefix=${prefix}
 exec_prefix_set=no
@@ -39,17 +43,18 @@ while test $# -gt 0; do
       echo $exec_prefix
       ;;
     --version)
-      echo 2.0.16
+      echo 2.26.1
       ;;
     --cflags)
-      echo -I${prefix}/SDL2.framework/Headers   -I/opt/X11/include -D_THREAD_SAFE
+      echo -I${prefix}/SDL2.framework/Headers -D_THREAD_SAFE
       ;;
     --libs)
       echo -F${exec_prefix} -framework SDL2
       ;;
     --static-libs)
 #    --libs|--static-libs)
-      echo -F${exec_prefix} -framework SDL2  -lm -liconv  -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,ForceFeedback -lobjc -Wl,-framework,CoreVideo -Wl,-framework,Cocoa -Wl,-framework,Carbon -Wl,-framework,IOKit -Wl,-weak_framework,QuartzCore -Wl,-weak_framework,Metal
+      sdl_static_libs=$(echo "-framework SDL2 -lm -liconv  -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-weak_framework,CoreHaptics -Wl,-weak_framework,GameController -Wl,-framework,ForceFeedback -lobjc -Wl,-framework,CoreVideo -Wl,-framework,Cocoa -Wl,-framework,Carbon -Wl,-framework,IOKit -Wl,-weak_framework,QuartzCore -Wl,-weak_framework,Metal" | sed -E "s#-lSDL2[ $]#$libdir/libSDL2.a #g")
+      echo -F${exec_prefix}/lib $sdl_static_libs
       ;;
     *)
       echo "${usage}" 1>&2

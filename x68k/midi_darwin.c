@@ -76,15 +76,14 @@ mid_synthM_open(uint32_t num)
 	}
 
 	/* Store MIDI out port LIST */
-	uint32_t UTF8 = 134217984; //CFStringBuiltInEncodings.UTF8
 	CFStringRef strRef;
-	char mididevicename[64];
 	Device_num = num;
 	 for(uint32_t i = 0; i<core_mid_num; i++){
 		mid_endpoint = MIDIGetDestination(i);
 		MIDIObjectGetStringProperty(mid_endpoint, kMIDIPropertyDisplayName, &strRef);
 		if(i<8){// MAX item check(８個までLISTに制限)
-			CFStringGetCString(strRef, menu_items[8][Device_num], sizeof(menu_items[8][Device_num]), UTF8);
+			//kCFStringEncodingUTF8：UTF8でポートの名前(string)を取り出す
+			CFStringGetCString(strRef, menu_items[8][Device_num], sizeof(menu_items[8][Device_num]), kCFStringEncodingUTF8);
 			p6logd("Find MIDI:%s\n",menu_items[8][Device_num]);
 			Device_num ++;
 		}

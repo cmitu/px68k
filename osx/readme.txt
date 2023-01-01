@@ -8,6 +8,12 @@ install SDL2 for FrameWorks, but not include sdl2-config.
 this script for --lib, --cflags LINKER option, for FrameWorks SDL2.
 
 px68k build for mac.
+
+Caution!
+SDL2-Framework(2.26.1) have header problem.
+make LINK,,,
+% sudo ln -s /Library/Frameworks/SDL2.framework/Versions/A/Headers /Library/Frameworks/SDL2.framework/Headers/SDL2
+
 $ make
 and...
 $ make mac
@@ -36,6 +42,18 @@ Framework版のSDL2をメインに、Mac(mid2009/HighSierra)で開発してい�
 ・グラフィックモードの再現性向上
 ・LinuxやMinGW(win)でもコンパイル可能
 ・Macの単独アプリとしての生成リソースを追加
+
+[実行]
+SDL2のFrameWorkを/Library/Frameworksに入れておいてください。
+
+[コンパイル]
+ソースからコンパイルする場合は、SDL2のFrameworkはHeaderの相互関係が不完全（2.26.1）
+なので、以下のLINKを張ってください。
+% sudo ln -s /Library/Frameworks/SDL2.framework/Versions/A/Headers /Library/Frameworks/SDL2.framework/Headers/SDL2
+
+% make
+and..
+% make mac
 
 欠点もたくさんあります。
 Android/iPhoneでの動作確認はしていません。
