@@ -492,7 +492,7 @@ rm16_main(uint32_t addr)
     v |= GVRAM_Read(addr +1);
     break;
   case 0xe00000 ... 0xe7ffff: /*TVRAM*/
-    return((uint16_t)*(uint16_t *)&TVRAM[(addr & 0x7ffff)]);
+    return TVRAM_Read16(addr);
     break;
   case 0xe80000 ... 0xe80480: /*CRTC*/
 	return CRTC_Read16(addr);

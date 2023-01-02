@@ -33,7 +33,7 @@ by kameya 2022/11/02
 #ifdef __MACH__
 #define FONT_PATH16 "./KH-Dot-Kagurazaka-16.ttf"//16x16
 #define FONT_PATH24 "./KH-Dot-Hibiya-24.ttf"//24x24
-#define FONT_PATH   "/System/Library/Fonts/ヒラギノ明朝 ProN.ttc"//default
+#define FONT_PATH   "/System/Library/Fonts/ヒラギノ角ゴシック W0.ttc"//default
 #endif
 
 #ifdef __linux__

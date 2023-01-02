@@ -72,12 +72,16 @@ void TVRAM_Cleanup(void)
 // -----------------------------------------------------------------------
 uint8_t FASTCALL TVRAM_Read(uint32_t adr)
 {
+	adr &= 0x7ffff;
+	adr ^= 1;//M68000 is BigEndian
+	return TVRAM[adr];
+}
 
-  if(adr & 1){
-  return(*(uint16_t *)&TVRAM[(adr & 0x07fffe)] & 0xff);   /*奇数Byte*/
-  }
-  return((*(uint16_t *)&TVRAM[(adr & 0x07fffe)] >> 8) & 0xff);/*偶数Byte*/
 
+uint16_t FASTCALL TVRAM_Read16(uint32_t adr)
+{
+	adr &= 0x7fffe;
+	return(TVRAM[adr] | TVRAM[adr + 1]<<8);
 }
 
 

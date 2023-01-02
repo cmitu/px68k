@@ -15,7 +15,7 @@
 * SCSI DiskImageサポート(`boot from *.HDS`)
 * SCSI-IPLの機能もEmu側で実装する？(未)
 * `Support MIDI-Play` (Internal/Munt/fluidsynth/USB-MIDI)
-* MIDI音源FileにSoundFont2使用可(CoreAudio,fluidsynth)
+* MIDI音源FileにSoundFont2使用可(fluidsynth)
 * Support US-KeyBoard. `keyconf.dat` put into .keropi folder.
 * Printer出力をFileに保存
 * `FileNameのutf8/sjis` 自動判別(iconvではなく専用table変換)
@@ -56,8 +56,8 @@
 
 ## Limitation
  * SCSI対応は現状IOCSレベル。 よってNetBSD/X68kはbootできません。
- * WinのMIDIはMIDI_MAPPERとデバイスリストから選択可
- * macのMIDIは内蔵シンセ(CoreAudio)、MuntやUSB-MIDIはCoreMIDIで
+ * WinのMIDIはデバイスリストから選択可
+ * macのMIDIはCoreMIDIデバイスリストから選択可
  * LinuxのMIDIは現状fluidsynthのみ
  * MIDI-INには非対応
  * MIDIの音の割り付け順の変更はMIMPIトーンマップでも変更可
