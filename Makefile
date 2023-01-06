@@ -63,8 +63,8 @@ endif
 
 include version.txt
 
-# CC	 = clang -std=c17
-# CXX	 = clang++ -std=c++17
+# CC	 = clang -std=c17 -arch x86_64 -arch arm64
+# CXX	 = clang++ -std=c++17 -arch x86_64 -arch arm64
 CC	 = gcc
 CXX	 = g++
 CXXLINK	 = $(CXX)
@@ -192,11 +192,13 @@ endif
 
 
 WIN32APIOBJS= win32api/dosio.o win32api/fake.o win32api/peace.o
-MKCGROMOBJS= win32api/dosio.o win32api/fake.o win32api/peace.o SDL2/mkcgrom.o SDL2/tool/create_cgrom.o
+CGROMOBJS=	SDL2/mkcgrom.o SDL2/tool/create_cgrom.o
 
 COBJS=		$(X68KOBJS) $(SDL2OBJS) $(SDLOBJS) $(WIN32APIOBJS) $(CPUOBJS) $(C68KOBJS) $(MIDIOBJS)
 CXXOBJS=	$(FMGENOBJS) $(SDLCXXOBJS)
 OBJS=		$(COBJS) $(CXXOBJS)
+
+MKCGROMOBJS= $(WIN32APIOBJS) $(CGROMOBJS)
 
 CSRCS=		$(COBJS:.o=.c)
 CXXSRCS=	$(CXXOBJS:.o=.cpp)
@@ -222,6 +224,7 @@ depend::
 clean::
 	$(RM) $(PROGRAM)
 	$(RM) $(OBJS)
+	$(RM) $(CGROMOBJS)
 	$(RM) *.CKP *.ln *.BAK *.bak *.o core errs ,* *~ *.a .emacs_* tags TAGS make.log MakeOut   "#"*
 
 tags::
