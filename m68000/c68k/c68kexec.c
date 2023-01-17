@@ -27,12 +27,6 @@
 // #define TRACE_WITH_Q68  // Define to use Q68 tracing code to trace insns
                            // (requires Q68 built in, of course)
 
-#ifdef NEOCD_HLE
-void    cdrom_load_files(void);
-void    neogeo_cdda_control(void);
-void    neogeo_prio_switch(void);
-void    neogeo_upload(void);
-#endif
 
 // exception cycle table (taken from musashi core)
 static const int32_t c68k_exception_cycle_table[256] =
@@ -124,10 +118,6 @@ static void *JumpTable[0x10000];
 static uint32_t C68k_Initialised = 0;
 
 #endif  // C68K_GEN
-
-#ifdef NEOCD_HLE
-extern int img_display;
-#endif
 
 // include macro file
 //////////////////////

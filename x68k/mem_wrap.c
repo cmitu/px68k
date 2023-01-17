@@ -293,10 +293,8 @@ wm16_main(uint32_t addr, uint16_t val)
     GVRAM_Write(addr, (val>>8) & 0xff);
     GVRAM_Write(addr+1, val & 0xff);
     break;
-  case 0xe00000 ... 0xe7ffff: /*TVRAM*/
-    TVRAM_Write(addr, (val>>8) & 0xff);
-    TVRAM_Write(addr+1, val & 0xff);
-    break;
+  //case 0xe00000 ... 0xe7ffff: /*TVRAM*/
+    
   case 0xe80000 ... 0xe80480: /*CRTC*/
 	CRTC_Write16(addr,val,0x03);
 	break;
@@ -491,9 +489,8 @@ rm16_main(uint32_t addr)
     v  = GVRAM_Read(addr) << 8;
     v |= GVRAM_Read(addr +1);
     break;
-  case 0xe00000 ... 0xe7ffff: /*TVRAM*/
-    return TVRAM_Read16(addr);
-    break;
+  //case 0xe00000 ... 0xe7ffff: /*TVRAM*/
+
   case 0xe80000 ... 0xe80480: /*CRTC*/
 	return CRTC_Read16(addr);
 	break;

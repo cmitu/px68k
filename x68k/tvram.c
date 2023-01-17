@@ -120,9 +120,8 @@ INLINE void TVRAM_WriteByteMask(int32_t adr, uint8_t data)
 void FASTCALL TVRAM_Write(uint32_t adr, uint8_t data)
 {
 	adr &= 0x7ffff;
-#ifndef C68K_BIG_ENDIAN
-	adr ^= 1;
-#endif
+	adr ^= 1; // M68000 is BigEndian
+
 	if (CRTC_Regs[0x2a]&1)			// 同時アクセス
 	{
 		adr &= 0x1ffff;
