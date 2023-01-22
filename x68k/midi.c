@@ -57,6 +57,11 @@ uint8_t		MIDI_BUF[MIDIBUFFERS];
 uint8_t		MIDI_EXCVBUF[MIDIBUFFERS];
 uint8_t		MIDI_EXCVWAIT;
 
+HMIDIIN		hIn = 0;
+uint8_t		Rx_buff[MIDIFIFOSIZE];
+int32_t		RxW_point;
+int32_t		RxR_point;
+
 uint8_t		MIDI_RegHigh = 0;				// X68K用
 uint8_t		MIDI_Playing = 0;				// マスタスイッチ
 uint8_t		MIDI_Vector = 0;
@@ -66,6 +71,7 @@ uint8_t		MIDI_IntFlag = 0;
 uint32_t	MIDI_Buffered = 0;
 int32_t		MIDI_BufTimer = 3333;
 uint8_t		MIDI_R05 = 0;
+uint8_t		MIDI_R35 = 0;
 uint32_t	MIDI_GTimerMax = 0;
 uint32_t	MIDI_MTimerMax = 0;
 int32_t		MIDI_GTimerVal = 0;
@@ -316,18 +322,36 @@ void MIDI_Init(void) {
 	MIDI_LAST = 0x80;
 	MIDI_EXCVWAIT = 0;
 
+	RxW_point = 0;
+	RxR_point = 0;
+
 	if (!hOut) {
 		if(!Config.MIDI_SW){ /* if MIDI inactive?*/
 		 strcpy(menu_items[8][0],"inactive.");
 		 strcpy(menu_items[8][1],"\0"); /* Menu END*/
 		 hOut = 0;
-		}else if(mid_DevList(&hOut) > 0){ /* if MIDI found?*/
+		}else if(mid_outDevList(&hOut) > 0){ /* if MIDI found?*/
 		 midOutChg(0,0); /*Select Port0 Bank 0*/
 		}
 		else{
 		 strcpy(menu_items[8][0],"No Device Found.");
 		 strcpy(menu_items[8][1],"\0"); /* Menu END*/
 		 hOut = 0;
+		}
+	}
+
+	if (!hIn) {
+		if(!Config.MIDI_SW){ /* if MIDI inactive?*/
+		 strcpy(menu_items[9][0],"inactive.");
+		 strcpy(menu_items[9][1],"\0"); /* Menu END*/
+		 hIn = 0;
+		}else if(mid_inDevList(&hIn) > 0){ /* if MIDI found?*/
+		 midInChg(0); /*Select Port0 */
+		}
+		else{
+		 strcpy(menu_items[9][0],"No Device Found.");
+		 strcpy(menu_items[9][1],"\0"); /* Menu END*/
+		 hIn = 0;
 		}
 	}
 
@@ -344,6 +368,9 @@ void MIDI_Cleanup(void) {
 		midiOutReset(hOut);
 		midiOutClose(hOut);
 		hOut = 0;
+	}
+	if (hIn) {
+		hIn = 0;
 	}
 }
 
@@ -538,15 +565,16 @@ uint8_t FASTCALL MIDI_Read(uint32_t adr)
 
 	switch(adr&15) /*CZ-6BM1(1st MIDI)*/
 	{
-	case 0x01:
+	case 0x01://R00
 		ret = (MIDI_Vector | MIDI_IntVect);
 		MIDI_IntVect=0x10;
 		break;
-	case 0x03:
+	case 0x03://R01
 		break;
-	case 0x05:
+	case 0x05://R02
+		ret = MIDI_IntFlag;
 		break;
-	case 0x07:
+	case 0x07://R03
 		break;
 	case 0x09:			// R04, 14, ... 94
 		switch(MIDI_RegHigh)
@@ -557,7 +585,10 @@ uint8_t FASTCALL MIDI_Read(uint32_t adr)
 			break;
 		case 2:
 			break;
-		case 3:
+		case 3:// R34 FIFO Rx Status
+			if(RxW_point > RxR_point){
+			  ret = 0x80;
+			}
 			break;
 		case 4:
 			break;
@@ -611,11 +642,27 @@ uint8_t FASTCALL MIDI_Read(uint32_t adr)
 		{
 		case 0:
 			break;
-		case 1:
+		case 1://  R16 Rx Read from FIFO
+			if(RxW_point > RxR_point){
+			  ret = Rx_buff[RxR_point];
+			  RxR_point++;
+			}
+			if(RxR_point == RxW_point){
+			  RxW_point = 0;
+			  RxR_point = 0;
+			}
 			break;
 		case 2:
 			break;
-		case 3:
+		case 3://  R36
+			if(RxW_point > RxR_point){
+			  ret = Rx_buff[RxR_point];
+			  RxR_point++;
+			}
+			if(RxR_point == RxW_point){
+			  RxW_point = 0;
+			  RxR_point = 0;
+			}
 			break;
 		case 4:
 			break;
@@ -636,7 +683,7 @@ uint8_t FASTCALL MIDI_Read(uint32_t adr)
 		{
 		case 0:
 			break;
-		case 1:
+		case 1:// R17
 			break;
 		case 2:
 			break;
@@ -708,15 +755,16 @@ void FASTCALL MIDI_Write(uint32_t adr, uint8_t data)
 
 	switch(adr&15)
 	{
-	case 0x01:
+	case 0x01://R00
 		break;
-	case 0x03:
+	case 0x03://R01
 		MIDI_RegHigh = data&0x0f;
 		if (data&0x80) MIDI_Init();
 		break;
-	case 0x05:
+	case 0x05://R02
 		break;
-	case 0x07:
+	case 0x07://R03 割り込みクリア
+		MIDI_IntFlag &= (data ^ 0xff);
 		break;
 	case 0x09:			// R04, 14, ... 94
 		switch(MIDI_RegHigh)
@@ -724,13 +772,13 @@ void FASTCALL MIDI_Write(uint32_t adr, uint8_t data)
 		case 0:
 			MIDI_Vector = (data&0xe0);
 			break;
-		case 1:
+		case 1://R14
 			break;
 		case 2:
 			break;
 		case 3:
 			break;
-		case 4:
+		case 4://R44
 			break;
 		case 5:
 			break;
@@ -749,17 +797,22 @@ void FASTCALL MIDI_Write(uint32_t adr, uint8_t data)
 		switch(MIDI_RegHigh)
 		{
 		case 0:
-			MIDI_R05 = data;
+			MIDI_R05 = data & 0x0f;
 			break;
-		case 1:
+		case 1://R15
 			break;
-		case 2:
+		case 2://R25
 			break;
-		case 3:
+		case 3:// R35 clear
+			if((data & 0x80) != 0){
+			  RxW_point = 0;
+			  RxR_point = 0;
+			}
+			MIDI_R35 = data;
 			break;
 		case 4:
 			break;
-		case 5:
+		case 5://R55 Tx FIFO制御
 			break;
 		case 6:
 			break;
@@ -777,7 +830,7 @@ void FASTCALL MIDI_Write(uint32_t adr, uint8_t data)
 	case 0x0d:			// R06, 16, ... 96
 		switch(MIDI_RegHigh)
 		{
-		case 0:
+		case 0://R06 割り込みイネーブル
 			MIDI_IntEnable = data;
 			break;
 		case 1:
@@ -810,7 +863,10 @@ void FASTCALL MIDI_Write(uint32_t adr, uint8_t data)
 		{
 		case 0:
 			break;
-		case 1:
+		case 1://R17
+			if((data & 0x01) != 0){
+			  if(RxW_point > RxR_point){ RxR_point++; }
+			}
 			break;
 		case 2:
 			break;

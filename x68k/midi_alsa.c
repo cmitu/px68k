@@ -42,7 +42,13 @@ midiOutPrepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh)
 }
 
 uint32_t
-mid_DevList(LPHMIDIOUT phmo)
+mid_outDevList(LPHMIDIOUT phmo)
+{
+ return 0;
+}
+
+uint32_t
+mid_inDevList(LPHMIDIOUT phmo)
 {
  return 0;
 }
@@ -78,3 +84,8 @@ midOutChg(uint32_t port_no, uint32_t bank)
  return;
 }
 
+void
+midInChg(uint32_t port_no)
+{
+ return;
+}

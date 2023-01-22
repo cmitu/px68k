@@ -13,6 +13,17 @@ void FASTCALL MIDI_Timer(int32_t clk);
 int32_t MIDI_SetMimpiMap(char *filename);
 int32_t MIDI_EnableMimpiDef(int32_t enable);
 void MIDI_DelayOut(uint32_t delay);
+int32_t FASTCALL MIDI_Int(uint8_t irq);
+
+extern uint8_t		Rx_buff[];
+extern int32_t		RxW_point;
+extern int32_t		RxR_point;
+
+extern uint8_t		MIDI_R35;
+
+extern uint8_t		MIDI_IntEnable;
+extern uint8_t		MIDI_IntVect;
+extern uint8_t		MIDI_IntFlag;
 
 extern uint32_t midiOutPrepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh);
 extern uint32_t midiOutUnprepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh);
@@ -21,7 +32,10 @@ extern uint32_t midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh);
 extern uint32_t midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback, uint32_t dwInstance, uint32_t fdwOpen);
 extern uint32_t midiOutClose(HMIDIOUT hmo);
 extern uint32_t midiOutReset(HMIDIOUT hmo);
-extern uint32_t mid_DevList(LPHMIDIOUT phmo);
+
+extern uint32_t mid_outDevList(LPHMIDIOUT phmo);
+extern uint32_t mid_inDevList(LPHMIDIOUT phmo);
 extern void midOutChg(uint32_t mid_out_port, uint32_t bank);
+extern void midInChg(uint32_t mid_in_port);
 
 #endif

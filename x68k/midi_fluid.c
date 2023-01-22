@@ -31,12 +31,13 @@ uint32_t midiOutShortMsg(HMIDIOUT , uint32_t );
   and Load SoundFont2 (Loadできないと音出ないよ)
 */
 uint32_t
-mid_DevList(LPHMIDIOUT phmo)
+mid_outDevList(LPHMIDIOUT phmo)
 {
 	uint32_t Device_num = 0;
 
 	/*==setting synth==*/
 	settings = new_fluid_settings();
+	if(!settings) return 0; // fluid error
 	//fluid_settings_setstr(settings, "audio.driver", "dsound"); //win
 	//fluid_settings_setstr(settings, "audio.driver", "coreaudio"); //mac
 	//fluid_settings_setstr(settings, "audio.driver", "alsa"); //Linux
@@ -70,11 +71,18 @@ mid_DevList(LPHMIDIOUT phmo)
 
 	*phmo = (HANDLE)mid_name; /*MIDI Active!(ダミーを代入しておく)*/
 
- return Device_num;
+ return 1;
+}
+
+/* No support */
+uint32_t
+mid_inDevList(LPHMIDIOUT phmo)
+{
+ return 0;
 }
 
 /*---------------------------------------------
-   set/change MIDI Port and select BANK
+   set/change MIDI out Port and select BANK
 -----------------------------------------------*/
 void midOutChg(uint32_t port_no, uint32_t bank)
 {
@@ -89,6 +97,14 @@ void midOutChg(uint32_t port_no, uint32_t bank)
 	uint32_t msg = ((bank << 16) | (0x20 << 8) | 0xb0);/*Bank select2*/
 	midiOutShortMsg(hmo, msg);
 
+	return;
+}
+
+/*---------------------------------------------
+   set/change MIDI in Port
+-----------------------------------------------*/
+void midInChg(uint32_t port_no)
+{
 	return;
 }
 

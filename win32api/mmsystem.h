@@ -10,6 +10,9 @@ typedef	uint32_t	MMRESULT;
 typedef	HANDLE		HMIDIOUT;
 typedef	HMIDIOUT *	LPHMIDIOUT;
 
+typedef	HANDLE		HMIDIIN;
+typedef	HMIDIIN *	LPHMIDIIN;
+
 typedef struct midihdr {
 	char*			lpData;
 	uint32_t			dwBufferLength;

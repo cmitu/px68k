@@ -104,19 +104,19 @@ struct menu_flist mfl;
 
 /***** menu items *****/
 
-#define MENU_NUM 15
+#define MENU_NUM 16
 #define MENU_WINDOW 7
 
-int32_t mval_y[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 1, 1, 1}; /*初期値*/
+int32_t mval_y[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 1, 1, 1}; /*初期値*/
 
-enum menu_id {M_SYS, M_JOM, M_FD0, M_FD1, M_HD0, M_HD1, M_FS, M_SR, M_MO, M_VKS, M_VBS, M_HJS, M_NW, M_JK, M_RAM};
+enum menu_id {M_SYS, M_JOM, M_FD0, M_FD1, M_HD0, M_HD1, M_FS, M_SR, M_MO, M_MI, M_VKS, M_VBS, M_HJS, M_NW, M_JK, M_RAM};
 
-// Max # of characters is 15.
-char menu_item_key[][16] = {"SYSTEM", "Joy/Mouse", "FDD0", "FDD1", "HDD0", "HDD1", "Frame Skip", "Sound Rate", "MIDI Out", "VKey Size", "VBtn Swap", "HwJoy Setting", "No Wait Mode", "JoyKey", "RAM", "uhyo", ""};
+// Max # of characters is 16.
+char menu_item_key[][17] = {"SYSTEM", "Joy/Mouse", "FDD0", "FDD1", "HDD0", "HDD1", "Frame Skip", "Sound Rate", "MIDI Out", "MIDI In ", "VKey Size", "VBtn Swap", "HwJoy Setting", "No Wait Mode", "JoyKey", "RAM", "uhyo", ""};
 
 // Max # of characters is 30.
 // Max # of items including terminater `""' in each line is 15.
-char menu_items[][16][30] = {
+char menu_items[][17][30] = {
 	{"RESET", "NMI RESET", "QUIT", "SRAM-Clear and RESET", ""},
 	{"Joystick", "Mouse", ""},
 	{"dummy", "EJECT", ""},
@@ -125,6 +125,7 @@ char menu_items[][16][30] = {
 	{"dummy", "EJECT", ""},
 	{"Auto Frame Skip", "Full Frame", "1/2 Frame", "1/3 Frame", "1/4 Frame", "1/5 Frame", "1/6 Frame", "1/8 Frame", "1/16 Frame", "1/32 Frame", "1/60 Frame", ""},
 	{"No Sound", "11025Hz", "22050Hz", "44100Hz", "48000Hz", ""},
+	{"Port0", "Port1", "Port2", "Port3", "Port4", "Port5", "Port6", "Port7", ""},
 	{"Port0", "Port1", "Port2", "Port3", "Port4", "Port5", "Port6", "Port7", ""},
 	{"Ultra Huge", "Super Huge", "Huge", "Large", "Medium", "Small", ""},
 	{"TRIG1 TRIG2", "TRIG2 TRIG1", ""},
@@ -140,6 +141,7 @@ static void menu_create_flist(int32_t v);
 static void menu_frame_skip(int32_t v);
 static void menu_sound_rate(int32_t v);
 static void menu_midout_rate(int32_t v);
+static void menu_midin_rate(int32_t v);
 static void menu_vkey_size(int32_t v);
 static void menu_vbtn_swap(int32_t v);
 static void menu_hwjoy_setting(int32_t v);
@@ -162,6 +164,7 @@ struct _menu_func menu_func[] = {
 	{menu_frame_skip, 1},
 	{menu_sound_rate, 1},
 	{menu_midout_rate, 1},
+	{menu_midin_rate, 1},
 	{menu_vkey_size, 1},
 	{menu_vbtn_swap, 1},
 	{menu_hwjoy_setting, 0},
@@ -558,7 +561,12 @@ static void menu_sound_rate(int32_t v)
 
 static void menu_midout_rate(int32_t v)
 {
-	Config.MIDI_Port = v;
+	Config.MIDI_outPort = v;
+}
+
+static void menu_midin_rate(int32_t v)
+{
+	Config.MIDI_inPort = v;
 }
 
 static void menu_vkey_size(int32_t v)
@@ -829,7 +837,9 @@ int32_t WinUI_Menu(int32_t first)
 				}
 				return WUM_MENU_END;
 			} else if (!strcmp("MIDI Out", menu_item_key[mkey_y])) {
-				midOutChg(Config.MIDI_Port, Config.MIDI_Bank);
+				midOutChg(Config.MIDI_outPort, Config.MIDI_Bank);
+			} else if (!strcmp("MIDI In ", menu_item_key[mkey_y])) {
+				midInChg(Config.MIDI_inPort);
 			}
 			break;
 		case ms_file:
