@@ -29,7 +29,7 @@ extern uint32_t midiOutPrepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh)
 extern uint32_t midiOutUnprepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh);
 extern uint32_t midiOutShortMsg(HMIDIOUT hmo, uint32_t dwMsg);
 extern uint32_t midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh);
-extern uint32_t midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback, uint32_t dwInstance, uint32_t fdwOpen);
+extern uint32_t midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, void *dwCallback, void *dwInstance, uint32_t fdwOpen);
 extern uint32_t midiOutClose(HMIDIOUT hmo);
 extern uint32_t midiOutReset(HMIDIOUT hmo);
 
