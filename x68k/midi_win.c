@@ -11,9 +11,9 @@ extern HMIDIOUT hOut;
 extern uint32_t midiOutGetNumDevs();
 extern uint32_t midiOutGetDevCapsA(uint32_t, LPMIDIOUTCAPS, uint32_t);
 
-extern HMIDIOUT hIn;
+extern HMIDIIN hIn;
 extern uint32_t midiInGetNumDevs();
-extern uint32_t midiInGetDevCapsA(uint32_t, LPMIDIOUTCAPS, uint32_t);
+extern uint32_t midiInGetDevCapsA(uint32_t, LPMIDIINCAPS, uint32_t);
 #define MIDI_CLOSE		962
 #define MIDI_OPEN		961
 #define MIDI_DATA		963
@@ -46,16 +46,12 @@ mid_inDevList(LPHMIDIOUT phmo)
   for(devid = 0; devid<num; devid++){
     res=midiInGetDevCapsA(devid, &InCaps, sizeof(InCaps));
     if(res == MMSYSERR_NOERROR){
-     strcpy(menu_items[9][menu_no_in], OutCaps.szPname);
+     strcpy(menu_items[9][menu_no_in], InCaps.szPname);
      menu_no_in++;
     }
   }
   }
   strcpy(menu_items[9][menu_no_in], "\0");
-
-  if(num != 0){
-    *phmo = (HANDLE)mid_name; //MIDI Active!(ダミーを代入しておく)
-  }
 
  return (num);
 }
@@ -88,10 +84,6 @@ mid_outDevList(LPHMIDIOUT phmo)
   }
   }
   strcpy(menu_items[8][menu_no_out], "\0");
-
-  if(num != 0){
-    *phmo = (HANDLE)mid_name; //MIDI Active!(ダミーを代入しておく)
-  }
 
  return (num);
 }
@@ -134,14 +126,15 @@ midIn_CallBack(HMIDIIN hMidiIn, uint32_t wMsg, uint32_t dwInstance, uint32_t dwP
   if((MIDI_R35 & 0x01) == 0x00) return;//Rx-FIFO 受信禁止
 
   switch(wMsg) {
-   case MIDI_DATA
+   case MIDI_DATA:
 	/* (uint32)msg を 4byte に分解 */
+	uint32_t len;
 	uint8_t messg[4];
-	messg[0] = (uint8_t)(msg & 0xff);
-	msg>>=8;
-	messg[1] = (uint8_t)(msg & 0xff);
-	msg>>=8;
-	messg[2] = (uint8_t)(msg & 0xff);
+	messg[0] = (uint8_t)(dwParam1 & 0xff);
+	dwParam1>>=8;
+	messg[1] = (uint8_t)(dwParam1 & 0xff);
+	dwParam1>>=8;
+	messg[2] = (uint8_t)(dwParam1 & 0xff);
 
 	switch(messg[0] & 0xf0){
 	 case 0xc0:
@@ -196,12 +189,11 @@ midInChg(uint32_t port_no, uint32_t bank)
 {
   midiInClose(hIn);
 
-  if(midiInOpen(&hIn, port_no, midIn_CallBack, 0, CALLBACK_FUNCTION) == MMSYSERR_NOERROR){
+  if(midiInOpen(&hIn, port_no, midIn_CallBack, 0, CALLBACK_FUNCTION) != MMSYSERR_NOERROR){
     midiInReset(hIn);
   }
-  else{
-    midiInStart(hIn);
-  }
+
+  midiInStart(hIn);
 
  return;
 }

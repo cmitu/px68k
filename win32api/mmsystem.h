@@ -38,6 +38,14 @@ typedef struct midioutcaps_tag {
   uint32_t   dwSupport;
 } MIDIOUTCAPS, *PMIDIOUTCAPS, *NPMIDIOUTCAPS, *LPMIDIOUTCAPS;
 
+typedef struct midiincaps_tag {
+  uint16_t    wMid;
+  uint16_t    wPid;
+  int32_t vDriverVersion;
+  char    szPname[MAXPNAMELEN];
+  uint32_t   dwSupport;
+} MIDIINCAPS, *PMIDIINCAPS, *NPMIDIINCAPS, *LPMIDIINCAPS;
+
 #define MIDBUF_SIZE 200
 #define	MMSYSERR_NOERROR	0
 #define	MIDIERR_STILLPLAYING	2
@@ -45,7 +53,9 @@ typedef struct midioutcaps_tag {
 #define	MIDI_MAPPER		-1
 
 #define	CALLBACK_NULL		0x00000000L
-
+#define	CALLBACK_WINDOW		0x00010000L
+#define	CALLBACK_TASK		0x00020000L
+#define	CALLBACK_FUNCTION	0x00030000L
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,9 +65,14 @@ WINMMAPI MMRESULT midiOutPrepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbm
 WINMMAPI MMRESULT midiOutUnprepareHeader(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh);
 WINMMAPI MMRESULT midiOutShortMsg(HMIDIOUT hmo, uint32_t dwMsg);
 WINMMAPI MMRESULT midiOutLongMsg(HMIDIOUT hmo, LPMIDIHDR pmh, uint32_t cbmh);
-WINMMAPI MMRESULT midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, uint32_t dwCallback, uint32_t dwInstance, uint32_t fdwOpen);
+WINMMAPI MMRESULT midiOutOpen(LPHMIDIOUT phmo, uint32_t uDeviceID, void *dwCallback, void *dwInstance, uint32_t fdwOpen);
 WINMMAPI MMRESULT midiOutClose(HMIDIOUT hmo);
 WINMMAPI MMRESULT midiOutReset(HMIDIOUT hmo);
+
+WINMMAPI MMRESULT midiInOpen(LPHMIDIIN phmo, uint32_t uDeviceID, void *dwCallback, void *dwInstance, uint32_t fdwOpen);
+WINMMAPI MMRESULT midiInClose(HMIDIIN hmo);
+WINMMAPI MMRESULT midiInReset(HMIDIIN hmo);
+WINMMAPI MMRESULT midiInStart(HMIDIIN hmo);
 
 #ifdef __cplusplus
 };

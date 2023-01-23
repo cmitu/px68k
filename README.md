@@ -59,7 +59,7 @@
  * WinのMIDIはデバイスリストから選択可
  * macのMIDIはCoreMIDIデバイスリストから選択可
  * LinuxのMIDIは現状fluidsynthのみ
- * MIDI-INには非対応
+ * MIDI-INは暫定対応(WinMM,and CoreMIDI)
  * MIDIの音の割り付け順の変更はMIMPIトーンマップでも変更可
  * SDL1でのkeymapデコードは不完全(¥、ろ)
  * SDL1の描画はCPU依存、よって遅いです。
