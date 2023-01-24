@@ -185,7 +185,7 @@ midIn_CallBack(HMIDIIN hMidiIn, uint32_t wMsg, uint32_t dwInstance, uint32_t dwP
   Select in Port
 */
 void
-midInChg(uint32_t port_no, uint32_t bank)
+midInChg(uint32_t port_no)
 {
   midiInClose(hIn);
 
