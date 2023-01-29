@@ -411,7 +411,12 @@ void FASTCALL CRTC_Write16(uint32_t adr, uint16_t data, uint8_t ulds)
 			break;
 		case 0x2c:				// CRTC動作ポートのラスタコピーをONにしておいて（しておいたまま）、
 		case 0x2d:				// Src/Dstだけ次々変えていくのも許されるらしい（ドラキュラとか）
-			CRTC_RCFlag[reg-0x2c] = 1;	// Dst変更後に実行される？
+			if(ulds & 0x02){
+			  CRTC_RCFlag[reg-0x2c] = 1;// Dst変更後に実行される？
+			}
+			if(ulds & 0x01){
+			  CRTC_RCFlag[reg-0x2c+1] = 1;// Dst変更後に実行される？
+			}
 			if ((CRTC_Mode&8)&&/*(CRTC_RCFlag[0])&&*/(CRTC_RCFlag[1]))
 			{
 				CRTC_RasterCopy();
