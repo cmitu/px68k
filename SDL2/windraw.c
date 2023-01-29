@@ -1763,7 +1763,7 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 			/* Real Time Show change HwJoy Setting */
 			if((i + mkey_pos)==12) 
 			{
-				switch(mval_y[i + mkey_pos])/*Axis0,1,Hat,Button0,1*/
+				switch(mval_y[i + mkey_pos])/*Axis0,1,Hat,TRG-A,TRG-B*/
 				{
 				case 0:/*Axis0 set*/
 					if(JoyDirection == 0){
@@ -1787,11 +1787,11 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 					sprintf(tmp," Set:%d",Config.HwJoyHat);
 					draw_str(tmp,1);
 					break;
-				case 3:/*Button0 set*/
+				case 3:/*TRG-A set*/
 					sprintf(tmp," Set ■:%d",Config.HwJoyBtn[0]);
 					draw_str(tmp,1);
 					break;
-				case 4:/*Button1 set*/
+				case 4:/*TRG-B set*/
 					sprintf(tmp," Set ×:%d",Config.HwJoyBtn[1]);
 					draw_str(tmp,1);
 					break;

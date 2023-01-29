@@ -1,5 +1,23 @@
 // JOYSTICK.C - joystick support for WinX68k
 
+/*  refine for CyberStick Analog/Digital
+CyberStick (Digital) PC4-L/H
+D0:Stick UP     Throt UP
+D1:     DOWN          DOWN
+D2:     LEFT    Trig  C
+D3:     RIGHT         D
+D4:H
+D5:Trig A             E1
+D6      B             E2
+D7:H
+
+CyberStick(Analog)
+ 0: ACK L/H A   B   C   D
+ 1: 0   1   E1  E2  F   G
+  ~(analog x4 H/L)
+10: 0   0   A   B   A'  B'
+*/
+
 #include "common.h"
 #include "prop.h"
 #include "joystick.h"
@@ -24,6 +42,14 @@ uint8_t JoyKeyState0;
 uint8_t JoyKeyState1;
 uint8_t JoyState0[2];
 uint8_t JoyState1[2];
+
+// for CyberStick
+uint32_t CyberStick_mode;
+uint8_t CyberST[12];
+uint8_t CyberState;
+uint32_t CyberTRX;
+uint32_t CyberCount;
+#define CyberACK 0x40;
 
 // This stores whether the buttons were down. This avoids key repeats.
 uint8_t JoyDownState0;
@@ -195,6 +221,8 @@ void Joystick_Init(void)
 			p6logd("can't open joy %d\n", i);
 		}
 	}
+
+	CyberStick_mode = 0;// CyberStickMode OFF
 }
 
 void Joystick_Cleanup(void)
@@ -215,29 +243,65 @@ uint8_t FASTCALL Joystick_Read(uint8_t num)
 	uint8_t joynum = num;
 	uint8_t ret0 = 0xff, ret1 = 0xff, ret;
 
-	if (Config.JoySwap) joynum ^= 1;
-	if (joy[num]) {
-		ret0 = JoyState0[num];
-		ret1 = JoyState1[num];
-	}
+	//+++ PC4が固定でReadが続く:デジタルPADと判定する +++
+	if(CyberCount <  1000){ CyberCount++; }
+	if(CyberCount >= 1000){ CyberStick_mode = 0; }
 
-	if (Config.JoyKey)
-	{
-		if ((Config.JoyKeyJoy2)&&(num==1))
-			ret0 ^= JoyKeyState;
-		else if ((!Config.JoyKeyJoy2)&&(num==0))
-			ret0 ^= JoyKeyState;
+	//=== for CyberStick Mode ===
+	if((CyberStick_mode == 1)&&(num == 0)){
+		ret = CyberST[CyberState] | CyberACK;//set ACK=1
+		switch(CyberTRX){
+		 case 0:
+		  CyberTRX++;// ACK=H
+		  break;
+		 case 1:
+		  CyberTRX++;
+		  ret &= ~CyberACK;// ACK=L
+		  break;
+		 case 2:
+		  CyberTRX++;
+		  ret &= ~CyberACK;// ACK=L(wait)
+		  break;
+		 case 3:
+		  CyberTRX++;// ACK=H
+		  break;
+		 case 4:
+		 default:
+		  if(CyberState < 12){  CyberState++;  }
+		  else{ ret = 0xff; }//ACH=H H/L=H data=all H
+		  CyberTRX = 0;
+		  break;
+		}
 	}
+	else{//=== for ATARI Stick Mode ===
+		if (Config.JoySwap) joynum ^= 1;
+		if (joy[num]){
+		  ret0 = JoyState0[num];
+		  ret1 = JoyState1[num];
+		}
 
+		if (Config.JoyKey){
+		  if ((Config.JoyKeyJoy2)&&(num==1))
+		    ret0 ^= JoyKeyState;
+		  else if ((!Config.JoyKeyJoy2)&&(num==0))
+		    ret0 ^= JoyKeyState;
+		}
 	ret = ((~JoyPortData[num])&ret0)|(JoyPortData[num]&ret1);
-
+	}
 	return ret;
 }
-
 
 void FASTCALL Joystick_Write(uint8_t num, uint8_t data)
 {
 	if ( (num==0)||(num==1) ) JoyPortData[num] = data;
+
+	if((data == 0x00)&&(num == 0)){// PortA PC4 H→L 
+		if(CyberCount > 30) { CyberStick_mode = 1; }//CyberStick ON
+		CyberCount =0;
+		CyberState = 0;
+		CyberTRX = 0;
+	}
+
 }
 
 void FASTCALL Joystick_Update(int32_t is_menu, SDL_Keycode key)
@@ -246,7 +310,7 @@ void FASTCALL Joystick_Update(int32_t is_menu, SDL_Keycode key)
 	uint8_t mret0 = 0xff, mret1 = 0xff;
 	int32_t num = 0; //xxx only joy1
 	static uint8_t pre_ret0 = 0xff, pre_mret0 = 0xff;
-	int32_t x, y;
+	int32_t x, y, z;
 	uint8_t hat;
 
 #if defined(ANDROID) || TARGET_OS_IPHONE
@@ -338,6 +402,20 @@ skip_vpad:
 		SDL_JoystickUpdate();
 		x = SDL_JoystickGetAxis(sdl_joy, Config.HwJoyAxis[0]);
 		y = SDL_JoystickGetAxis(sdl_joy, Config.HwJoyAxis[1]);
+		z = SDL_JoystickGetAxis(sdl_joy, Config.HwJoyAxis[2]);
+
+		CyberST[0] = 0x9f;
+		CyberST[1] = 0xbf;
+		CyberST[2] = 0x90 | (0x0f & (y >> 4));
+		CyberST[3] = 0xb0 | (0x0f & (x >> 4));
+		CyberST[4] = 0x90 | (0x0f & (z >> 4));
+		CyberST[5] = 0xbf;
+		CyberST[6] = 0x90 | (0x0f & y );
+		CyberST[7] = 0xb0 | (0x0f & x );
+		CyberST[8] = 0x90 | (0x0f & z );
+		CyberST[9] = 0xbf;
+		CyberST[10] = 0x9f;
+		CyberST[11] = 0xbf;
 
 		if (x < -JOYAXISPLAY) {
 			ret0 ^= JOY_LEFT;
@@ -380,28 +458,42 @@ skip_vpad:
 		}
 
 		if (SDL_JoystickGetButton(sdl_joy, Config.HwJoyBtn[0])) {
-			ret0 ^= JOY_TRG1;
+			ret0 ^= JOY_TRGA;
+			CyberST[0] &= 0xf7;//A
+			CyberST[10] &= 0xf7;
 		}
 		if (SDL_JoystickGetButton(sdl_joy, Config.HwJoyBtn[1])) {
-			ret0 ^= JOY_TRG2;
+			ret0 ^= JOY_TRGB;
+			CyberST[0] &= 0xfb;//B
+			CyberST[10] &= 0xfb;
 		}
 		if (SDL_JoystickGetButton(sdl_joy, Config.HwJoyBtn[2])) {
-			ret1 ^= JOY_TRG3;
+			ret1 ^= JOY_TRGC;
+			CyberST[0] &= 0xfd;//C
 		}
 		if (SDL_JoystickGetButton(sdl_joy, Config.HwJoyBtn[3])) {
-			ret1 ^= JOY_TRG4;
+			ret1 ^= JOY_TRGD;
+			CyberST[0] &= 0xfe;//D
 		}
 		if (SDL_JoystickGetButton(sdl_joy, Config.HwJoyBtn[4])) {
-			ret1 ^= JOY_TRG5;
+			ret1 ^= JOY_ThUP;//Th UP
 		}
 		if (SDL_JoystickGetButton(sdl_joy, Config.HwJoyBtn[5])) {
-			ret1 ^= JOY_TRG6;
+			ret1 ^= JOY_ThDN;//Th Down
 		}
 		if (SDL_JoystickGetButton(sdl_joy, Config.HwJoyBtn[6])) {
-			ret1 ^= JOY_TRG7;
+			ret1 ^= JOY_TRGE1;
+			CyberST[1] &= 0xf7;//E1
 		}
 		if (SDL_JoystickGetButton(sdl_joy, Config.HwJoyBtn[7])) {
-			ret1 ^= JOY_TRG8;
+			ret1 ^= JOY_TRGE2;
+			CyberST[1] &= 0xfb;//E2
+		}
+		if (SDL_JoystickGetButton(sdl_joy, Config.HwJoyBtn[8])) {
+			CyberST[1] &= 0xfd;//F(Start)
+		}
+		if (SDL_JoystickGetButton(sdl_joy, Config.HwJoyBtn[9])) {
+			CyberST[1] &= 0xfe;//G(Select)
 		}
 	}
 
@@ -421,10 +513,10 @@ skip_vpad:
 			ret0 ^= JOY_RIGHT;
 			break;
 		case SDLK_RETURN:
-			ret0 ^= JOY_TRG1;
+			ret0 ^= JOY_TRGA;
 			break;
 		case SDLK_ESCAPE:
-			ret0 ^= JOY_TRG2;
+			ret0 ^= JOY_TRGB;
 			break;
 		}
 	}

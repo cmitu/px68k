@@ -138,7 +138,7 @@ uint8_t ScanTable[2][SCANTABLE_MAX] = {
 	//	    ,    ,    ,    ,    ,    ,    ,   		; 0xd8
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	ctrl,sftL,altL,cmdL,ctrl,sftR,altR,cmdR		; 0xe0
-		0x71,0x70,0x55,0x5f,0x71,0x70,0x59,0x72,
+		0x71,0x70,0x55,0x5f,0x71,0x70,0x59,0x73,
 	//	    ,    ,    ,    ,    ,    ,    ,   		; 0xe8
 		  NC,  NC,  NC,  NC,  NC,  NC,  NC,  NC,
 	//	    ,    ,    ,    ,    ,    ,    ,    		; 0xf0

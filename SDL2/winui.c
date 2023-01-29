@@ -129,7 +129,7 @@ char menu_items[][17][30] = {
 	{"Port0", "Port1", "Port2", "Port3", "Port4", "Port5", "Port6", "Port7", ""},
 	{"Ultra Huge", "Super Huge", "Huge", "Large", "Medium", "Small", ""},
 	{"TRIG1 TRIG2", "TRIG2 TRIG1", ""},
-	{"Axis0: X", "Axis1: Y", "Hat: ", "Button0: ", "Button1: ",  ""},
+	{"Axis0: X", "Axis1: Y", "Hat: ", "TRG-A: ", "TRG-B: ",  ""},
 	{"Off", "On", ""},
 	{"Off", "On", ""},
 	{"1MB", "2MB", "4MB", "8MB", "12MB", ""}
@@ -798,7 +798,7 @@ int32_t WinUI_Menu(int32_t first)
 		}
 	}
 
-	if (!(joy & JOY_TRG1)) {
+	if (!(joy & JOY_TRGA)) {
 		int32_t drv, y;
 		switch (menu_state) {
 		case ms_key:
@@ -908,7 +908,7 @@ int32_t WinUI_Menu(int32_t first)
 		}
 	}
 
-	if (!(joy & JOY_TRG2)) {
+	if (!(joy & JOY_TRGB)) {
 		switch (menu_state) {
 		case ms_file:
 			menu_state = ms_value;

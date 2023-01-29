@@ -227,17 +227,17 @@ Keyboard_KeyDown(uint32_t sdl_key, uint32_t sdl_scan)
 	case SDL_SCANCODE_Z:
 		//puts("key z");
 		if (Config.JoyKeyReverse)
-			JoyKeyState |= JOY_TRG2;
+			JoyKeyState |= JOY_TRGB;
 		else
-			JoyKeyState |= JOY_TRG1;
+			JoyKeyState |= JOY_TRGA;
 		break;
 
 	case SDL_SCANCODE_X:
 		//puts("key x");
 		if (Config.JoyKeyReverse)
-			JoyKeyState |= JOY_TRG1;
+			JoyKeyState |= JOY_TRGA;
 		else
-			JoyKeyState |= JOY_TRG2;
+			JoyKeyState |= JOY_TRGB;
 		break;
 	}
 }
@@ -307,16 +307,16 @@ Keyboard_KeyUp(uint32_t sdl_key, uint32_t sdl_scan)
 
 	case SDL_SCANCODE_Z:
 		if (Config.JoyKeyReverse)
-			JoyKeyState &= ~JOY_TRG2;
+			JoyKeyState &= ~JOY_TRGB;
 		else
-			JoyKeyState &= ~JOY_TRG1;
+			JoyKeyState &= ~JOY_TRGA;
 		break;
 
 	case SDL_SCANCODE_X:
 		if (Config.JoyKeyReverse)
-			JoyKeyState &= ~JOY_TRG1;
+			JoyKeyState &= ~JOY_TRGA;
 		else
-			JoyKeyState &= ~JOY_TRG2;
+			JoyKeyState &= ~JOY_TRGB;
 		break;
 	}
 
