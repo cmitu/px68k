@@ -848,6 +848,9 @@ int32_t main(int32_t argc, char *argv[])
 				if (SplashFlag == 0)
 					WinDraw_HideSplash();
 			}
+
+			Pal_TrackContrast();//コントラスト調整
+
 		}
 
 		menu_key_down = SDLK_UNKNOWN;

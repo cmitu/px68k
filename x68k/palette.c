@@ -10,6 +10,7 @@
 #include	"x68kmemory.h"
 #include	"m68000.h"
 #include	"palette.h"
+#include	"sysport.h"
 
 	uint8_t	Pal_Regs[1024];
 	uint16_t	TextPal[256];
@@ -19,6 +20,8 @@
 
 	uint16_t	Pal_HalfMask, Pal_Ix2;
 	uint16_t	Pal_R, Pal_G, Pal_B;		// 画面輝度変更時用
+
+	uint8_t	    Contrast_Value;		//コントラスト追従用
 
 // ----- DDrawの16ビットモードの色マスクからX68k→Win用の変換テーブルを作る -----
 // X68kは「GGGGGRRRRRBBBBBI」の構造。Winは「RRRRRGGGGGGBBBBB」の形が多いみたい。が、
@@ -192,6 +195,19 @@ void FASTCALL Pal_Write(int32_t adr, uint8_t data)
 		pal = (Pal_Regs[adr&0xffe] << 8) | Pal_Regs[adr | 1];
 		TextPal[(adr-0x200)/2] = Pal16[pal];
 	}
+}
+
+// -----------------------------------------------------------------------
+//   こんとらすとはブラウン管みたいにゆっくり追従させる。
+// -----------------------------------------------------------------------
+void Pal_TrackContrast(void)
+{
+	if(SysPort[1] == Contrast_Value){ return; }
+
+	if(SysPort[1] > Contrast_Value){Contrast_Value++;}
+	else{Contrast_Value--;}
+
+	Pal_ChangeContrast(Contrast_Value);
 }
 
 // -----------------------------------------------------------------------

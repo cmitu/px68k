@@ -18,6 +18,7 @@
 * MIDI音源FileにSoundFont2使用可(fluidsynth)
 * Support US-KeyBoard. `keyconf.dat` put into .keropi folder.
 * Printer出力をFileに保存
+* サイバースティックのサポート追加(Analog3軸-XYZ JoyPad)
 * `FileNameのutf8/sjis` 自動判別(iconvではなく専用table変換)
 * Mac用SDL1/2.frameworkでのbuildスクリプト添付
 * Mac用単独アプリ化ラッパー追加

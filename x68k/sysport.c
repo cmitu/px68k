@@ -31,7 +31,7 @@ void FASTCALL SysPort_Write(uint32_t adr, uint8_t data)
 		if (SysPort[1]!=(data&15))
 		{
 			SysPort[1] = data & 15;
-			Pal_ChangeContrast(SysPort[1]);
+			//Pal_ChangeContrast(SysPort[1]);  即設定ではなく追従させる。
 		}
 		break;
 	case 0xe8e003:
