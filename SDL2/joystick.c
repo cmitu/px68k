@@ -51,6 +51,9 @@ uint32_t CyberTRX;
 uint32_t CyberCount;
 #define CyberACK 0x40;
 
+#define SDL_AxisMIN (-32768)
+#define SDL_AxisMAX (32767)
+
 // This stores whether the buttons were down. This avoids key repeats.
 uint8_t JoyDownState0;
 uint8_t MouseDownState0;
@@ -297,6 +300,7 @@ void FASTCALL Joystick_Write(uint8_t num, uint8_t data)
 
 	if((data == 0x00)&&(num == 0)){// PortA PC4 H→L 
 		if(CyberCount > 30) { CyberStick_mode = 1; }//CyberStick ON
+		else { CyberStick_mode = 0; }				//CyberStick OFF
 		CyberCount =0;
 		CyberState = 0;
 		CyberTRX = 0;
@@ -311,7 +315,7 @@ void FASTCALL Joystick_Update(int32_t is_menu, SDL_Keycode key)
 	int32_t num = 0; //xxx only joy1
 	static uint8_t pre_ret0 = 0xff, pre_mret0 = 0xff;
 	int32_t x, y, z;
-	uint8_t hat;
+	uint8_t x1, y1, z1, hat;
 
 #if defined(ANDROID) || TARGET_OS_IPHONE
 	SDL_Finger *finger;
@@ -404,29 +408,34 @@ skip_vpad:
 		y = SDL_JoystickGetAxis(sdl_joy, Config.HwJoyAxis[1]);
 		z = SDL_JoystickGetAxis(sdl_joy, Config.HwJoyAxis[2]);
 
+		/*0~255に正規化*/
+		x1 = ((x-SDL_AxisMIN) * 255)/(SDL_AxisMAX-SDL_AxisMIN);
+		y1 = ((y-SDL_AxisMIN) * 255)/(SDL_AxisMAX-SDL_AxisMIN);
+		z1 = ((z-SDL_AxisMIN) * 255)/(SDL_AxisMAX-SDL_AxisMIN);
+
 		CyberST[0] = 0x9f;
 		CyberST[1] = 0xbf;
-		CyberST[2] = 0x90 | (0x0f & (y >> 4));
-		CyberST[3] = 0xb0 | (0x0f & (x >> 4));
-		CyberST[4] = 0x90 | (0x0f & (z >> 4));
+		CyberST[2] = 0x90 | (0x0f & (y1 >> 4));
+		CyberST[3] = 0xb0 | (0x0f & (x1 >> 4));
+		CyberST[4] = 0x90 | (0x0f & (z1 >> 4));
 		CyberST[5] = 0xbf;
-		CyberST[6] = 0x90 | (0x0f & y );
-		CyberST[7] = 0xb0 | (0x0f & x );
-		CyberST[8] = 0x90 | (0x0f & z );
+		CyberST[6] = 0x90 | (0x0f & y1 );
+		CyberST[7] = 0xb0 | (0x0f & x1 );
+		CyberST[8] = 0x90 | (0x0f & z1 );
 		CyberST[9] = 0xbf;
 		CyberST[10] = 0x9f;
 		CyberST[11] = 0xbf;
 
-		if (x < -JOYAXISPLAY) {
+		if (x1 < JOYAXISPLAY) {
 			ret0 ^= JOY_LEFT;
 		}
-		if (x > JOYAXISPLAY) {
+		if (x1 > (255-JOYAXISPLAY)) {
 			ret0 ^= JOY_RIGHT;
 		}
-		if (y < -JOYAXISPLAY) {
+		if (y1 < JOYAXISPLAY) {
 			ret0 ^= JOY_UP;
 		}
-		if (y > JOYAXISPLAY) {
+		if (y1 > (255-JOYAXISPLAY)) {
 			ret0 ^= JOY_DOWN;
 		}
 

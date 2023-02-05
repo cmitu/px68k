@@ -26,7 +26,7 @@
 #define	JOY_TRGE1	0x20
 #define	JOY_TRGE2	0x40
 
-#define JOYAXISPLAY 2048
+#define JOYAXISPLAY 20
 
 #if defined(ANDROID) || TARGET_OS_IPHONE
 #define VBTN_ON 2

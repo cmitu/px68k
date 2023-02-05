@@ -338,6 +338,8 @@ void LoadConfig(void)
 
 	Config.HwJoyAxis[1] = GetPrivateProfileInt((const char*)ini_title, "HwJoyAxis1", 1, winx68k_ini);
 
+	Config.HwJoyAxis[2] = GetPrivateProfileInt((const char*)ini_title, "HwJoyAxis2", 2, winx68k_ini);
+
 	Config.HwJoyHat = GetPrivateProfileInt((const char*)ini_title, "HwJoyHat", 0, winx68k_ini);
 
 	for (i = 0; i < 8; i++) {

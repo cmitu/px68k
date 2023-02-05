@@ -129,7 +129,7 @@ char menu_items[][17][30] = {
 	{"Port0", "Port1", "Port2", "Port3", "Port4", "Port5", "Port6", "Port7", ""},
 	{"Ultra Huge", "Super Huge", "Huge", "Large", "Medium", "Small", ""},
 	{"TRIG1 TRIG2", "TRIG2 TRIG1", ""},
-	{"Axis0: X", "Axis1: Y", "Hat: ", "TRG-A: ", "TRG-B: ",  ""},
+	{"Axis0: X", "Axis1: Y", "Throttle: Z", "TRG-A: ", "TRG-B: ", "TRG-C: ", "TRG-D(X): ", "Th-UP(Y): ", "Th-Down(Z): ", "TRG-E1: ", "TRG-E2: ",  ""},
 	{"Off", "On", ""},
 	{"Off", "On", ""},
 	{"1MB", "2MB", "4MB", "8MB", "12MB", ""}

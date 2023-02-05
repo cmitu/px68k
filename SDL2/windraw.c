@@ -1783,16 +1783,24 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 					}
 					draw_str(tmp,1);
 					break;
-				case 2:/*hats set*/
-					sprintf(tmp," Set:%d",Config.HwJoyHat);
+				case 2:/*Axis2 set*/
+					if(JoyDirection == 0){
+						sprintf(tmp," Down-Set:%d ↓",Config.HwJoyAxis[2]);
+					}
+					else{
+						sprintf(tmp," Up  -Set:%d ↑",Config.HwJoyAxis[2]);
+					}
 					draw_str(tmp,1);
 					break;
-				case 3:/*TRG-A set*/
-					sprintf(tmp," Set ■:%d",Config.HwJoyBtn[0]);
-					draw_str(tmp,1);
-					break;
-				case 4:/*TRG-B set*/
-					sprintf(tmp," Set ×:%d",Config.HwJoyBtn[1]);
+				case 3:/*TRG-A*/
+				case 4:/*TRG-B*/
+				case 5://C
+				case 6://D
+				case 7://Th-Up
+				case 8://Th-Down
+				case 9://E1
+				case 10://E2
+					sprintf(tmp," Set :%d",Config.HwJoyBtn[mval_y[i + mkey_pos]-3]);
 					draw_str(tmp,1);
 					break;
 				default: break;

@@ -965,6 +965,12 @@ int32_t main(int32_t argc, char *argv[])
 						ScreenClearFlg = 1;
 					}
 				}
+				// F12 だけじゃなくescでmenu抜ける
+				if ((ev.key.keysym.sym == SDLK_ESCAPE) && (menu_mode != menu_out)){
+						DSound_Play();
+						menu_mode = menu_out;
+						ScreenClearFlg = 1;
+				}
 				if (ev.key.keysym.sym == SDLK_F11) { /*toggle Full-Screen mode*/
 					if(FullScreenFlag == 0){ FullScreenFlag = 1; }
 					else{FullScreenFlag = 0;}
