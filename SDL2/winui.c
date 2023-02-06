@@ -690,7 +690,7 @@ int32_t WinUI_Menu(int32_t first)
 		int32_t y;
 		y = mval_y[mkey_y];
 		SDL_JoystickUpdate();
-		if (y <= 1) {
+		if (y <= 2) { // X,Y,Z
 			for (i = 0; i < SDL_JoystickNumAxes(sdl_joy); i++) {
 				n = SDL_JoystickGetAxis(sdl_joy, i);
 				if (n < -JOYAXISPLAY || n > JOYAXISPLAY) {
@@ -706,20 +706,11 @@ int32_t WinUI_Menu(int32_t first)
 					break;
 				}
 			}
-		} else if (y == 2) {
-			for (i = 0; i < SDL_JoystickNumHats(sdl_joy); i++) {
-				if (SDL_JoystickGetHat(sdl_joy, i)) {
-					Config.HwJoyHat = i;
-					menu_hwjoy_print(y);
-					pad_changed = 1;
-					break;
-				}
-			}
-		} else {
+		} else {// A,B,X,Y,C,D,E1,E2  Button 
 			for (i = 0; i < SDL_JoystickNumButtons(sdl_joy); i++) {
 				if (SDL_JoystickGetButton(sdl_joy, i)) {
 					Config.HwJoyBtn[y - 3] = i;
-					menu_hwjoy_print(y);
+					menu_hwjoy_print(y);/*for Debug*/
 					pad_changed = 1;
 					break;
 				}

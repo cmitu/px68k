@@ -348,6 +348,7 @@ WinX68k_Reset(void)
 	SCC_Init();
 	Keyboard_Init();
 	PIA_Init();
+	Joystick_Init();
 	RTC_Init();
 	TVRAM_Init();
 	GVRAM_Init();
@@ -799,7 +800,7 @@ int32_t main(int32_t argc, char *argv[])
 	FDD_Init();
 	SysPort_Init();
 	Mouse_Init();
-	Joystick_Init();
+	Joystick_Open();
 	WinX68k_Reset();
 	Timer_Init();
 

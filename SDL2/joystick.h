@@ -26,7 +26,7 @@
 #define	JOY_TRGE1	0x20
 #define	JOY_TRGE2	0x40
 
-#define JOYAXISPLAY 20
+#define JOYAXISPLAY 2048
 
 #if defined(ANDROID) || TARGET_OS_IPHONE
 #define VBTN_ON 2
@@ -40,6 +40,7 @@ typedef struct _vbtn_points {
 
 #define need_Vpad() (is_menu || Keyboard_IsSwKeyboard() || (!Config.JoyOrMouse && !sdl_joy))
 
+void Joystick_Open(void);
 void Joystick_Init(void);
 void Joystick_Cleanup(void);
 uint8_t FASTCALL Joystick_Read(uint8_t num);

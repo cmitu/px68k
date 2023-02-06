@@ -171,26 +171,9 @@ uint8_t Joystick_get_vbtn_state(uint16_t n)
 
 SDL_Joystick *sdl_joy;
 
-void Joystick_Init(void)
+void Joystick_Open(void)
 {
 	int32_t i, nr_joys, nr_axes, nr_btns, nr_hats;
-
-
-	joy[0] = 1;  // active only one
-	joy[1] = 0;
-	JoyKeyState = 0;
-	JoyKeyState0 = 0;
-	JoyKeyState1 = 0;
-	JoyState0[0] = 0xff;
-	JoyState0[1] = 0xff;
-	JoyState1[0] = 0xff;
-	JoyState1[1] = 0xff;
-	JoyPortData[0] = 0;
-	JoyPortData[1] = 0;
-
-#if defined(ANDROID) || TARGET_OS_IPHONE
-	Joystick_Vbtn_Update(WinUI_get_vkscale());
-#endif
 
 	sdl_joy = 0;
 
@@ -198,7 +181,9 @@ void Joystick_Init(void)
 
 	nr_joys = SDL_NumJoysticks();
 	p6logd("joy num %d\n", nr_joys);
+
 	if (nr_joys == 0){return;}
+
 	for (i = 0; i < nr_joys; i++) {
 		sdl_joy = SDL_JoystickOpen(i);
 		if (sdl_joy) {
@@ -225,8 +210,33 @@ void Joystick_Init(void)
 		}
 	}
 
-	CyberStick_mode = 0;// CyberStickMode OFF
+ return;
 }
+
+void Joystick_Init(void)
+{
+
+	joy[0] = 1;  // active only one
+	joy[1] = 0;
+	JoyKeyState = 0;
+	JoyKeyState0 = 0;
+	JoyKeyState1 = 0;
+	JoyState0[0] = 0xff;
+	JoyState0[1] = 0xff;
+	JoyState1[0] = 0xff;
+	JoyState1[1] = 0xff;
+	JoyPortData[0] = 0;
+	JoyPortData[1] = 0;
+
+	CyberStick_mode = 0;// CyberStickMode OFF
+
+#if defined(ANDROID) || TARGET_OS_IPHONE
+	Joystick_Vbtn_Update(WinUI_get_vkscale());
+#endif
+
+ return;
+}
+
 
 void Joystick_Cleanup(void)
 {
@@ -247,10 +257,12 @@ uint8_t FASTCALL Joystick_Read(uint8_t num)
 	uint8_t ret0 = 0xff, ret1 = 0xff, ret;
 
 	//+++ PC4が固定でReadが続く:デジタルPADと判定する +++
-	if(CyberCount <  1000){ CyberCount++; }
-	if(CyberCount >= 1000){ CyberStick_mode = 0; }
+	if(num == 0){
+	   if(CyberCount <  1000){ CyberCount++; }
+	   if(CyberCount >= 1000){ CyberStick_mode = 0; }
+	}
 
-	//=== for CyberStick Mode ===
+	//=== for CyberStick Mode (only PortA) ===
 	if((CyberStick_mode == 1)&&(num == 0)){
 		ret = CyberST[CyberState] | CyberACK;//set ACK=1
 		switch(CyberTRX){
@@ -426,16 +438,16 @@ skip_vpad:
 		CyberST[10] = 0x9f;
 		CyberST[11] = 0xbf;
 
-		if (x1 < JOYAXISPLAY) {
+		if (x < -JOYAXISPLAY) {
 			ret0 ^= JOY_LEFT;
 		}
-		if (x1 > (255-JOYAXISPLAY)) {
+		if (x > JOYAXISPLAY) {
 			ret0 ^= JOY_RIGHT;
 		}
-		if (y1 < JOYAXISPLAY) {
+		if (y < -JOYAXISPLAY) {
 			ret0 ^= JOY_UP;
 		}
-		if (y1 > (255-JOYAXISPLAY)) {
+		if (y > JOYAXISPLAY) {
 			ret0 ^= JOY_DOWN;
 		}
 
