@@ -8,6 +8,7 @@ extern	int32_t	LastClock[4];
 
 extern char cur_dir_str[];
 extern int32_t cur_dir_slen;
+extern int32_t menu_state;
 
 void WinUI_Init(void);
 int32_t WinUI_Menu(int32_t first);

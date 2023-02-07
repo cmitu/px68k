@@ -967,7 +967,8 @@ int32_t main(int32_t argc, char *argv[])
 					}
 				}
 				// F12 だけじゃなくescでmenu抜ける
-				if ((ev.key.keysym.sym == SDLK_ESCAPE) && (menu_mode != menu_out)){
+				if ((ev.key.keysym.sym == SDLK_ESCAPE) &&
+					(menu_mode != menu_out) && (menu_state == ms_key)){
 						DSound_Play();
 						menu_mode = menu_out;
 						ScreenClearFlg = 1;

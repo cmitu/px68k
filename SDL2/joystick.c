@@ -1,21 +1,30 @@
 // JOYSTICK.C - joystick support for WinX68k
 
 /*  refine for CyberStick Analog/Digital
+
 CyberStick (Digital) PC4-L/H
 D0:Stick UP     Throt UP
 D1:     DOWN          DOWN
 D2:     LEFT    Trig  C
 D3:     RIGHT         D
 D4:H
-D5:Trig A             E1
-D6      B             E2
+D5:Trig A(2)          E1
+D6      B(1)          E2
 D7:H
 
 CyberStick(Analog)
  0: ACK L/H A   B   C   D
  1: 0   1   E1  E2  F   G
-  ~(analog x4 H/L)
+ 2: 0   0   b7  b6  b5  b4 Axis Y
+ 3: 0   1   b7  b6  b5  b4 Axis X
+ 4: 0   0   b7  b6  b5  b4 Axis Z
+ 5: 0   1   b7  b6  b5  b4 (non)
+ 6: 0   0   b3  b2  b1  b0 Axis Y
+ 7: 0   1   b3  b2  b1  b0 Axis X
+ 8: 0   0   b3  b2  b1  b0 Axis Z
+ 9: 0   1   b3  b2  b1  b0 (non)
 10: 0   0   A   B   A'  B'
+11: 0   1   -   -   -   -
 */
 
 #include "common.h"
@@ -534,10 +543,10 @@ skip_vpad:
 			ret0 ^= JOY_RIGHT;
 			break;
 		case SDLK_RETURN:
-			ret0 ^= JOY_TRGA;
+			ret0 ^= JOY_TRGB;
 			break;
 		case SDLK_ESCAPE:
-			ret0 ^= JOY_TRGB;
+			ret0 ^= JOY_TRGA;
 			break;
 		}
 	}
