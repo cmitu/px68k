@@ -225,7 +225,7 @@ WinX68k_SCSICheck(void)
 		/*ea0044からSCSIEXが格納されてることをIPLがチェックしている*/
 		if(memcmp(&SCSIIPL[0x000044],"SCSIEX",6) != 0){// dump from 0xea0020
 		  if(memcmp(&SCSIIPL[0x000064],"SCSIEX",6) == 0){ //dump from 0xea0000
-		    memcpy(&SCSIIPL[0x000020],&SCSIIPL[0x000040], 0x01fe0);
+		    memcpy(&SCSIIPL[0x000020],&SCSIIPL[0x000040], 0x02000-0x40);
 		  }
 		  else{
 		   p6logd("SCSI-IPL not found.\n");
@@ -959,7 +959,8 @@ int32_t main(int32_t argc, char *argv[])
 					}
 				}
 				// F12 だけじゃなくescでmenu抜ける
-				if ((ev.key.keysym.sym == SDLK_ESCAPE) && (menu_mode != menu_out)){
+				if ((ev.key.keysym.sym == SDLK_ESCAPE) &&
+					(menu_mode != menu_out) && (menu_state == ms_key)){
 						DSound_Play();
 						menu_mode = menu_out;
 						ScreenClearFlg = 1;

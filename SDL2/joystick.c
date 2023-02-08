@@ -543,10 +543,10 @@ skip_vpad:
 			ret0 ^= JOY_RIGHT;
 			break;
 		case SDLK_RETURN:
-			ret0 ^= JOY_TRGB;
+			ret0 ^= JOY_TRGA;
 			break;
 		case SDLK_ESCAPE:
-			ret0 ^= JOY_TRGA;
+			ret0 ^= JOY_TRGB;
 			break;
 		}
 	}
