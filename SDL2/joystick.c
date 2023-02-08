@@ -267,8 +267,8 @@ uint8_t FASTCALL Joystick_Read(uint8_t num)
 
 	//+++ PC4が固定でReadが続く:デジタルPADと判定する +++
 	if(num == 0){
-	   if(CyberCount <  1000){ CyberCount++; }
-	   if(CyberCount >= 1000){ CyberStick_mode = 0; }
+	   if(CyberCount <  500){ CyberCount++; }
+	   if(CyberCount >= 500){ CyberStick_mode = 0; }
 	}
 
 	//=== for CyberStick Mode (only PortA) ===
