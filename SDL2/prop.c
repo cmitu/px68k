@@ -334,6 +334,8 @@ void LoadConfig(void)
 
 	Config.JoyOrMouse = GetPrivateProfileInt((const char*)ini_title, "JoyOrMouse", 0, winx68k_ini);
 
+	Config.Joymode = GetPrivateProfileInt((const char*)ini_title, "JoyMode", 0, winx68k_ini);
+
 	Config.HwJoyAxis[0] = GetPrivateProfileInt((const char*)ini_title, "HwJoyAxis0", 0, winx68k_ini);
 
 	Config.HwJoyAxis[1] = GetPrivateProfileInt((const char*)ini_title, "HwJoyAxis1", 1, winx68k_ini);

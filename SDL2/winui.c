@@ -104,19 +104,19 @@ struct menu_flist mfl;
 
 /***** menu items *****/
 
-#define MENU_NUM 16
+#define MENU_NUM 17
 #define MENU_WINDOW 7
 
-int32_t mval_y[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 1, 1, 1}; /*初期値*/
+int32_t mval_y[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 0, 1, 1, 1}; /*初期値*/
 
-enum menu_id {M_SYS, M_JOM, M_FD0, M_FD1, M_HD0, M_HD1, M_FS, M_SR, M_MO, M_MI, M_VKS, M_VBS, M_HJS, M_NW, M_JK, M_RAM};
+enum menu_id {M_SYS, M_JOM, M_FD0, M_FD1, M_HD0, M_HD1, M_FS, M_SR, M_MO, M_MI, M_VKS, M_VBS, M_JMD, M_HJS, M_NW, M_JK, M_RAM};
 
-// Max # of characters is 16.
-char menu_item_key[][17] = {"SYSTEM", "Joy/Mouse", "FDD0", "FDD1", "HDD0", "HDD1", "Frame Skip", "Sound Rate", "MIDI Out", "MIDI In ", "VKey Size", "VBtn Swap", "HwJoy Setting", "No Wait Mode", "JoyKey", "RAM", "uhyo", ""};
+// Max # of characters is 17.
+char menu_item_key[][18] = {"SYSTEM", "Joy/Mouse", "FDD0", "FDD1", "HDD0", "HDD1", "Frame Skip", "Sound Rate", "MIDI Out", "MIDI In ", "VKey Size", "VBtn Swap", "JoyMode", "HwJoy Setting", "No Wait Mode", "JoyKey", "RAM", "uhyo", ""};
 
 // Max # of characters is 30.
 // Max # of items including terminater `""' in each line is 15.
-char menu_items[][17][30] = {
+char menu_items[][18][30] = {
 	{"RESET", "NMI RESET", "QUIT", "SRAM-Clear and RESET", ""},
 	{"Joystick", "Mouse", ""},
 	{"dummy", "EJECT", ""},
@@ -129,6 +129,7 @@ char menu_items[][17][30] = {
 	{"Port0", "Port1", "Port2", "Port3", "Port4", "Port5", "Port6", "Port7", ""},
 	{"Ultra Huge", "Super Huge", "Huge", "Large", "Medium", "Small", ""},
 	{"TRG-B TRG-A", "TRG-A TRG-B", ""},
+	{"Digital", "Analog","Auto detect", ""},
 	{"Axis0: X", "Axis1: Y", "Throttle: Z", "TRG-A: ", "TRG-B: ", "TRG-C: ", "TRG-D(X): ", "Th-UP(Y): ", "Th-Down(Z): ", "TRG-E1: ", "TRG-E2: ",  ""},
 	{"Off", "On", ""},
 	{"Off", "On", ""},
@@ -144,6 +145,7 @@ static void menu_midout_rate(int32_t v);
 static void menu_midin_rate(int32_t v);
 static void menu_vkey_size(int32_t v);
 static void menu_vbtn_swap(int32_t v);
+static void menu_joymode_setting(int32_t v);
 static void menu_hwjoy_setting(int32_t v);
 static void menu_nowait(int32_t v);
 static void menu_joykey(int32_t v);
@@ -167,6 +169,7 @@ struct _menu_func menu_func[] = {
 	{menu_midin_rate, 1},
 	{menu_vkey_size, 1},
 	{menu_vbtn_swap, 1},
+	{menu_joymode_setting, 1},
 	{menu_hwjoy_setting, 0},
 	{menu_nowait, 1},
 	{menu_joykey, 1},
@@ -250,6 +253,7 @@ WinUI_Init(void)
 
 	mval_y[M_NW] = Config.NoWaitMode;
 	mval_y[M_JK] = Config.JoyKey;
+	mval_y[M_JMD] = Config.Joymode;
 
 	if (Config.ram_size == 1) {
 		mval_y[M_RAM] = 0;
@@ -580,6 +584,11 @@ static void menu_vkey_size(int32_t v)
 static void menu_vbtn_swap(int32_t v)
 {
 	Config.VbtnSwap = v;
+}
+
+static void menu_joymode_setting(int32_t v)
+{
+	Config.Joymode = v;
 }
 
 static void menu_hwjoy_setting(int32_t v)

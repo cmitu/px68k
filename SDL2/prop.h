@@ -55,6 +55,7 @@ typedef struct
 	int32_t VkeyScale;
 	int32_t VbtnSwap;
 	int32_t JoyOrMouse;
+	int32_t Joymode;
 	int32_t HwJoyAxis[3];
 	int32_t HwJoyHat;
 	int32_t HwJoyBtn[10];

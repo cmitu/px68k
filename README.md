@@ -18,8 +18,8 @@
 * MIDI音源FileにSoundFont2使用可(fluidsynth)
 * Support US-KeyBoard. `keyconf.dat` put into .keropi folder.
 * Printer出力をFileに保存
-* Add support CyberStick! (Auto select Analog and Digital) 
-* `FileNameのutf8/sjis` 自動判別(iconvではなく専用table変換)
+* Add support CyberStick! (DIGITAL/ANALOG GamePad)
+* `FileNameのutf8/sjis` 自動判別表示(iconvではなく専用table変換)
 * Mac用SDL1/2.frameworkでのbuildスクリプト添付
 * Mac用単独アプリ化ラッパー追加
 * macOS/Linux/MinGW64(win) で動作確認
@@ -62,6 +62,7 @@
  * LinuxのMIDIは現状fluidsynthのみ
  * MIDI-INは暫定対応(WinMM,and CoreMIDI)
  * MIDIの音の割り付け順の変更はMIMPIトーンマップでも変更可
+ * CyberStickのアナログモードは確認継続中(認識不完全アリ)
  * SDL1でのkeymapデコードは不完全(¥、ろ)
  * SDL1の描画はCPU依存、よって遅いです。
 

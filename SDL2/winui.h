@@ -31,8 +31,8 @@ struct menu_flist {
 	int32_t y;
 };
 
-extern char menu_item_key[][17];
-extern char menu_items[][17][30];
+extern char menu_item_key[][18];
+extern char menu_items[][18][30];
 extern int32_t JoyDirection;
 
 int32_t WinUI_get_drv_num(int32_t key);
