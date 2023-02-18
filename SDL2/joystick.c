@@ -266,6 +266,7 @@ uint8_t FASTCALL Joystick_Read(uint8_t num)
 {
 	uint8_t joynum = num;
 	uint8_t ret0 = 0xff, ret1 = 0xff, ret;
+	uint32_t Cyber_Time[] = {70,10,20,5,10,20,5,10,5,10};
 
 	//+++ 自動判定:PC4が固定でReadが続く:デジタルPADと判定する +++
 	if((Config.Joymode == 2)&&(num == 0)){
@@ -280,54 +281,75 @@ uint8_t FASTCALL Joystick_Read(uint8_t num)
 
 	uint32_t ticknow = Get_usecCount();//1μs単位
 	uint32_t dif;
-	if(ticknow>cyber_tick){dif = ticknow-cyber_tick; }
+	if(ticknow>=cyber_tick){dif = ticknow-cyber_tick; }
 	else{dif = 0xffffffff-cyber_tick+ticknow;}//補正
 //printf("Cyber %d  %d %d,%x %x\n",CyberStick_mode,CyberCount,CyberState,CyberST[CyberState],JoyPortData[0]);
 
-		ret = CyberST[0] | CyberACK;//set ACK=1
+		ret = 0x9f | CyberACK;//set ACK=H
 		switch(CyberTRX){
 		 case 0:
-		  ret = CyberST[CyberState] | CyberACK;//set ACK=1
-		  if(dif>80){
+		  //ret = CyberST[CyberState] | CyberACK;//set ACK=H
+		  ret = 0x9f | CyberACK;//set ACK=H
+		  if(dif>Cyber_Time[0]){
 		    CyberTRX++;
-		    cyber_tick = ticknow;
+		    //cyber_tick = ticknow;
 		  }
 		  break;
 		 case 1:
-		  ret = CyberST[CyberState];// ACK=L
-		  if(dif>20){
+		  ret = CyberST[CyberState] | CyberACK;//set ACK=H
+		  if(dif>Cyber_Time[1]){
 		    CyberTRX++;
-		    cyber_tick = ticknow;
+		    //cyber_tick = ticknow;
 		  }
 		  break;
 		 case 2:
-		  ret = CyberST[CyberState] | CyberACK;//set ACK=1
-		  if(dif>5){
+		  ret = CyberST[CyberState];// ACK=L
+		  if(dif>Cyber_Time[2]){
 		    CyberTRX++;
-		    cyber_tick = ticknow;
-		    CyberState++;
+		    //cyber_tick = ticknow;
 		  }
 		  break;
 		 case 3:
-		  ret = CyberST[CyberState] | CyberACK;//set ACK=1
-		  if(dif>30){
+		  ret = CyberST[CyberState] | CyberACK;//set ACK=H
+		  if(dif>Cyber_Time[3]){
 		    CyberTRX++;
-		    cyber_tick = ticknow;
+		    //cyber_tick = ticknow;
+		    CyberState++;
 		  }
 		  break;
 		 case 4:
-		  ret = CyberST[CyberState];//set ACK=L
-		  if(dif>5){
+		  ret = CyberST[CyberState] | CyberACK;//set ACK=H
+		  if(dif>Cyber_Time[4]){
 		    CyberTRX++;
-		    cyber_tick = ticknow;
+		    //cyber_tick = ticknow;
 		  }
 		  break;
-
+		 case 5:
+		  ret = CyberST[CyberState];//set ACK=L
+		  if(dif>Cyber_Time[5]){
+		    CyberTRX++;
+		    //cyber_tick = ticknow;
+		  }
+		  break;
+		 case 6:
+		  ret = CyberST[CyberState] | CyberACK;//set ACK=H
+		  if(dif>Cyber_Time[6]){
+		    CyberTRX++;
+		    //cyber_tick = ticknow;
+		    CyberState++;
+		  }
+		  break;
+		 case 7:
+		  ret = CyberST[CyberState];//set ACK=L
+		  if(dif>Cyber_Time[7]){
+		    CyberTRX++;
+		    //cyber_tick = ticknow;
+		  }
+		  break;
 		 default:
 		  ret = CyberST[CyberState];//set ACK=L
 		  if(CyberState < 12){  CyberTRX = 1;  }
-		  else{ ret = CyberST[0] | CyberACK; }//ACH=H H/L=H data=all H
-		  CyberTRX = 0;
+		  else{ ret = 0x9f | CyberACK; }//ACH=H H/L=H data=all H
 		  break;
 		}
 	}
@@ -351,13 +373,15 @@ uint8_t FASTCALL Joystick_Read(uint8_t num)
 
 void FASTCALL Joystick_Write(uint8_t num, uint8_t data)
 {
-	if((num == 0)&&(JoyPortData[num]==0xff)&&(data == 0x00)){// PortA PC4 H→L 
-		if(CyberCount > 300) { CyberStick_mode = 1; }//CyberStick ON
-		else { CyberStick_mode = 0; }				//CyberStick OFF
-		CyberCount =0;
-		CyberState = 0;
-		CyberTRX = 0;
-		cyber_tick = Get_usecCount();//1μs単位
+	if(num == 0){// PortA
+		if((JoyPortData[num]==0xff)&&(data == 0x00)){// PC4 H→L
+		  if(CyberCount > 300) { CyberStick_mode = 1; }//CyberStick ON
+		  else { CyberStick_mode = 0; }				//CyberStick OFF
+		  CyberCount =0;
+		  CyberState = 0;
+		  CyberTRX = 0;
+		  cyber_tick = Get_usecCount();//1μs単位
+		}
 	}
 
 	if ( (num==0)||(num==1) ) JoyPortData[num] = data;

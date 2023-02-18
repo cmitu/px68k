@@ -24,7 +24,7 @@ uint16_t Timer_GetCount(void)
 {
 	uint32_t ticknow = Get_usecCount();//1μs単位
 	uint32_t dif;
-	if(ticknow>tick){dif = ticknow-tick; }
+	if(ticknow>=tick){dif = ticknow-tick; }
 	else{dif = 0xffffffff-tick+ticknow;}//補正
 
 	uint32_t TIMEBASE;
