@@ -266,7 +266,7 @@ uint8_t FASTCALL Joystick_Read(uint8_t num)
 {
 	uint8_t joynum = num;
 	uint8_t ret0 = 0xff, ret1 = 0xff, ret;
-	uint32_t Cyber_Time[] = {70,10,20,5,10,20,5,10,5,10};
+	uint32_t Cyber_Time[] = {40,10,20,5,10,20,5,10,5,10};
 
 	//+++ 自動判定:PC4が固定でReadが続く:デジタルPADと判定する +++
 	if((Config.Joymode == 2)&&(num == 0)){
