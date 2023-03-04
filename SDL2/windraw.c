@@ -41,7 +41,7 @@
 #include "prop.h"
 #include "status.h"
 #include "tvram.h"
-#include "joystick.h"
+#include "GameController.h"
 #include "keyboard.h"
 #include "x68kmemory.h"
 
@@ -667,7 +667,6 @@ INLINE void WinDraw_DrawGrpLine(int32_t opaq)
 	uint16_t w;
 	uint32_t i;
 
-	if(VLINE < 0) return;
 	adr = VLINE*FULLSCREEN_WIDTH;
 
 	if (opaq) {
@@ -685,7 +684,6 @@ INLINE void WinDraw_DrawGrpLineNonSP(int32_t opaq)
 	uint16_t w;
 	uint32_t i;
 
-	if(VLINE < 0) return;
 	adr = VLINE*FULLSCREEN_WIDTH;
 
 	if (opaq) {
@@ -709,7 +707,6 @@ INLINE void WinDraw_DrawTextLine(int32_t opaq, int32_t td)
 	uint16_t w;
 	uint32_t i;
 
-	if(VLINE < 0) return;
 	adr = VLINE*FULLSCREEN_WIDTH;
 
 	if (opaq) {
@@ -770,7 +767,6 @@ INLINE void WinDraw_DrawTextLineTR(int32_t opaq)
 	uint16_t w;
 	uint32_t i;
 
-	if(VLINE < 0) return;
 	adr = VLINE*FULLSCREEN_WIDTH;
 
 	if (opaq) {
@@ -794,7 +790,6 @@ INLINE void WinDraw_DrawBGLine(int32_t opaq, int32_t td)
 	uint16_t w;
 	uint32_t i;
 
-	if(VLINE < 0) return;
 	adr = VLINE*FULLSCREEN_WIDTH;
 
 #if 0 // debug for segv
@@ -861,7 +856,6 @@ INLINE void WinDraw_DrawBGLineTR(int32_t opaq)
 	uint16_t w;
 	uint32_t i;
 
-	if(VLINE < 0) return;
 	adr = VLINE*FULLSCREEN_WIDTH;
 
 	if (opaq) {
@@ -880,7 +874,6 @@ INLINE void WinDraw_DrawPriLine(void)
 	uint16_t w;
 	uint32_t i;
 
-	if(VLINE < 0) return;
 	adr = VLINE*FULLSCREEN_WIDTH;
 
 	WD_LOOP(0, TextDotX, _DPL_SUB);
@@ -891,6 +884,7 @@ void WinDraw_DrawLine(void)
 	int32_t opaq, ton=0, gon=0, bgon=0, tron=0, pron=0, tdrawed=0;
 
 	if((VLINE < 0) || (VLINE >= 1024)){ return; } /* Area check */
+
 	if (!TextDirtyLine[VLINE]) return;
 	TextDirtyLine[VLINE] = 0;
 	Draw_DrawFlag = 1;

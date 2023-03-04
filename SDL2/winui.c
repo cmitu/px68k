@@ -37,7 +37,7 @@
 #include "dswin.h"
 #include "prop.h"
 #include "status.h"
-#include "joystick.h"
+#include "GameController.h"
 #include "mouse.h"
 #include "winx68k.h"
 #include "version.h"
@@ -193,13 +193,11 @@ static void menu_hwjoy_print(int32_t v)
 {
 	return;/*--if debug then delete*/
 
-	if (v <= 1) {
+	if (v <= 2) {
 		sprintf(menu_items[M_HJS][v], "Axis%d(%s): %d",
 			v,
 			(v == 0)? "Left/Right" : "Up/Down",
 			Config.HwJoyAxis[v]);
-	} else if (v == 2) {
-		sprintf(menu_items[M_HJS][v], "Hat: %d", Config.HwJoyHat);
 	} else {
 		sprintf(menu_items[M_HJS][v], "Button%d: %d",
 			v - 3,
@@ -694,7 +692,7 @@ int32_t WinUI_Menu(int32_t first)
 	joy = get_joy_downstate();
 	reset_joy_downstate();
 
-	/* GamePad setting */
+	/* JoyPad setting */
 	if (menu_state == ms_hwjoy_set && sdl_joy) {
 		int32_t y;
 		y = mval_y[mkey_y];

@@ -18,7 +18,8 @@
 * MIDI音源FileにSoundFont2使用可(fluidsynth)
 * Support US-KeyBoard. `keyconf.dat` put into .keropi folder.
 * Printer出力をFileに保存
-* Add support CyberStick! (DIGITAL/ANALOG GamePad)
+* Add support CyberStick! (DIGITAL/ANALOG mode)
+* Can use XBOX like GameController (SDL2)
 * `FileNameのutf8/sjis` 自動判別表示(iconvではなく専用table変換)
 * Mac用SDL1/2.frameworkでのbuildスクリプト添付
 * Mac用単独アプリ化ラッパー追加
@@ -26,7 +27,8 @@
 
 ## Need
 * SDL2 (still support SDL1)(https://www.libsdl.org/)
-* `iplrom.dat` `cgrom.dat` and SCSI-IPL `scsiexrom.dat` in .keropi folder
+* `iplrom.dat` `cgrom.dat` and SCSI-IPL `scsiexrom.dat` into .keropi folder
+* `gamecontrollerdb.txt` into .keropi folder(https://github.com/gabomdq/SDL_GameControllerDB)
 * Munt/MT-32 emu (if needed)(https://sourceforge.net/projects/munt/)
 * fluidsynth and SoundFont2 (if needed)(https://www.fluidsynth.org/)
 

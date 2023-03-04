@@ -45,7 +45,7 @@ while test $# -gt 0; do
       echo -I${prefix}/SDL.framework/Headers -D_GNU_SOURCE=1 -D_THREAD_SAFE
       ;;
     --libs)
-      echo -L${exec_prefix} -framework SDL -lSDLmain -lSDL   -Wl,-framework,Cocoa
+      echo -L${exec_prefix} -framework SDL -lSDLmain -Wl,-framework,Cocoa
       ;;
     --static-libs)
 #    --libs|--static-libs)

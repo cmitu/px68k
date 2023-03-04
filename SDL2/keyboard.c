@@ -26,13 +26,14 @@
 #ifndef SDL1
 #include "SDL2/SDL.h"
 #include "keymap.h"
+#include "GameController.h"
 #else
 #include "SDL/SDL.h"
 #include "./SDL1/keymap.h"
+#include "./SDL1/joystick.h"
 #endif
 
 #include "common.h"
-#include "joystick.h"
 #include "prop.h"
 #include "keyboard.h"
 #include "mfp.h"

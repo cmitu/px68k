@@ -15,7 +15,7 @@ extern "C" {
 #include "keyboard.h"
 #include "prop.h"
 #include "status.h"
-#include "joystick.h"
+#include "GameController.h"
 #include "mkcgrom.h"
 #include "winx68k.h"
 #include "windraw.h"
@@ -348,7 +348,7 @@ WinX68k_Reset(void)
 	SCC_Init();
 	Keyboard_Init();
 	PIA_Init();
-	Joystick_Init();
+	GameController_Init();
 	RTC_Init();
 	TVRAM_Init();
 	GVRAM_Init();
@@ -556,7 +556,7 @@ void WinX68k_Exec(void)
 		}
 	}
 
-	Joystick_Update(FALSE, SDLK_UNKNOWN);
+	//Joystick_Update(FALSE, SDLK_UNKNOWN);
 
 	FDD_SetFDInt();
 	if ( !DispFrame )
@@ -800,7 +800,7 @@ int32_t main(int32_t argc, char *argv[])
 	FDD_Init();
 	SysPort_Init();
 	Mouse_Init();
-	Joystick_Open();
+	GameController_Open(); // Mapping XBOX like Game Controller
 	WinX68k_Reset();
 	Timer_Init();
 
@@ -994,6 +994,30 @@ int32_t main(int32_t argc, char *argv[])
 				//p6logd("keyup: 0x%x 0x%x\n", ev.key.keysym.sym,ev.key.keysym.scancode);
 				Keyboard_KeyUp(ev.key.keysym.sym,ev.key.keysym.scancode);//phisical code + α
 				break;
+			//case SDL_JOYDEVICEADDED:
+			case SDL_CONTROLLERDEVICEADDED:
+				if ( ev.cdevice.which == 0 ){// No.0 Device?
+				 sdl_gamepad = SDL_GameControllerOpen( ev.cdevice.which );
+				 p6logd("GameController %s Connected.\n",SDL_GameControllerNameForIndex(ev.cdevice.which));
+				}
+				else{
+				 p6logd("%s AllReady Connected.\n",SDL_GameControllerNameForIndex(0));//1個だけサポート
+				}
+				break;
+			case SDL_CONTROLLERDEVICEREMOVED:
+				  SDL_GameControllerClose( sdl_gamepad );
+				  p6logd("GameController Disconnected.\n");
+				break;
+			case SDL_CONTROLLERAXISMOTION:
+				GameControllerAxis_Update();
+				break;
+			case SDL_CONTROLLERBUTTONDOWN:
+			case SDL_CONTROLLERBUTTONUP:
+				GameControllerButton_Update(FALSE);
+				break;
+			case SDL_CONTROLLERDEVICEREMAPPED:
+				p6logd("Game Controller Re-mapped.\n");
+				break;
 			}
 		}
 
@@ -1030,7 +1054,7 @@ int32_t main(int32_t argc, char *argv[])
 		if (menu_mode != menu_out) {
 			int32_t ret; 
 
-			Joystick_Update(TRUE, menu_key_down);
+			Menu_GameController_Update(menu_key_down); // XBOX like GamePad and KeyPad
 
 			if(ScreenClearFlg == 1){/*Resizable Window support in MENU*/
 			 Update_Screen(1);
@@ -1088,7 +1112,7 @@ end_loop:
 	Config.DisplayNo=SDL_GetWindowDisplayIndex(sdl_window);
 	SDL_GetWindowPosition(sdl_window,&Config.WinPosX,&Config.WinPosY);
 
-	Joystick_Cleanup();
+	GameController_Cleanup();
 	SRAM_Cleanup();
 	FDD_Cleanup();
 	//CDROM_Cleanup();
