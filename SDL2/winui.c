@@ -591,7 +591,12 @@ static void menu_joymode_setting(int32_t v)
 
 static void menu_hwjoy_setting(int32_t v)
 {
-	menu_state = ms_hwjoy_set;
+	if(sdl_gamepad == NULL){
+		menu_state = ms_hwjoy_set; // SDL2 以外は設定
+	}
+	else{
+		sdl_gamepad = SDL_GameControllerOpen(v); // GameController 選択
+	}
 }
 
 static void menu_nowait(int32_t v)

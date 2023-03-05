@@ -1754,52 +1754,6 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 			}
 		} else {
 			draw_str(menu_items[i + mkey_pos][mval_y[i + mkey_pos]],1);
-			/* Real Time Show change HwJoy Setting */
-			if((i + mkey_pos)==13) 
-			{
-				switch(mval_y[i + mkey_pos])/*Axis0,1,Hat,TRG-A,TRG-B*/
-				{
-				case 0:/*Axis0 set*/
-					if(JoyDirection == 0){
-						sprintf(tmp," Right-Set:%d →",Config.HwJoyAxis[0]);
-					}
-					else{
-						sprintf(tmp," Left -Set:%d ←",Config.HwJoyAxis[0]);
-					}
-					draw_str(tmp,1);
-					break;
-				case 1:/*Axis1 set*/
-					if(JoyDirection == 0){
-						sprintf(tmp," Down-Set:%d ↓",Config.HwJoyAxis[1]);
-					}
-					else{
-						sprintf(tmp," Up  -Set:%d ↑",Config.HwJoyAxis[1]);
-					}
-					draw_str(tmp,1);
-					break;
-				case 2:/*Axis2 set*/
-					if(JoyDirection == 0){
-						sprintf(tmp," Down-Set:%d ↓",Config.HwJoyAxis[2]);
-					}
-					else{
-						sprintf(tmp," Up  -Set:%d ↑",Config.HwJoyAxis[2]);
-					}
-					draw_str(tmp,1);
-					break;
-				case 3:/*TRG-A*/
-				case 4:/*TRG-B*/
-				case 5://C
-				case 6://D
-				case 7://Th-Up
-				case 8://Th-Down
-				case 9://E1
-				case 10://E2
-					sprintf(tmp," Set :%d",Config.HwJoyBtn[mval_y[i + mkey_pos]-3]);
-					draw_str(tmp,1);
-					break;
-				default: break;
-				}
-			}
 		}
 	}
 

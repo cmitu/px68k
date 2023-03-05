@@ -205,20 +205,28 @@ void GameController_Open(void)
 	sdl_gamepad = NULL;
 
 	nr_joys = SDL_NumJoysticks();
-	if (nr_joys == 0){ return; }
+	if (nr_joys == 0){
+	 strcpy(menu_items[13][0],"No device found");
+	 strcpy(menu_items[13][1],"\0"); // Menu END
+	 return;
+	}
 
-    for (i = 0; i < 1; ++i) {// 1個だけサポート
+	/*List up GamingDevice*/
+    for (i = 0; i < nr_joys; i++) {
 		if ( SDL_IsGameController(i) )
 		{
 			name = SDL_GameControllerNameForIndex(i);
+			strcpy(menu_items[13][i],name);
 			//p6logd("Game Controller %d: %s\n", i, name ? name : "Unknown Controller");
-			sdl_gamepad = SDL_GameControllerOpen(i);
 			p6logd("GameController No.%d %s connected.\n", i,name);
 		}
 		else{
+		  strcpy(menu_items[13][i],"Not compatible GameController");
 		  p6logd("No.%d Not compatible GameController interface.\n", i);
 		}
     }
+	strcpy(menu_items[13][i],"\0"); // Menu END
+	sdl_gamepad = SDL_GameControllerOpen(0);// default
 
  return;
 }

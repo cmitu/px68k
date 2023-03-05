@@ -16,11 +16,12 @@
 * SCSI-IPLの機能もEmu側で実装する？(未)
 * `Support MIDI-Play` (Internal/Munt/fluidsynth/USB-MIDI)
 * MIDI音源FileにSoundFont2使用可(fluidsynth)
-* Support US-KeyBoard. `keyconf.dat` put into .keropi folder.
+* Support US-KeyBoard. `keyconf.dat` put into .keropi folder
+* 日本語TrueTypeから cgrom.tmp 生成可能
 * Printer出力をFileに保存
 * Add support CyberStick! (DIGITAL/ANALOG mode)
-* Can use XBOX like GameController (SDL2)
-* `FileNameのutf8/sjis` 自動判別表示(iconvではなく専用table変換)
+* Can use XBOX like GameController (hot-pluggable)
+* `FileNameのutf8/sjis` 自動判別日本語表示(専用table変換)
 * Mac用SDL1/2.frameworkでのbuildスクリプト添付
 * Mac用単独アプリ化ラッパー追加
 * macOS/Linux/MinGW64(win) で動作確認
@@ -28,7 +29,7 @@
 ## Need
 * SDL2 (still support SDL1)(https://www.libsdl.org/)
 * `iplrom.dat` `cgrom.dat` and SCSI-IPL `scsiexrom.dat` into .keropi folder
-* `gamecontrollerdb.txt` into .keropi folder(https://github.com/gabomdq/SDL_GameControllerDB)
+* `gamecontrollerdb.txt` into .keropi folder  (https://github.com/gabomdq/SDL_GameControllerDB)
 * Munt/MT-32 emu (if needed)(https://sourceforge.net/projects/munt/)
 * fluidsynth and SoundFont2 (if needed)(https://www.fluidsynth.org/)
 
