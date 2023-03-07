@@ -218,7 +218,7 @@ WinX68k_SCSICheck()
 	if (fp == 0) {
 		//p6logd("NO-SCSI-IPL for CZ-6BS1.\n");// No CZ-6BS1-IPL
 		memset(SCSIIPL, 0, 0x02000);		// clear
-		memcpy(&SCSIIPL[0x20], EX_SCSIIMG, sizeof(EX_SCSIIMG));	// Dummy-SCSI BIOS Load
+		//memcpy(&SCSIIPL[0x20], EX_SCSIIMG, sizeof(EX_SCSIIMG));	// Dummy-SCSI BIOS Load(FDD起動を阻害するので注意！)
 	}
 	else{
 		//p6logd("SCSI-IPL for CZ-6BS1.\n");// Yes CZ-6BS1-IPL
