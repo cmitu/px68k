@@ -117,7 +117,7 @@ char menu_item_key[][18] = {"SYSTEM", "Joy/Mouse", "FDD0", "FDD1", "HDD0", "HDD1
 // Max # of characters is 30.
 // Max # of items including terminater `""' in each line is 15.
 char menu_items[][18][30] = {
-	{"RESET", "NMI RESET", "QUIT", "SRAM-Clear and RESET", ""},
+	{"RESET", "NMI RESET", "QUIT", "Eject MO", "SRAM-Clear and RESET", ""},
 	{"Joystick", "Mouse", ""},
 	{"dummy", "EJECT", ""},
 	{"dummy", "EJECT", ""},
@@ -384,12 +384,16 @@ static void menu_system(int32_t v)
 	case 2:
 		return; /*quit for main loop*/
 		break;
-	case 3 :
+	case 3:
+		Config.SCSIEXHDImage[5][0] = '\0'; /*Eject MO (SCSI-ID=5)*/
+		break;
+	case 4:
 		SRAM_Clear();
 	case 0 :
 		WinX68k_Reset();
 		break;
 	}
+	ScreenClearFlg=1;
 	mval_y[M_SYS] = 0;//メニュー選択をReset
 }
 
@@ -438,7 +442,7 @@ static void menu_create_flist(int32_t v)
 	}
 
 	if (drv >= 2) {
-		strcpy(support, "HDFHDS");/*SASI:HDF SCSI:HDS*/
+		strcpy(support, "HDFHDSMOS");/*SASI-HDD:HDF SCSI-HDD:HDS SCSI-MO:MOS*/
 	}
 
 	// This routine gets file lists.
@@ -882,11 +886,17 @@ int32_t WinUI_Menu(int32_t first)
 						upper(strwork);	 /*拡張子判別用大文字変換*/
 						p = strstr(strwork, ".HDS");
 						if (p == NULL ) {
-						 strcpy((char *)Config.HDImage[drv - 2], tmpstr);
-						 SRAM_SetSASIDrive(15);//Set SRAM for SASI boot drive
-						 Config.SCSIEXHDImage[drv - 2][0] = '\0';
+						  p = strstr(strwork, ".MOS");
+						  if (p == NULL ) {//HDF
+						   strcpy((char *)Config.HDImage[drv - 2], tmpstr);
+						   SRAM_SetSASIDrive(15);//Set SRAM for SASI boot drive
+						   Config.SCSIEXHDImage[drv - 2][0] = '\0';
+						  }
+						  else{//MOS
+						   strcpy((char *)Config.SCSIEXHDImage[5], tmpstr);// SCSI-ID=5
+						  }
 						}
-						else{
+						else{//HDS
 						 Config.HDImage[drv - 2][0] = '\0';
 						 strcpy((char *)Config.SCSIEXHDImage[drv - 2], tmpstr);
 						 SRAM_SetSCSIMode(1);//Set SRAM for ExSCSI boot!

@@ -949,7 +949,11 @@ int32_t main(int32_t argc, char *argv[])
 				}
 #endif
 				p6logd("keydown: 0x%x\n", ev.key.keysym.sym);
-				//p6logd("font %d %d\n", FONT[100], FONT[101]);
+				// F12 だけじゃなくescでもmenu抜ける
+				if ((ev.key.keysym.sym == SDLK_ESCAPE) &&
+					(menu_mode != menu_out) && (menu_state == ms_key)){
+						ev.key.keysym.sym == SDLK_F12;
+				}
 				if (ev.key.keysym.sym == SDLK_F12) {
 					if (menu_mode == menu_out) {
 						menu_mode = menu_enter;
@@ -957,14 +961,8 @@ int32_t main(int32_t argc, char *argv[])
 					} else {
 						DSound_Play();
 						menu_mode = menu_out;
+						break;
 					}
-				}
-				// F12 だけじゃなくescでmenu抜ける
-				if ((ev.key.keysym.sym == SDLK_ESCAPE) &&
-					(menu_mode != menu_out) && (menu_state == ms_key)){
-						DSound_Play();
-						menu_mode = menu_out;
-						ScreenClearFlg = 1;
 				}
 				if (ev.key.keysym.sym == SDLK_F11) { /*toggle Full-Screen mode*/
 					if(FullScreenFlag == 0){ FullScreenFlag = 1; }

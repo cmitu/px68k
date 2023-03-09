@@ -37,13 +37,13 @@ CyberStick(Analog)
 #include "mouse.h"
 #endif
 
-#ifndef MAX_BUTTON
-#define MAX_BUTTON 32
-#endif
+//#ifndef MAX_BUTTON
+//#define MAX_BUTTON 32
+//#endif
 
-char joyname[2][MAX_PATH];
-char joybtnname[2][MAX_BUTTON][MAX_PATH];
-uint8_t joybtnnum[2] = {0, 0};
+//char joyname[2][MAX_PATH];
+//char joybtnname[2][MAX_BUTTON][MAX_PATH];
+//uint8_t joybtnnum[2] = {0, 0};
 
 uint8_t joy[2];
 uint8_t JoyKeyState;
@@ -346,6 +346,7 @@ uint8_t FASTCALL Joystick_Read(uint8_t num)
    }
    else{//=== for ATARI Stick Mode ===
 		if (Config.JoySwap) joynum ^= 1;
+
 		if (joy[num]) {
 		  ret0 = JoyState0[num];
 		  ret1 = JoyState1[num];
@@ -380,7 +381,7 @@ void FASTCALL Joystick_Write(uint8_t num, uint8_t data)
 		}
 	}
 
-	if ( (num==0)||(num==1) ) JoyPortData[num] = data;
+	JoyPortData[num] = data;
 }
 
 // GamePad Analog input for X68000 (like CyberKtick)
@@ -407,11 +408,11 @@ void FASTCALL GameControllerAxis_Update(void)
 		CyberST[2] = 0x90 | (0x0f & (y1 >> 4));
 		CyberST[3] = 0xb0 | (0x0f & (x1 >> 4));
 		CyberST[4] = 0x90 | (0x0f & (z1 >> 4));
-		CyberST[5] = 0xbf;
+		CyberST[5] = 0xb0;
 		CyberST[6] = 0x90 | (0x0f & y1 );
 		CyberST[7] = 0xb0 | (0x0f & x1 );
 		CyberST[8] = 0x90 | (0x0f & z1 );
-		CyberST[9] = 0xbf;
+		CyberST[9] = 0xb0;
 		//CyberST[10] = 0x9f;
 		CyberST[11] = 0xbf;
 		CyberST[13] = 0x9f | CyberACK;// dummy
@@ -491,10 +492,6 @@ void FASTCALL GameControllerButton_Update(int32_t is_menu)
 		}
 
 	}
-
-	/*JoyDownState0 = ~(ret0 ^ pre_ret0) | ret0;
-	JoyUpState0 = (ret0 ^ pre_ret0) & ret0;
-	pre_ret0 = ret0;*/
 
 	// disable Joystick when software keyboard is active
 	if ( !is_menu && !Keyboard_IsSwKeyboard()) {

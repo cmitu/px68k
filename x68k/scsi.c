@@ -335,7 +335,15 @@ SCSI_iocs(uint8_t SCSIiocs)
 			m68000_set_reg(M68K_D0,0);/*OK*/
 		}
 		else{
-			m68000_set_reg(M68K_D0, 0x11);/*No device*/
+			if(target_id == 5){ //MO Drive
+			  for(i=0; i<dtcnt; i++){
+			   Memory_WriteB(m68_adrs+i, INQMO[i]);
+			  }
+			  m68000_set_reg(M68K_D0,0);/*OK*/
+			}
+			else{
+			  m68000_set_reg(M68K_D0, 0x11);/*No device*/
+			}
 		}
 	 break;
 	case 0x21:/*SCSI 装置よりデータの読み込み*/
@@ -864,15 +872,15 @@ void SCSI_targetselect(uint8_t id)
 		break;
 	case 0x02: SCSI_Device = 1; //HDD02
 		break;
-	case 0x04: SCSI_Device = 2; //CD/DVD
+	case 0x04: SCSI_Device = 2;
 		break;
-	case 0x08: SCSI_Device = 3; 
+	case 0x08: SCSI_Device = 3;
 		break;
-	case 0x10: SCSI_Device = 4; //MO
+	case 0x10: SCSI_Device = 4;
 		break;
-	case 0x20: SCSI_Device = 5; 
+	case 0x20: SCSI_Device = 5; //MO
 		break;
-	case 0x40: SCSI_Device = 6;
+	case 0x40: SCSI_Device = 6; //CD-ROM
 		break;
 	case 0x80: SCSI_Device = 7; //X68000
 		break;
