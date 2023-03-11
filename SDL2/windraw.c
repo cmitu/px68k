@@ -278,6 +278,9 @@ void WinDraw_StartupScreen(void)
 
 void WinDraw_CleanupScreen(void)
 {
+	SDL_DestroyTexture(sdl_texture);
+	SDL_DestroyRenderer(sdl_render);
+	SDL_DestroyWindow(sdl_window);
 }
 
 /* Window Size set 
@@ -1550,9 +1553,9 @@ static void draw_str(char *cp, uint32_t flg)
 			p6m.ml_x -= 3;
 		}
 		/*Locate X dot check*/
-		if((p6m.ml_x) > 740) break;
+		if((p6m.ml_x) > 790) break;
 		/*Locate Y dot check*/
-		if((p6m.ml_y) > 580) break;
+		if((p6m.ml_y) > 590) break;
 	}
 
  return;
@@ -1625,6 +1628,8 @@ static void ogles11_draw_menu(void)
 	SDL_GL_SwapWindow(sdl_window);
 }
 #endif
+
+#include "softkey.c"
 
 /*==Menu描画==*/
 void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int32_t *mval_y)

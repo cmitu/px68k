@@ -122,6 +122,7 @@ SDL_Texture *sdl_texture; /*SDL GPU transfer buf*/
 SDL_Surface *sdl_x68screen; /*X68K drawing buf*/
 int32_t realdisp_w, realdisp_h; /*SDLGetScreenSize*/
 extern SDL_Surface *menu_surface; /*for Menu Drawing*/
+extern SDL_Window *sft_kbd_window;// softkeyboard
 
 void
 WinX68k_SCSICheck()
@@ -868,31 +869,40 @@ int32_t main(int32_t argc, char *argv[])
 			case SDL_WINDOWEVENT:
 				if(ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED){ ScreenClearFlg = 1;}
 				if(ev.window.event == SDL_WINDOWEVENT_RESIZED ){ ScreenClearFlg = 1; }
+				if(ev.window.event == SDL_WINDOWEVENT_CLOSE ){
+					if(ev.window.windowID == SDL_GetWindowID(sdl_window)){ goto end_loop; }
+					if(ev.window.windowID == SDL_GetWindowID(sft_kbd_window)){ Soft_kbd_CleanupScreen(); }
+				}
 			break;
 			case SDL_MOUSEBUTTONDOWN:
 				if(ev.button.button == SDL_BUTTON_LEFT){//左ボタンを押した
-					Mouse_Event((int)1, 1, 0);
+					if(ev.window.windowID == SDL_GetWindowID(sdl_window)){ Mouse_Event((int)1, 1, 0); }
+					if(ev.window.windowID == SDL_GetWindowID(sft_kbd_window)){ draw_soft_kbd(ev.button.x,ev.button.y); }// DrawSoftKey
 					//printf("DOWN/LEFT:x=%d,y=%d\n", ev.button.x,ev.button.y);
 				}
 				else if(ev.button.button == SDL_BUTTON_RIGHT){//右ボタン押した
 					Mouse_Event((int)2, 1, 0);
 					//p6logd("DOWN/RIGHT:x=%d,y=%d\n", ev.button.x,ev.button.y);
+					if(menu_mode == menu_in) draw_soft_kbd(0,0);// SoftKey Window ON
 				}
 			break;
 			case SDL_MOUSEBUTTONUP:
 				if(ev.button.button == SDL_BUTTON_LEFT){//Mouse L-button release
-					Mouse_Event((int)1, 0, 0);
+					if(ev.window.windowID == SDL_GetWindowID(sdl_window)){ Mouse_Event((int)1, 0, 0); }
+					if(ev.window.windowID == SDL_GetWindowID(sft_kbd_window)){ draw_soft_kbd(0,0); }// DrawSoftKey
 					//p6logd("UP/LEFT:x=%d,y=%d\n", ev.button.x,ev.button.y);
 				}
 				else if(ev.button.button == SDL_BUTTON_RIGHT){//Mouse R-button release
-					Mouse_Event((int)2, 0, 0);
+					if(ev.window.windowID == SDL_GetWindowID(sdl_window)){ Mouse_Event((int)2, 0, 0); }
 					//p6logd("UP/RIGHT:x=%d,y=%d\n", ev.button.x,ev.button.y);
 				}
 			break;
 			case SDL_MOUSEMOTION:
+				if(ev.window.windowID == SDL_GetWindowID(sdl_window)){
 				Mouse_Event((int)0,	(float)ev.motion.xrel * Config.MouseSpeed /10,
 									(float)ev.motion.yrel * Config.MouseSpeed /10);/*mouse support*/
 				//p6logd("x:%d y:%d xrel:%d yrel:%d\n", ev.motion.x, ev.motion.y, ev.motion.xrel, ev.motion.yrel);
+				}
 				break;
 #if defined(ANDROID) || TARGET_OS_IPHONE
 			case SDL_APP_WILLENTERBACKGROUND:
