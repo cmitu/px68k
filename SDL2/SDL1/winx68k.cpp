@@ -952,7 +952,7 @@ int32_t main(int32_t argc, char *argv[])
 				// F12 だけじゃなくescでもmenu抜ける
 				if ((ev.key.keysym.sym == SDLK_ESCAPE) &&
 					(menu_mode != menu_out) && (menu_state == ms_key)){
-						ev.key.keysym.sym == SDLK_F12;
+						ev.key.keysym.sym = SDLK_F12;
 				}
 				if (ev.key.keysym.sym == SDLK_F12) {
 					if (menu_mode == menu_out) {

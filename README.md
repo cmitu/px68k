@@ -21,6 +21,7 @@
 * Printer出力をFileに保存
 * Add support CyberStick! (DIGITAL/ANALOG mode)
 * Can use XBOX like GameController (hot-pluggable)
+* Support SoftWare-Keyboard. (only SDL2)
 * `FileNameのutf8/sjis` 自動判別日本語表示(専用table変換)
 * Mac用SDL1/2.frameworkでのbuildスクリプト添付
 * Mac用単独アプリ化ラッパー追加
@@ -57,6 +58,7 @@
       FDD-image         D88,88D,HDM,DUP,2HD,DIM,XDF,IMG
       HDD-image(SASI)   HDF(10/20/40MB)
       HDD-image(SCSI)   HDS(max.900MB)
+      MO -image(SCSI)   MOS(128/230/540/640MB)
 
 ## Limitation
  * SCSI対応は現状IOCSレベル。 よってNetBSD/X68kはbootできません。

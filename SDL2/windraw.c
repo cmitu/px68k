@@ -278,6 +278,8 @@ void WinDraw_StartupScreen(void)
 
 void WinDraw_CleanupScreen(void)
 {
+	SDL_FreeSurface(sdl_x68screen);
+	SDL_FreeSurface(menu_surface);
 	SDL_DestroyTexture(sdl_texture);
 	SDL_DestroyRenderer(sdl_render);
 	SDL_DestroyWindow(sdl_window);

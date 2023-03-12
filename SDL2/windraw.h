@@ -43,7 +43,7 @@ void WinDraw_DrawMenufile(struct menu_flist *mfl);
 void WinDraw_ClearMenuBuffer(void);
 void WinDraw_reverse_key(int32_t x, int32_t y);
 
-extern void draw_soft_kbd(uint32_t x, uint32_t y);
+extern void draw_soft_kbd(uint32_t x, uint32_t y, uint8_t LED);
 extern void Soft_kbd_CleanupScreen(void);
 
 #endif //winx68k_windraw_h

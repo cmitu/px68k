@@ -22,75 +22,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/*
-#include <unistd.h>
-#include "common.h"
-#include "SDL2/SDL.h"
-
-#include "keyboard.h"
-#include "winx68k.h"
-
-extern int32_t  winx,winy;
-extern SDL_Surface *menu_surface;
-
-extern void set_mfs(int32_t fs);
-extern void set_mbcolor(uint16_t c);
-extern void set_sbp(uint16_t *p);
-extern void set_mlocate(int32_t x, int32_t y);
-extern void draw_str(char *cp, uint32_t flg);
-extern void set_mcolor(uint16_t c);
-*/
 
 SDL_Window *sft_kbd_window;
 SDL_Surface *sftkey_draw;
 SDL_Surface *keydraw_buffer;
 
+uint8_t Key_X68, LED_X68;
 
 /********** ソフトウェアキーボード描画 **********/
 
 #define KBDBUF_WIDTH 766
 #define KBDBUF_HIGHT 218
+
 #define KBD_FS 16 // keyboard font size : 16
 
-// 選択しているキーの座標 (初期値'Q')
-int32_t  kbd_kx = 1, kbd_ky = 2;
-
-// キーを反転する
-void softkey_reverse(int32_t x, int32_t y)
-{
-	uint16_t *p;
-	int32_t kp;
-	int32_t i, j;
-	int32_t Bpp = keydraw_buffer->format->BytesPerPixel;
-
-	//kp = Keyboard_get_key_ptr(kbd_kx, kbd_ky);
-
-	p = keydraw_buffer->pixels + (keydraw_buffer->w * Bpp * kbd_key[kp].y) + (kbd_key[kp].x * Bpp);
-
-	for (i = 0; i < kbd_key[kp].h; i++) {
-		for (j = 0; j < kbd_key[kp].w; j++) {
-			*p = ~(*p);
-			p++;
-		}
-		p = p + KBDBUF_WIDTH - kbd_key[kp].w;
-	}
-}
 
 void Soft_kbd_CleanupScreen(void)
 {
 	if(sft_kbd_window != NULL){
 	 SDL_DestroyWindow(sft_kbd_window);
+	 SDL_FreeSurface(keydraw_buffer);
 	 sft_kbd_window = NULL;
 	}
 }
 
-void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y)
+void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y, uint8_t keyboardLED)
 {
 	int32_t i, x, y,Bpp;
 	uint16_t *p;
 	uint16_t keycolor;
+	SDL_Rect keyrect;
 
-	// Open KeyBoard Window
+	// Window KeyBoard Panel
 	if(sft_kbd_window == NULL){
 		sft_kbd_window = SDL_CreateWindow("X68000 keyboard", winx, winy, KBDBUF_WIDTH, KBDBUF_HIGHT, SDL_WINDOW_SHOWN);
 		sftkey_draw = SDL_GetWindowSurface(sft_kbd_window); /*描画用*/
@@ -99,44 +62,58 @@ void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y)
 
 	Bpp = keydraw_buffer->format->BytesPerPixel;
 
+	// LED変化なしの場合はret
+	if((ms_x == 0)&&(ms_y == 0)){
+		if(!(keyboardLED & 0x80) && (keyboardLED != 0)) return;
+		if((keyboardLED & 0x7f) == (LED_X68 & 0x7f)) return;
+	}
+
 	set_sbp(keydraw_buffer->pixels);
 	set_mbcolor(0);
 	set_mcolor(0);
 	set_mfs(KBD_FS);
 
-	// キーボードの背景
-	p = keydraw_buffer->pixels;
-	for (y = 0; y < keydraw_buffer->h; y++) {
-		for (x = 0; x < keydraw_buffer->w; x++) {
-			*p++ = (0x7800 | 0x03e0 | 0x000f);
-		}
-	}
+	// キーボードの背景(全画面)
+	SDL_FillRect(keydraw_buffer, NULL, (0x7800 | 0x03e0 | 0x000f));
 
 	// キーの描画
 	for (i = 0; kbd_key[i].x != -1; i++) {
+
+	  if((ms_x == 0)&&(ms_y == 0)){// event なし
+		if(Key_X68 == kbd_key[i].c) keycolor = 0x3333;
+		else keycolor = 0xffff;
+		LED_X68 = keyboardLED;
+	  }
+	  else{//判定＆event発生
+		// KEY match
 		if((kbd_key[i].x < ms_x) && (kbd_key[i].y < ms_y) && 
 			(kbd_key[i].x+kbd_key[i].w > ms_x) && (kbd_key[i].y+kbd_key[i].h > ms_y)){
-			send_keycode((kbd_key[i].c & 0x7f), 2);// send keydown event
 			keycolor = 0x3333;
-			send_keycode((kbd_key[i].c & 0x7f), 1);// send keyup event
 		}
 		else{
 			keycolor = 0xffff;
 		}
 
-		p = keydraw_buffer->pixels + (kbd_key[i].y * keydraw_buffer->w * Bpp) + (kbd_key[i].x * Bpp);
-		for (y = 0; y < kbd_key[i].h; y++) {
-			for (x = 0; x < kbd_key[i].w; x++) {
-				if (x >= (kbd_key[i].w - 1)
-				    || y >= (kbd_key[i].h - 1)) {
-					// キーに影をつけ立体的に見せる
-					*p++ = 0x0000;
-				} else {
-					*p++ = keycolor;
-				}
-			}
-			p = p + keydraw_buffer->w - kbd_key[i].w;
+		// KEY event
+		if((Key_X68 != kbd_key[i].c) && (keycolor == 0x3333)){
+		  send_keycode((kbd_key[i].c & 0x7f), 2);// send keydown event
+		  Key_X68 = kbd_key[i].c;
 		}
+		if((Key_X68 == kbd_key[i].c) && (keycolor == 0xffff)){
+		  send_keycode((kbd_key[i].c & 0x7f), 1);// send keyup event
+		  Key_X68 = 0;
+		}
+	  }
+
+		// Key Drawing..
+		p = keydraw_buffer->pixels + (kbd_key[i].y * keydraw_buffer->w * Bpp) + (kbd_key[i].x * Bpp);
+		keyrect.x=kbd_key[i].x; keyrect.y=kbd_key[i].y;
+		keyrect.w=kbd_key[i].w; keyrect.h=kbd_key[i].h;
+		SDL_FillRect(keydraw_buffer, &keyrect, 0x0000);
+		keyrect.w -=2; keyrect.h -=2;
+		SDL_FillRect(keydraw_buffer, &keyrect, keycolor);
+
+		// KeyTop Charactor
 		if (strlen(kbd_key[i].s) == 3 && *(kbd_key[i].s) == 'F') {
 			// FUNCキー刻印描画
 			set_mlocate(kbd_key[i].x + kbd_key[i].w / 2
@@ -156,13 +133,45 @@ void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y)
 		}
 	}
 
-	//softkey_reverse(kbd_kx, kbd_ky);
+	// LED drawing
+	keyrect.w=16; keyrect.h=6;//共通
+	if(!(LED_X68 & 0x01)){//かな
+		keyrect.x=kbd_key[12].x +8; keyrect.y=kbd_key[12].y +24;
+		SDL_FillRect(keydraw_buffer, &keyrect, (0x0000 | 0x03e0 | 0x0000));
+	}
+	if(!(LED_X68 & 0x02)){//ローマ字
+		keyrect.x=kbd_key[13].x +8; keyrect.y=kbd_key[13].y +24;
+		SDL_FillRect(keydraw_buffer, &keyrect, (0x0000 | 0x03e0 | 0x0000));
+	}
+	if(!(LED_X68 & 0x04)){//コード入力
+		keyrect.x=kbd_key[14].x +8; keyrect.y=kbd_key[14].y +24;
+		SDL_FillRect(keydraw_buffer, &keyrect, (0x0000 | 0x03e0 | 0x0000));
+	}
+	if(!(LED_X68 & 0x08)){//CAPSLOCK
+		keyrect.x=kbd_key[15].x +8; keyrect.y=kbd_key[15].y +24;
+		SDL_FillRect(keydraw_buffer, &keyrect, (0x0000 | 0x03e0 | 0x0000));
+	}
+	if(!(LED_X68 & 0x10)){//INS
+		keyrect.x=kbd_key[35].x +8; keyrect.y=kbd_key[35].y +24;
+		SDL_FillRect(keydraw_buffer, &keyrect, (0x0000 | 0x03e0 | 0x0000));
+	}
+	if(!(LED_X68 & 0x20)){//ひらがな
+		keyrect.x=kbd_key[101].x +8; keyrect.y=kbd_key[101].y +24;
+		SDL_FillRect(keydraw_buffer, &keyrect, (0x0000 | 0x03e0 | 0x0000));
+	}
+	if(!(LED_X68 & 0x40)){//全角
+		keyrect.x=kbd_key[108].x +8; keyrect.y=kbd_key[108].y +24;
+		SDL_FillRect(keydraw_buffer, &keyrect, (0x0000 | 0x03e0 | 0x0000));
+	}
 
+	// 描画結果を画面に表示
 	SDL_BlitSurface(keydraw_buffer, NULL, sftkey_draw, NULL);
 	SDL_UpdateWindowSurface(sft_kbd_window);
 
-	set_mfs(24); // 元に戻す
+	 // 元に戻す
+	set_mfs(24);
 	set_sbp((uint16_t *)(menu_surface->pixels));
 
+  return;
 }
 

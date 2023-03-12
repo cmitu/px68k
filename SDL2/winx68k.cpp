@@ -877,19 +877,19 @@ int32_t main(int32_t argc, char *argv[])
 			case SDL_MOUSEBUTTONDOWN:
 				if(ev.button.button == SDL_BUTTON_LEFT){//左ボタンを押した
 					if(ev.window.windowID == SDL_GetWindowID(sdl_window)){ Mouse_Event((int)1, 1, 0); }
-					if(ev.window.windowID == SDL_GetWindowID(sft_kbd_window)){ draw_soft_kbd(ev.button.x,ev.button.y); }// DrawSoftKey
+					if(ev.window.windowID == SDL_GetWindowID(sft_kbd_window)){ draw_soft_kbd(ev.button.x,ev.button.y, 0); }// DrawSoftKey
 					//printf("DOWN/LEFT:x=%d,y=%d\n", ev.button.x,ev.button.y);
 				}
 				else if(ev.button.button == SDL_BUTTON_RIGHT){//右ボタン押した
 					Mouse_Event((int)2, 1, 0);
 					//p6logd("DOWN/RIGHT:x=%d,y=%d\n", ev.button.x,ev.button.y);
-					if(menu_mode == menu_in) draw_soft_kbd(0,0);// SoftKey Window ON
+					if(menu_mode == menu_in) draw_soft_kbd(1,1,0);// SoftKey Window ON
 				}
 			break;
 			case SDL_MOUSEBUTTONUP:
 				if(ev.button.button == SDL_BUTTON_LEFT){//Mouse L-button release
 					if(ev.window.windowID == SDL_GetWindowID(sdl_window)){ Mouse_Event((int)1, 0, 0); }
-					if(ev.window.windowID == SDL_GetWindowID(sft_kbd_window)){ draw_soft_kbd(0,0); }// DrawSoftKey
+					if(ev.window.windowID == SDL_GetWindowID(sft_kbd_window)){ draw_soft_kbd(1,1,0); }// ReDrawSoftKey
 					//p6logd("UP/LEFT:x=%d,y=%d\n", ev.button.x,ev.button.y);
 				}
 				else if(ev.button.button == SDL_BUTTON_RIGHT){//Mouse R-button release
@@ -968,7 +968,7 @@ int32_t main(int32_t argc, char *argv[])
 				// F12 だけじゃなくescでもmenu抜ける
 				if ((ev.key.keysym.sym == SDLK_ESCAPE) &&
 					(menu_mode != menu_out) && (menu_state == ms_key)){
-						ev.key.keysym.sym == SDLK_F12;
+						ev.key.keysym.sym = SDLK_F12;
 				}
 				if (ev.key.keysym.sym == SDLK_F12) {
 					if (menu_mode == menu_out) {
