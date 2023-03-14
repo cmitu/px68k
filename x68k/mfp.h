@@ -42,4 +42,8 @@ void FASTCALL MFP_Timer(int32_t clock);
 void FASTCALL MFP_TimerA(void);
 void MFP_Int(int32_t irq);
 
+extern uint8_t keyLED;
+extern uint8_t keyREP_DELAY;
+extern uint8_t keyREP_TIME;
+
 #endif //_winx68k_mfp

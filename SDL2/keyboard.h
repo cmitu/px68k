@@ -21,10 +21,6 @@ struct keyboard_key {
 	uint8_t c;
 };
 
-uint8_t keyLED;
-uint8_t keyREP_DELAY;
-uint8_t keyREP_TIME;
-
 extern struct keyboard_key kbd_key[];
 extern int32_t  kbd_kx, kbd_ky;
 extern int32_t kbd_x, kbd_y, kbd_w, kbd_h;

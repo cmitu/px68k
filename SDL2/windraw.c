@@ -44,6 +44,7 @@
 #include "GameController.h"
 #include "keyboard.h"
 #include "x68kmemory.h"
+#include "mfp.h"
 
 #if 0
 #include "../icons/keropi.xpm"

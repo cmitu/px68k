@@ -29,6 +29,10 @@ static uint8_t Timer_Reload[4] = {0, 0, 0, 0};
 static int32_t Timer_Tick[4] = {0, 0, 0, 0};
 static const int32_t Timer_Prescaler[8] = {1, 10, 25, 40, 125, 160, 250, 500};
 
+uint8_t keyLED;
+uint8_t keyREP_DELAY;
+uint8_t keyREP_TIME;
+
 // -----------------------------------------------------------------------
 //   優先割り込みのチェックをし、該当ベクタを返す
 // -----------------------------------------------------------------------
@@ -262,9 +266,9 @@ void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 			if(data & 0x80){
 				if((sft_kbd_window != NULL) && (keyLED != data)){
-				  keyLED = data;
 				  draw_soft_kbd(0,0,data);
 				}
+				keyLED = data;
 			}
 			else if((data & 0x60) == 0x60){
 				keyREP_DELAY = data;
