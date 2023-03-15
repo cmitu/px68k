@@ -7,10 +7,6 @@
 #include "SDL/SDL.h"
 #endif
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-extern SDL_Window *sft_kbd_window;// softkeyboard
-#endif
-
 #include "mfp.h"
 #include "irqh.h"
 #include "crtc.h"
@@ -263,11 +259,13 @@ void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 			MFP[reg] = data;
 			break;
 		case MFP_UDR://Send to keyboard
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 			if(data & 0x80){
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+extern SDL_Window *sft_kbd_window;// softkeyboard
 				if((sft_kbd_window != NULL) && (keyLED != data)){
 				  draw_soft_kbd(0,0,data);
 				}
+#endif
 				keyLED = data;
 			}
 			else if((data & 0x60) == 0x60){
@@ -276,7 +274,6 @@ void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 			else if((data & 0x70) == 0x70){
 				keyREP_TIME = data;
 			}
-#endif
 			break;
 		default:
 			MFP[reg] = data;
