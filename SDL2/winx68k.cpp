@@ -723,6 +723,8 @@ int32_t main(int32_t argc, char *argv[])
 		p6logd("sdl_window: %ld", sdl_window);
 	}
 
+	Soft_kbd_CreateScreen();// Soft Keyboard Window init.
+
 #ifdef USE_OGLES11
 	SDL_GLContext glcontext = SDL_GL_CreateContext(sdl_window);
 
@@ -871,7 +873,7 @@ int32_t main(int32_t argc, char *argv[])
 				if(ev.window.event == SDL_WINDOWEVENT_RESIZED ){ ScreenClearFlg = 1; }
 				if(ev.window.event == SDL_WINDOWEVENT_CLOSE ){
 					if(ev.window.windowID == SDL_GetWindowID(sdl_window)){ goto end_loop; }
-					if(ev.window.windowID == SDL_GetWindowID(sft_kbd_window)){ Soft_kbd_CleanupScreen(); }
+					if(ev.window.windowID == SDL_GetWindowID(sft_kbd_window)){ Soft_kbd_Show(0); }//消す
 				}
 			break;
 			case SDL_MOUSEBUTTONDOWN:
@@ -883,7 +885,7 @@ int32_t main(int32_t argc, char *argv[])
 				else if(ev.button.button == SDL_BUTTON_RIGHT){//右ボタン押した
 					Mouse_Event((int)2, 1, 0);
 					//p6logd("DOWN/RIGHT:x=%d,y=%d\n", ev.button.x,ev.button.y);
-					if(menu_mode == menu_in) draw_soft_kbd(1,1,0);// SoftKey Window ON
+					if(menu_mode == menu_in) Soft_kbd_Show(1);;// SoftKey Window ON
 				}
 			break;
 			case SDL_MOUSEBUTTONUP:
@@ -1146,6 +1148,7 @@ end_loop:
 	DSound_Cleanup();
 	WinX68k_Cleanup();
 	WinDraw_Cleanup();
+	Soft_kbd_CleanupScreen();
 	WinDraw_CleanupScreen();
 
 	SaveConfig();

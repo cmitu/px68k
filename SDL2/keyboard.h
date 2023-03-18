@@ -18,6 +18,7 @@ struct keyboard_key {
 	int32_t w;
 	int32_t h;
 	char *s;
+	char *s2;
 	uint8_t c;
 };
 
