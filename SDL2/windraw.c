@@ -176,7 +176,7 @@ int32_t WinDraw_ChangeSizeGO(void)
 void
 WinDraw_InitWindowSize(uint32_t ScreenX, uint32_t ScreenY, uint32_t StartX, uint32_t StartY)
 {
-
+	SDL_SetRenderDrawColor(sdl_render, 0, 0, 0, 0);	/* select color (black) */
 	SDL_RenderClear(sdl_render);/*screen buffer clear*/
 
 	switch(ScreenX){
@@ -305,6 +305,7 @@ void WinDraw_ChangeMode(int32_t flg)
 	if (Config.WinStrech == 1){w_flags |= SDL_WINDOW_RESIZABLE;}
 
 	/* clear screen */
+	SDL_SetRenderDrawColor(sdl_render, 0, 0, 0, 0);	/* select color (black) */
 	SDL_RenderClear(sdl_render);
 
 	/*texture 描画のみ有効。（surface描画は画面真っ黒）*/
@@ -529,11 +530,13 @@ Update_Screen(uint32_t menu)
 	  CRTrect.h = (600*TextDotY/surfaceH);
 	}
 
-	if(ScreenClearFlg != 0){ 			/*change screen(clear while 3 Frame)*/
+	// Render Clear every time
 	  SDL_SetRenderDrawColor(sdl_render, 0, 0, 0, 0);	/* select color (black) */
 	  SDL_RenderClear(sdl_render);		/*renderer buffer clear*/
-	  if(ScreenClearFlg == 2)	WinDraw_ChangeSizeGO();
-	  if(ScreenClearFlg++ > 3) ScreenClearFlg=0;
+
+	if(ScreenClearFlg != 0){ 			/*change screen(after clear screen)*/
+	  WinDraw_ChangeSizeGO();
+	  ScreenClearFlg=0;
 	}
 
 	SDL_RenderCopy(sdl_render, sdl_texture, &x68rect, &CRTrect);/*texture → renderer*/
@@ -1640,6 +1643,7 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 	int32_t i, drv;
 	char tmp[256];
 
+	SDL_SetRenderDrawColor(sdl_render, 0, 0, 0, 0);	/* select color (black) */
 	SDL_RenderClear(sdl_render);/*screen buffer clear*/
 
 // ソフトウェアキーボード描画時にset_sbp(kbd_buffer)されているので戻す

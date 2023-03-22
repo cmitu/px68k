@@ -716,6 +716,7 @@ int32_t main(int32_t argc, char *argv[])
 	sdl_window = SDL_CreateWindow(window_title, winx, winy, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, flags);
 	sdl_render = SDL_CreateRenderer( sdl_window ,-1, SDL_RENDERER_ACCELERATED);
 	SDL_RenderSetLogicalSize( sdl_render ,FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT);
+	SDL_SetRenderDrawColor(sdl_render, 0, 0, 0, 0);	/* select color (black) */
 	SDL_RenderClear(sdl_render);
 #endif
 

@@ -3,14 +3,8 @@
 
 #include "common.h"
 
-#ifndef SDL1
-#include "SDL2/SDL.h"
-#include "SDL2/SDL_keycode.h"
-#include "SDL2/SDL_joystick.h"
-#else
 #include "SDL/SDL.h"
 #include "SDL/SDL_joystick.h"
-#endif
 
 #define	JOY_UP		0x01
 #define	JOY_DOWN	0x02
