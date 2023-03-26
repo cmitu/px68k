@@ -385,121 +385,113 @@ void FASTCALL Joystick_Write(uint8_t num, uint8_t data)
 }
 
 // GamePad Analog input for X68000 (like CyberKtick)
-void FASTCALL GameControllerAxis_Update(void)
+void FASTCALL GameControllerAxis_Update(int32_t which, uint8_t axis, int32_t value)
 {
-	int32_t num = 0; //xxx only joy1
-	int16_t x, y, z;
-	uint8_t x1, y1, z1;
+	// XBOX like GamePad update Analog value
+	uint8_t value8 = ((value-SDL_AxisMIN) * 255)/(SDL_AxisMAX-SDL_AxisMIN);// 0~255に正規化
 
-	// XBOX like GamePad
-	if (sdl_gamepad) {
-		//SDL_GameControllerUpdate();
-		x = SDL_GameControllerGetAxis(sdl_gamepad, SDL_CONTROLLER_AXIS_LEFTX);
-		y = SDL_GameControllerGetAxis(sdl_gamepad, SDL_CONTROLLER_AXIS_LEFTY);
-		z = SDL_GameControllerGetAxis(sdl_gamepad, SDL_CONTROLLER_AXIS_TRIGGERLEFT);
-
-		/*0~255に正規化*/
-		x1 = ((x-SDL_AxisMIN) * 255)/(SDL_AxisMAX-SDL_AxisMIN);
-		y1 = ((y-SDL_AxisMIN) * 255)/(SDL_AxisMAX-SDL_AxisMIN);
-		z1 = ((z-SDL_AxisMIN) * 255)/(SDL_AxisMAX-SDL_AxisMIN);
-
-		//CyberST[0] = 0x9f;
-		//CyberST[1] = 0xbf;
-		CyberST[2] = 0x90 | (0x0f & (y1 >> 4));
-		CyberST[3] = 0xb0 | (0x0f & (x1 >> 4));
-		CyberST[4] = 0x90 | (0x0f & (z1 >> 4));
-		CyberST[5] = 0xb0;
-		CyberST[6] = 0x90 | (0x0f & y1 );
-		CyberST[7] = 0xb0 | (0x0f & x1 );
-		CyberST[8] = 0x90 | (0x0f & z1 );
-		CyberST[9] = 0xb0;
-		//CyberST[10] = 0x9f;
-		CyberST[11] = 0xbf;
-		CyberST[13] = 0x9f | CyberACK;// dummy
+	switch(axis){
+	case SDL_CONTROLLER_AXIS_LEFTY:
+	  CyberST[2] = 0x90 | (0x0f & (value8 >> 4));
+	  CyberST[6] = 0x90 | (0x0f & value8 );
+	  break;
+	case SDL_CONTROLLER_AXIS_LEFTX:
+	  CyberST[3] = 0xb0 | (0x0f & (value8 >> 4));
+	  CyberST[7] = 0xb0 | (0x0f & value8 );
+	  break;
+	case SDL_CONTROLLER_AXIS_TRIGGERLEFT:
+	  CyberST[4] = 0x90 | (0x0f & (value8 >> 4));
+	  CyberST[8] = 0x90 | (0x0f & value8 );
+	  break;
 	}
+	/*固定値*/
+	CyberST[5] = 0xb7;
+	CyberST[9] = 0xbf;
+	CyberST[11] = 0xbf;
+	CyberST[13] = 0x9f | CyberACK;// dummy
 
  return;
 }
 
 // GamePad Button for X68000 
-void FASTCALL GameControllerButton_Update(int32_t is_menu)
+void FASTCALL GameControllerButton_Update(int32_t which, uint8_t button, uint8_t on )
 {
-	uint8_t ret0 = 0xff, ret1 = 0xff;
-	int32_t num = 0; //xxx only joy1
+	// Atari U D R L,A B (C D ThU ThD E1 E2)
+	uint8_t ret0 = 0, ret1 = 0;
 
-	int16_t x, y, z;
-	uint8_t x1, y1, z1;
+	// CyberStick A B C D E1 E2  Start Select
+	uint8_t CyberST0  = 0;//init A B C D 
+	uint8_t CyberST1  = 0;//init E1 E2 start select
+	uint8_t CyberST10 = 0;//init A B A' B'
 
 	// XBOX like GamePad
-	if (sdl_gamepad) {
-
-		// Atari Digital +
-		if(SDL_GameControllerGetButton(sdl_gamepad, SDL_CONTROLLER_BUTTON_DPAD_UP) == 1){
-		  ret0 ^= JOY_UP;
-		}
-		if(SDL_GameControllerGetButton(sdl_gamepad, SDL_CONTROLLER_BUTTON_DPAD_DOWN) == 1){
-		  ret0 ^= JOY_DOWN;
-		}
-		if(SDL_GameControllerGetButton(sdl_gamepad, SDL_CONTROLLER_BUTTON_DPAD_LEFT) == 1){
-		  ret0 ^= JOY_LEFT;
-		}
-		if(SDL_GameControllerGetButton(sdl_gamepad, SDL_CONTROLLER_BUTTON_DPAD_RIGHT) == 1){
-		  ret0 ^= JOY_RIGHT;
-		}
-
-		// Atari A B C D E1 E2  Start Select
-		CyberST[0]  = 0x9f; // init A B C D
-		CyberST[1]  = 0xbf; // init E1 E2 F G
-		CyberST[10] = 0x9f; // init A B A'B'
-		if(SDL_GameControllerGetButton(sdl_gamepad, SDL_CONTROLLER_BUTTON_A) == 1){//A
-		  ret0 ^= JOY_TRGA;
-		  CyberST[0] &= 0xf7;//A
-		  CyberST[10] &= 0xf7;
-		}
-		if(SDL_GameControllerGetButton(sdl_gamepad, SDL_CONTROLLER_BUTTON_B) == 1){//B
-		  ret0 ^= JOY_TRGB;
-		  CyberST[0] &= 0xfb;//B
-		  CyberST[10] &= 0xfb;
-		}
-		if(SDL_GameControllerGetButton(sdl_gamepad, SDL_CONTROLLER_BUTTON_X) == 1){//X
-		  ret1 ^= JOY_TRGC;
-		  CyberST[0] &= 0xfd;//C
-		}
-		if(SDL_GameControllerGetButton(sdl_gamepad, SDL_CONTROLLER_BUTTON_Y) == 1){//Y
-		  ret1 ^= JOY_TRGC;
-		  CyberST[0] &= 0xfe;//D
-		}
-		if(SDL_GameControllerGetButton(sdl_gamepad, SDL_CONTROLLER_BUTTON_LEFTSHOULDER) == 1){//Th up
-		  ret1 ^= JOY_ThUP;//Th UP
-		}
-		if(SDL_GameControllerGetButton(sdl_gamepad, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER) == 1){//Th down
-		  ret1 ^= JOY_ThDN;//Th Down
-		}
-		if(SDL_GameControllerGetButton(sdl_gamepad, SDL_CONTROLLER_BUTTON_LEFTSTICK) == 1){//E1
-		  ret1 ^= JOY_TRGE1;
-		  CyberST[1] &= 0xf7;//E1
-		}
-		if(SDL_GameControllerGetButton(sdl_gamepad, SDL_CONTROLLER_BUTTON_RIGHTSTICK) == 1){//E2
-		  ret1 ^= JOY_TRGE2;
-		  CyberST[1] &= 0xfb;//E2
-		}
-
-		if(SDL_GameControllerGetButton(sdl_gamepad, SDL_CONTROLLER_BUTTON_START) == 1){//F(Start)
-		  CyberST[1] &= 0xfd;//F(Start)
-		}
-		if(SDL_GameControllerGetButton(sdl_gamepad, SDL_CONTROLLER_BUTTON_BACK) == 1){//G(Select)
-		  CyberST[1] &= 0xfe;//G(select)
-		}
-
+	switch(button){
+	case SDL_CONTROLLER_BUTTON_DPAD_UP ... SDL_CONTROLLER_BUTTON_DPAD_RIGHT://+ Up/Down/R/L
+	  ret0 = 0x01 << (button- SDL_CONTROLLER_BUTTON_DPAD_UP);
+	  break;
+	case SDL_CONTROLLER_BUTTON_A:
+	  ret0 = JOY_TRGA;
+	  CyberST0  = 0x08;//A
+	  CyberST10 = 0x08;
+	  break;
+	case SDL_CONTROLLER_BUTTON_B:
+	  ret0 = JOY_TRGB;
+	  CyberST0  = 0x04;//B
+	  CyberST10 = 0x04;
+	  break;
+	case SDL_CONTROLLER_BUTTON_X:
+	  ret1 = JOY_TRGC;
+	  CyberST0 = 0x02;//C
+	  break;
+	case SDL_CONTROLLER_BUTTON_Y:
+	  ret1 = JOY_TRGD;
+	  CyberST0 = 0x01;//D
+	  break;
+	case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+	  ret1 = JOY_ThUP;//Th UP
+	  break;
+	case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+	  ret1 = JOY_ThDN;//Th Down
+	  break;
+	case SDL_CONTROLLER_BUTTON_LEFTSTICK:
+	  ret1 = JOY_TRGE1;
+	  CyberST1 = 0x08;//E1
+	  break;
+	case SDL_CONTROLLER_BUTTON_RIGHTSTICK:
+	  ret1 = JOY_TRGE2;
+	  CyberST1 = 0x04;//E2
+	  break;
+	case SDL_CONTROLLER_BUTTON_START:
+	  CyberST1 = 0x02;//F(Start)
+	  break;
+	case SDL_CONTROLLER_BUTTON_BACK:
+	  CyberST1 = 0x01;//G(select)
+	  break;
+	case SDL_CONTROLLER_BUTTON_GUIDE:// Menu in
+	  if(on){  JoyDownState0 = (JOY_HOME ^ 0xff); }
+	  break;
 	}
 
-	// disable Joystick when software keyboard is active
-	if ( !is_menu && !Keyboard_IsSwKeyboard()) {
-		JoyState0[num] = ret0;
-		JoyState1[num] = ret1;
+	if(on){// Switch ON!
+		JoyState0[which] &= ~ret0;
+		JoyState1[which] &= ~ret1;
+		CyberST[0]  &= ~CyberST0;
+		CyberST[1]  &= ~CyberST1;
+		CyberST[10] &= ~CyberST10;
 	}
+	else{// Switch OFF!
+		JoyState0[which] |= ret0;
+		JoyState1[which] |= ret1;
+		CyberST[0] |= CyberST0;
+		CyberST[1] |= CyberST1;
+		CyberST[10] |= CyberST10;
+	}
+	//固定値(念のため)
+	CyberST[0]  |= 0x90;//init A B C D 
+	CyberST[1]  |= 0xb0;//init E1 E2 start select
+	CyberST[10] |= 0x90;//init A B A' B'
 
- return;
+return;
 }
 
 // Keyinput and GamePad for Menu Mode 
@@ -529,6 +521,10 @@ void FASTCALL Menu_GameController_Update(SDL_Keycode key)
 	}
 	if(SDL_GameControllerGetButton(sdl_gamepad, SDL_CONTROLLER_BUTTON_B) == 1){//B
 	  ret0 ^= JOY_TRGB;
+	}
+
+	if(SDL_GameControllerGetButton(sdl_gamepad, SDL_CONTROLLER_BUTTON_GUIDE) == 1){//HOME
+	  ret0 ^= JOY_HOME;
 	}
 
 	// scan keycode for menu UI

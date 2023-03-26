@@ -78,10 +78,9 @@ void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y, uint8_t keyboardLED)
 		if((keyboardLED & 0x7f) == (LED_X68 & 0x7f)) return;
 	}
 
-	set_sbp(keydraw_buffer->pixels);
+	//色設定
 	set_mbcolor(0);
 	set_mcolor(0);
-	set_mfs(softkey_fontsize);
 
 	// キーボードの背景(全画面塗りつぶし)
 	SDL_FillRect(keydraw_buffer, NULL, (0x7800 | 0x03e0 | 0x000f));
@@ -125,6 +124,8 @@ void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y, uint8_t keyboardLED)
 		// KeyTop Charactor
 		x=kbd_key[i].x + (kbd_key[i].w-softkey_fontsize)/2 - ((strlen(kbd_key[i].s)-1)*2);
 		y=kbd_key[i].y + (kbd_key[i].h-softkey_fontsize)/2 - 1;
+		set_sbp(keydraw_buffer->pixels);//描画準備
+		set_mfs(softkey_fontsize);
 		if(strlen(kbd_key[i].s2) == 0){
 		 set_mlocate(x,y);
 		 draw_str(kbd_key[i].s,1);
@@ -135,6 +136,8 @@ void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y, uint8_t keyboardLED)
 		 set_mlocate(x+5,y+5);
 		 draw_str(kbd_key[i].s2,1);
 		}
+		set_sbp((uint16_t *)(menu_surface->pixels));//元に戻す
+		set_mfs(24);
 	}
 
 	// LED drawing
@@ -154,7 +157,7 @@ void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y, uint8_t keyboardLED)
 	SDL_RenderCopy(sft_kbd_render, sft_kbd_texture, NULL, NULL);
 	SDL_RenderPresent(sft_kbd_render);
 
-	 // 元に戻す
+	 // 元に戻す(念のため)
 	set_mfs(24);
 	set_sbp((uint16_t *)(menu_surface->pixels));
 

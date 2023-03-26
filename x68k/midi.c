@@ -355,6 +355,9 @@ void MIDI_Init(void) {
 		}
 	}
 
+	if (Config.MIDI_SW && Config.MIDI_Reset)  MIDI_Reset();// りせっと〜
+
+ return;
 }
 
 // -----------------------------------------------------------------------

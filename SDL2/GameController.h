@@ -13,6 +13,7 @@
 #define	JOY_RIGHT	0x08
 #define	JOY_TRGA	0x20
 #define	JOY_TRGB	0x40
+#define	JOY_HOME	0x80
 
 #define	JOY_ThUP	0x01
 #define	JOY_ThDN	0x02
@@ -47,8 +48,8 @@ extern SDL_GameController *sdl_gamepad;
 void GameController_Open(void);
 void GameController_Init(void);
 void GameController_Cleanup(void);
-void FASTCALL GameControllerAxis_Update(void);
-void FASTCALL GameControllerButton_Update(int32_t is_menu );
+void FASTCALL GameControllerAxis_Update(int32_t which, uint8_t axis, int32_t value);
+void FASTCALL GameControllerButton_Update(int32_t which, uint8_t button, uint8_t on );
 void Menu_GameController_Update( SDL_Keycode key );
 
 uint8_t get_joy_downstate(void);

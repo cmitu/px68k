@@ -733,6 +733,10 @@ int32_t WinUI_Menu(int32_t first)
 		}
 	}
 
+	if (!(joy & JOY_HOME)) {
+			return WUM_MENU_END;//HOMEボタンでMenuEnd
+	}
+
 	if (!(joy & JOY_UP)) {
 		switch (menu_state) {
 		case ms_key:
@@ -922,6 +926,9 @@ int32_t WinUI_Menu(int32_t first)
 
 	if (!(joy & JOY_TRGB)) {
 		switch (menu_state) {
+		case ms_key:
+			return WUM_MENU_END;//GamePadでMenuEnd
+			break;
 		case ms_file:
 			menu_state = ms_value;
 			// reset position of file cursor

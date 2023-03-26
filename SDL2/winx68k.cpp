@@ -557,7 +557,6 @@ void WinX68k_Exec(void)
 		}
 	}
 
-	//Joystick_Update(FALSE, SDLK_UNKNOWN);
 
 	FDD_SetFDInt();
 	if ( !DispFrame )
@@ -576,10 +575,11 @@ void WinX68k_Exec(void)
 void
 get_cmd_line(int32_t argc, char *argv[])
 {
-	// *.HDS、*.HDFはHDD、他はFDD
+	// *.HDS、*.HDFはHDD、他はFDD MOSはMO
 	char fdimg[] = "D8888DHDMDUP2HDDIMXDFIMG";
 	char saimg[] = "HDF";
 	char scimg[] = "HDS";
+	char moimg[] = "MOS";
 
 	char strwork[20];
 	char *p;
@@ -612,6 +612,12 @@ get_cmd_line(int32_t argc, char *argv[])
 	      if(h1 < 15){h1++;}
 	    }
 	    p = strstr(scimg, strwork);
+	    if(p != NULL){
+	      strcpy((char *)Config.SCSIEXHDImage[s1], argv[i]);
+	      s1++;
+	      if(s1 < 6){s1++;}
+	    }
+	    p = strstr(moimg, strwork);
 	    if(p != NULL){
 	      strcpy((char *)Config.SCSIEXHDImage[s1], argv[i]);
 	      s1++;
@@ -1008,7 +1014,7 @@ int32_t main(int32_t argc, char *argv[])
 			//case SDL_JOYDEVICEADDED:
 			case SDL_CONTROLLERDEVICEADDED:
 				strcpy(menu_items[13][ev.cdevice.which],SDL_GameControllerNameForIndex(ev.cdevice.which));
-				strcpy(menu_items[13][ev.cdevice.which +1],"\0"); // Menu END
+				strcpy(menu_items[13][ev.cdevice.which +1],"\0"); // Menu item END
 				if ( ev.cdevice.which == 0 ){// No Device +1 ?
 				 sdl_gamepad = SDL_GameControllerOpen( ev.cdevice.which );
 				}
@@ -1022,7 +1028,7 @@ int32_t main(int32_t argc, char *argv[])
 				nr_joys = SDL_NumJoysticks();
 				if (nr_joys == 0){
 				 strcpy(menu_items[13][0],"No device found");
-				 strcpy(menu_items[13][1],"\0"); // Menu END
+				 strcpy(menu_items[13][1],"\0"); // Menu item END
 				 break;
 				}
 				uint32_t i;
@@ -1034,15 +1040,22 @@ int32_t main(int32_t argc, char *argv[])
 				    strcpy(menu_items[13][i],"Not compatible GameController");
 				  }
 				}
-				strcpy(menu_items[13][i],"\0"); // Menu END
+				strcpy(menu_items[13][i],"\0"); // Menu item END
 				sdl_gamepad = SDL_GameControllerOpen(0);//defaultに戻す
 				break;
 			case SDL_CONTROLLERAXISMOTION:
-				GameControllerAxis_Update();
+				GameControllerAxis_Update(ev.caxis.which, ev.caxis.axis, ev.caxis.value);
 				break;
 			case SDL_CONTROLLERBUTTONDOWN:
+				GameControllerButton_Update(ev.cbutton.which, ev.cbutton.button, 1);
+				if((menu_mode == menu_out) && (get_joy_downstate() == (JOY_HOME ^ 0xff)) ){// HOME(Menu in)
+				  menu_mode = menu_enter;
+				  reset_joy_downstate();
+				  DSound_Stop();
+				}
+				break;
 			case SDL_CONTROLLERBUTTONUP:
-				GameControllerButton_Update(FALSE);
+				GameControllerButton_Update(ev.cbutton.which, ev.cbutton.button, 0);
 				break;
 			case SDL_CONTROLLERDEVICEREMAPPED:
 				p6logd("Game Controller Re-mapped.\n");
