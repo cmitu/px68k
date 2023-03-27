@@ -53,7 +53,7 @@ extern void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y, uint8_t keyboardLED);
   if(flg == 0) SDL_HideWindow(sft_kbd_window);
   if(flg == 1){
 	SDL_ShowWindow(sft_kbd_window);
-	draw_soft_kbd(0,0,keyLED);//Redraw
+	draw_soft_kbd(1,1,keyLED);//Redraw
   }
   if(flg == 2){
 	SDL_SetWindowPosition(sft_kbd_window, winx+16, winy+430);

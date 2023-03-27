@@ -598,7 +598,8 @@ static void menu_hwjoy_setting(int32_t v)
 #if !SDL_VERSION_ATLEAST(2, 0, 0) //==SDL1==
 		menu_state = ms_hwjoy_set; // 設定
 #else
-		sdl_gamepad = SDL_GameControllerOpen(v); // GameController 選択
+		SDL_GameControllerClose(sdl_gamepad); // 旧GameController破棄
+		sdl_gamepad = SDL_GameControllerOpen(v); // 新GameController 選択
 #endif
 }
 

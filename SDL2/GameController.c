@@ -387,8 +387,20 @@ void FASTCALL Joystick_Write(uint8_t num, uint8_t data)
 // GamePad Analog input for X68000 (like CyberKtick)
 void FASTCALL GameControllerAxis_Update(int32_t which, uint8_t axis, int32_t value)
 {
+
 	// XBOX like GamePad update Analog value
-	uint8_t value8 = ((value-SDL_AxisMIN) * 255)/(SDL_AxisMAX-SDL_AxisMIN);// 0~255に正規化
+	value /=236;// ±140程度に縮める
+	if(value>=0){
+	  if(value<5) value = 0;//ニュートラル
+	  else value -=5;
+	  if(127<value) value = 127;//最大値
+	}
+	else{
+	  if(value>-5) value = 0;//ニュートラル
+	  else value +=5;
+	  if(-128>value) value = -128;//最小値
+	}
+	uint8_t value8 = value + 128;// 0~255に正規化
 
 	switch(axis){
 	case SDL_CONTROLLER_AXIS_LEFTY:
