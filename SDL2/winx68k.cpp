@@ -892,7 +892,14 @@ int32_t main(int32_t argc, char *argv[])
 				else if(ev.button.button == SDL_BUTTON_RIGHT){//右ボタン押した
 					Mouse_Event((int)2, 1, 0);
 					//p6logd("DOWN/RIGHT:x=%d,y=%d\n", ev.button.x,ev.button.y);
-					if(menu_mode == menu_in) Soft_kbd_Show(1);// SoftKey Window ON
+					if(menu_mode == menu_in){
+						if(ev.window.windowID == SDL_GetWindowID(sdl_window)){
+						  int x, y;
+						  SDL_GetWindowPosition(sdl_window, &x, &y);
+						  SDL_SetWindowPosition(sft_kbd_window, ev.button.x + x, ev.button.y + y);
+						}
+						Soft_kbd_Show(1);// SoftKey Window ON
+					}
 				}
 			break;
 			case SDL_MOUSEBUTTONUP:

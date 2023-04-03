@@ -485,15 +485,15 @@ void FASTCALL GameControllerButton_Update(int32_t which, uint8_t button, uint8_t
 	}
 
 	if(on){// Switch ON!
-		JoyState0[which] &= ~ret0;
-		JoyState1[which] &= ~ret1;
+		JoyState0[0] &= ~ret0;
+		JoyState1[0] &= ~ret1;
 		CyberST[0]  &= ~CyberST0;
 		CyberST[1]  &= ~CyberST1;
 		CyberST[10] &= ~CyberST10;
 	}
 	else{// Switch OFF!
-		JoyState0[which] |= ret0;
-		JoyState1[which] |= ret1;
+		JoyState0[0] |= ret0;
+		JoyState1[0] |= ret1;
 		CyberST[0] |= CyberST0;
 		CyberST[1] |= CyberST1;
 		CyberST[10] |= CyberST10;
@@ -510,34 +510,13 @@ return;
 void FASTCALL Menu_GameController_Update(SDL_Keycode key)
 {
 	uint8_t ret0 = 0xff;
+	static uint8_t pre_ret0 = 0xff;
+
 	uint8_t ret1 = 0xff;
-	static uint8_t pre_ret0 = 0xff, pre_mret0 = 0xff;
-	int32_t num = 0; //xxx only joy1
+	static uint8_t pre_mret0 = 0xff;
 
 	// Atari Digital +
-	if(SDL_GameControllerGetButton(sdl_gamepad, SDL_CONTROLLER_BUTTON_DPAD_UP) == 1){//+UP
-	  ret0 ^= JOY_UP;
-	}
-	if(SDL_GameControllerGetButton(sdl_gamepad, SDL_CONTROLLER_BUTTON_DPAD_DOWN) == 1){//+DOWN
-	  ret0 ^= JOY_DOWN;
-	}
-	if(SDL_GameControllerGetButton(sdl_gamepad, SDL_CONTROLLER_BUTTON_DPAD_LEFT) == 1){//+LEFT
-	  ret0 ^= JOY_LEFT;
-	}
-	if(SDL_GameControllerGetButton(sdl_gamepad, SDL_CONTROLLER_BUTTON_DPAD_RIGHT) == 1){//+RIGHT
-	  ret0 ^= JOY_RIGHT;
-	}
-
-	if(SDL_GameControllerGetButton(sdl_gamepad, SDL_CONTROLLER_BUTTON_A) == 1){//A
-	  ret0 ^= JOY_TRGA;
-	}
-	if(SDL_GameControllerGetButton(sdl_gamepad, SDL_CONTROLLER_BUTTON_B) == 1){//B
-	  ret0 ^= JOY_TRGB;
-	}
-
-	if(SDL_GameControllerGetButton(sdl_gamepad, SDL_CONTROLLER_BUTTON_GUIDE) == 1){//HOME
-	  ret0 ^= JOY_HOME;
-	}
+	ret0 = JoyState0[0];// from GameController (U/D/L/R/A/B)
 
 	// scan keycode for menu UI
 	if (key != SDLK_UNKNOWN) {

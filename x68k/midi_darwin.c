@@ -271,29 +271,12 @@ midiOutShortMsg(HMIDIOUT hmo, uint32_t msg)
 	mid_Packet = MIDIPacketListInit(packetList);
 
 	/* length of msg */
-	uint32_t len;
-	switch(messg[0] & 0xf0){
-		case 0xc0://prog. chg
-		case 0xd0://chnnel press.
-			len = 2;
-			break;
-		case 0x80://note off
-		case 0x90://     on
-		case 0xa0://key press.
-		case 0xb0://cont.chg
-		case 0xe0://pitch wheel chg
-			len = 3;
-			break;
-		case 0xf0:
-			return MMSYSERR_NOERROR;//ないと思うけど
-			break;
-		default:
-			return MMSYSERR_NOERROR;//ありえないハズ
-			break;
-	}
+	uint32_t len = 3;//note on/off/key press/cont.chg/pitch wheel chg
+	if(((messg[0]&0xf0)==0xc0) || ((messg[0]&0xf0)==0xd0)){ len = 2; }//prog. chg / chnnel press ?
 
 	/*(CoreMIDI) 電文とタイムスタンプ入れてPacketList更新 */
-	MIDIPacketListAdd(packetList, (ByteCount)sizeof(packetBuf), mid_Packet, mach_absolute_time(), len, (uint8_t *)messg);
+	MIDIPacketListAdd(packetList, (ByteCount)sizeof(packetBuf), mid_Packet,
+				mach_absolute_time(), len, (uint8_t *)messg);
 
 	/*(CoreMIDI) PacketList送信 */
 	MIDISend(mid_out_port,mid_endpoint,packetList);
