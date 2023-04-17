@@ -13,11 +13,14 @@
 #include	<string.h>
 
 	uint8_t		GVRAM[0x80000];
-	uint16_t	Grp_LineBuf[1024];
-	uint16_t	Grp_LineBufSP[1024];		// 特殊プライオリティ／半透明用バッファ
-	uint16_t	Grp_LineBufSP2[1024];		// 半透明ベースプレーン用バッファ（非半透明ビット格納）
+	// 32bit depth
+	uint32_t	Grp_LineBuf32[1024];
+	uint32_t	Grp_LineBuf32SP[1024];		// 特殊プライオリティ／半透明用バッファ
+	uint32_t	Grp_LineBuf32SP2[1024];		// 半透明ベースプレーン用バッファ（非半透明ビット格納）
+
 	uint16_t	Grp_LineBufSP_Tr[1024];
 	uint16_t	Pal16Adr[256];			// 16bit color パレットアドレス計算用
+
 
 #ifndef C68K_BIG_ENDIAN
 	// xxx: for little endian only
@@ -235,10 +238,10 @@ LABEL void Grp_DrawLine16(void)
 {
 
 	uint16_t *srcp;
-	uint16_t *destp;
+	uint32_t *destp32;
 	int32_t x, y;
 	int_fast32_t i;
-	uint16_t v, v0;
+	uint32_t v, v0;
 
 	y = GrphScrollY[0] + VLINE;
 	if ((CRTC_Regs[0x29] & 0x1c) == 0x1c)
@@ -247,7 +250,7 @@ LABEL void Grp_DrawLine16(void)
 
 	x = GrphScrollX[0] & 0x1ff;
 	srcp = (uint16_t *)(GVRAM + y + x * 2);
-	destp = (uint16_t *)Grp_LineBuf;
+	destp32 = (uint32_t *)Grp_LineBuf32;
 
 	x = (x ^ 0x1ff) + 1;
 
@@ -262,9 +265,9 @@ LABEL void Grp_DrawLine16(void)
 
 				v = Pal_Regs[Pal16Adr[v]];
 				v |= Pal_Regs[Pal16Adr[v0] + 2] << 8;
-				v = Pal16[v];
+				v = Pal32[v];
 			}
-			*destp++ = v;
+			*destp32++ = v;
 		}
 		srcp -= 0x200;
 	}
@@ -277,9 +280,9 @@ LABEL void Grp_DrawLine16(void)
 
 			v = Pal_Regs[Pal16Adr[v]];
 			v |= Pal_Regs[Pal16Adr[v0] + 2] << 8;
-			v = Pal16[v];
+			v = Pal32[v];
 		}
-		*destp++ = v;
+		*destp32++ = v;
 	}
 
 }
@@ -288,12 +291,12 @@ LABEL void Grp_DrawLine16(void)
 LABEL void FASTCALL Grp_DrawLine8(int32_t page, int32_t opaq)
 {
 	uint16_t *srcp;
-	uint16_t *destp;
+	uint32_t *destp32;
 	int32_t x, x0;
 	int32_t y, y0;
 	int32_t off;
 	int_fast32_t i;
-	uint16_t v;
+	uint32_t v;
 
 	page &= 1;
 
@@ -311,7 +314,7 @@ LABEL void FASTCALL Grp_DrawLine8(int32_t page, int32_t opaq)
 
 	off = y0 + x0 * 2;
 	srcp = (uint16_t *)(GVRAM + y + x * 2);
-	destp = (uint16_t *)Grp_LineBuf;
+	destp32 = (uint32_t *)Grp_LineBuf32;
 
 	x = (x ^ 0x1ff) + 1;
 
@@ -323,8 +326,8 @@ LABEL void FASTCALL Grp_DrawLine8(int32_t page, int32_t opaq)
 			for (; i < x; ++i) {
 				v = GET_WORD_W8(srcp);
 				srcp++;
-				v = GrphPal[(GVRAM[off] & 0xf0) | (v & 0x0f)];
-				*destp++ = v;
+				v = GrphPal32[(GVRAM[off] & 0xf0) | (v & 0x0f)];
+				*destp32++ = v;
 
 				off += 2;
 				if ((off & 0x3fe) == 0x000)
@@ -336,8 +339,8 @@ LABEL void FASTCALL Grp_DrawLine8(int32_t page, int32_t opaq)
 		for (; i < TextDotX; ++i) {
 			v = GET_WORD_W8(srcp);
 			srcp++;
-			v = GrphPal[(GVRAM[off] & 0xf0) | (v & 0x0f)];
-			*destp++ = v;
+			v = GrphPal32[(GVRAM[off] & 0xf0) | (v & 0x0f)];
+			*destp32++ = v;
 
 			off += 2;
 			if ((off & 0x3fe) == 0x000)
@@ -350,8 +353,8 @@ LABEL void FASTCALL Grp_DrawLine8(int32_t page, int32_t opaq)
 				srcp++;
 				v = (GVRAM[off] & 0xf0) | (v & 0x0f);
 				if (v != 0x00)
-					*destp = GrphPal[v];
-				destp++;
+					*destp32 = GrphPal32[v];
+				destp32++;
 
 				off += 2;
 				if ((off & 0x3fe) == 0x000)
@@ -365,8 +368,8 @@ LABEL void FASTCALL Grp_DrawLine8(int32_t page, int32_t opaq)
 			srcp++;
 			v = (GVRAM[off] & 0xf0) | (v & 0x0f);
 			if (v != 0x00)
-				*destp = GrphPal[v];
-			destp++;
+				*destp32 = GrphPal32[v];
+			destp32++;
 
 			off += 2;
 			if ((off & 0x3fe) == 0x000)
@@ -380,11 +383,11 @@ LABEL void FASTCALL Grp_DrawLine8(int32_t page, int32_t opaq)
 LABEL void FASTCALL Grp_DrawLine4(uint32_t page, int32_t opaq)
 {
 	uint16_t *srcp;	// XXX: ALIGN
-	uint16_t *destp;
+	uint32_t *destp32;
 	uint32_t x, y;
 	uint32_t off;
 	int_fast32_t i;
-	uint16_t v;
+	uint32_t v;
 
 	page &= 3;
 
@@ -399,7 +402,7 @@ LABEL void FASTCALL Grp_DrawLine4(uint32_t page, int32_t opaq)
 	x ^= 0x1ff;
 
 	srcp = (uint16_t *)(GVRAM + off + (page >> 1));
-	destp = (uint16_t *)Grp_LineBuf;
+	destp32 = (uint32_t *)Grp_LineBuf32;
 
 	v = 0;
 	i = 0;
@@ -410,16 +413,16 @@ LABEL void FASTCALL Grp_DrawLine4(uint32_t page, int32_t opaq)
 				for (; i < x; ++i) {
 					v = GET_WORD_W8(srcp);
 					srcp++;
-					v = GrphPal[(v >> 4) & 0xf];
-					*destp++ = v;
+					v = GrphPal32[(v >> 4) & 0xf];
+					*destp32++ = v;
 				}
 				srcp -= 0x200;
 			}
 			for (; i < TextDotX; ++i) {
 				v = GET_WORD_W8(srcp);
 				srcp++;
-				v = GrphPal[(v >> 4) & 0xf];
-				*destp++ = v;
+				v = GrphPal32[(v >> 4) & 0xf];
+				*destp32++ = v;
 			}
 		} else {
 			if (x < TextDotX) {
@@ -428,8 +431,8 @@ LABEL void FASTCALL Grp_DrawLine4(uint32_t page, int32_t opaq)
 					srcp++;
 					v = (v >> 4) & 0x0f;
 					if (v != 0x00)
-						*destp = GrphPal[v];
-					destp++;
+						*destp32 = GrphPal32[v];
+					destp32++;
 				}
 				srcp -= 0x200;
 			}
@@ -438,8 +441,8 @@ LABEL void FASTCALL Grp_DrawLine4(uint32_t page, int32_t opaq)
 				srcp++;
 				v = (v >> 4) & 0x0f;
 				if (v != 0x00)
-					*destp = GrphPal[v];
-				destp++;
+					*destp32 = GrphPal32[v];
+				destp32++;
 			}
 		}
 	} else {
@@ -448,16 +451,16 @@ LABEL void FASTCALL Grp_DrawLine4(uint32_t page, int32_t opaq)
 				for (; i < x; ++i) {
 					v = GET_WORD_W8(srcp);
 					srcp++;
-					v = GrphPal[v & 0x0f];
-					*destp++ = v;
+					v = GrphPal32[v & 0x0f];
+					*destp32++ = v;
 				}
 				srcp -= 0x200;
 			}
 			for (; i < TextDotX; ++i) {
 				v = GET_WORD_W8(srcp);
 				srcp++;
-				v = GrphPal[v & 0x0f];
-				*destp++ = v;
+				v = GrphPal32[v & 0x0f];
+				*destp32++ = v;
 			}
 		} else {
 			if (x < TextDotX) {
@@ -466,8 +469,8 @@ LABEL void FASTCALL Grp_DrawLine4(uint32_t page, int32_t opaq)
 					srcp++;
 					v &= 0x0f;
 					if (v != 0x00)
-						*destp = GrphPal[v];
-					destp++;
+						*destp32 = GrphPal32[v];
+					destp32++;
 				}
 				srcp -= 0x200;
 			}
@@ -476,8 +479,8 @@ LABEL void FASTCALL Grp_DrawLine4(uint32_t page, int32_t opaq)
 				srcp++;
 				v &= 0x0f;
 				if (v != 0x00)
-					*destp = GrphPal[v];
-				destp++;
+					*destp32 = GrphPal32[v];
+				destp32++;
 			}
 		}
 	}
@@ -488,7 +491,7 @@ LABEL void FASTCALL Grp_DrawLine4(uint32_t page, int32_t opaq)
 void FASTCALL Grp_DrawLine4h(void)
 {
 	uint16_t *srcp;
-	uint16_t *destp;
+	uint32_t *destp32;
 	int32_t x, y;
 	int_fast32_t i;
 	uint16_t v;
@@ -509,13 +512,13 @@ void FASTCALL Grp_DrawLine4h(void)
 
 	x = GrphScrollX[0] & 0x1ff;
 	srcp = (uint16_t *)(GVRAM + y + x * 2);
-	destp = (uint16_t *)Grp_LineBuf;
+	destp32 = (uint32_t *)Grp_LineBuf32;
 
 	x = ((x & 0x1ff) ^ 0x1ff) + 1;
 
 	for (i = 0; i < TextDotX; ++i) {
 		v = *srcp++;
-		*destp++ = GrphPal[(v >> bits) & 0x0f];
+		*destp32++ = GrphPal32[(v >> bits) & 0x0f];
 
 		if (--x == 0) {
 			srcp -= 0x200;
@@ -549,11 +552,11 @@ void FASTCALL Grp_DrawLine16SP(void)
 	for (i = 0; i < TextDotX; ++i) {
 		v = (Pal_Regs[GVRAM[off+1]*2] << 8) | Pal_Regs[GVRAM[off]*2+1];
 		if ((GVRAM[off] & 1) == 0) {
-			Grp_LineBufSP[i] = 0;
-			Grp_LineBufSP2[i] = Pal16[v & 0xfffe];
+			Grp_LineBuf32SP[i] = 0;
+			Grp_LineBuf32SP2[i] = Pal32[v & 0xfffe];
 		} else {
-			Grp_LineBufSP[i] = Pal16[v & 0xfffe];
-			Grp_LineBufSP2[i] = 0;
+			Grp_LineBuf32SP[i] = Pal32[v & 0xfffe];
+			Grp_LineBuf32SP2[i] = 0;
 		}
 
 		off += 2;
@@ -570,7 +573,7 @@ void FASTCALL Grp_DrawLine8SP(int32_t page)
 	int32_t y, y0;
 	uint32_t off, off0;
 	int_fast32_t i;
-	uint16_t v;
+	uint32_t v;
 
 	page &= 1;
 
@@ -598,19 +601,20 @@ void FASTCALL Grp_DrawLine8SP(int32_t page)
 		if ((v & 1) == 0) {
 			v &= 0xfe;
 			if (v != 0x00) {
- 				v = GrphPal[v];
+ 				v = GrphPal32[v];
 				if (!v)
 					Grp_LineBufSP_Tr[i] = 0x1234;
 			}
 
-			Grp_LineBufSP[i] = 0;
-			Grp_LineBufSP2[i] = v;
+			Grp_LineBuf32SP[i] = 0;
+			Grp_LineBuf32SP2[i] = v;
 		} else {
 			v &= 0xfe;
-			if (v != 0x00)
-				v = GrphPal[v] | Ibit;
-			Grp_LineBufSP[i] = v;
-			Grp_LineBufSP2[i] = 0;
+			if (v != 0x00){//Ibitありで色あり
+				v = GrphPal32[v] | Abit32;//αbit追加
+			}
+			Grp_LineBuf32SP[i] = v;
+			Grp_LineBuf32SP2[i] = 0;
 		}
 
 		off += 2;
@@ -657,12 +661,12 @@ void FASTCALL Grp_DrawLine4SP(uint32_t page/*, int opaq*/)
 			v = GVRAM[off] >> 4;
 			if ((v & 1) == 0) {
 				v &= 0x0e;
-				Grp_LineBufSP[i] = 0;
-				Grp_LineBufSP2[i] = GrphPal[v];
+				Grp_LineBuf32SP[i] = 0;
+				Grp_LineBuf32SP2[i] = GrphPal32[v];
 			} else {
 				v &= 0x0e;
-				Grp_LineBufSP[i] = GrphPal[v];
-				Grp_LineBufSP2[i] = 0;
+				Grp_LineBuf32SP[i] = GrphPal32[v];
+				Grp_LineBuf32SP2[i] = 0;
 			}
 
 			off += 2;
@@ -685,12 +689,12 @@ void FASTCALL Grp_DrawLine4SP(uint32_t page/*, int opaq*/)
 			v = GVRAM[off];
 			if ((v & 1) == 0) {
 				v &= 0x0e;
-				Grp_LineBufSP[i] = 0;
-				Grp_LineBufSP2[i] = GrphPal[v];
+				Grp_LineBuf32SP[i] = 0;
+				Grp_LineBuf32SP2[i] = GrphPal32[v];
 			} else {
 				v &= 0x0e;
-				Grp_LineBufSP[i] = GrphPal[v];
-				Grp_LineBufSP2[i] = 0;
+				Grp_LineBuf32SP[i] = GrphPal32[v];
+				Grp_LineBuf32SP2[i] = 0;
 			}
 
 			off += 2;
@@ -729,12 +733,12 @@ void FASTCALL Grp_DrawLine4hSP(void)
 
 	for (i = 0; i < TextDotX; ++i) {
 		v = *srcp++ >> bits;
-		if ((v & 1) == 0) {
-			Grp_LineBufSP[i] = 0;
-			Grp_LineBufSP2[i] = GrphPal[v & 0x0e];
-		} else {
-			Grp_LineBufSP[i] = GrphPal[v & 0x0e];
-			Grp_LineBufSP2[i] = 0;
+		if ((v & 1) == 0) {//Ibitなし
+			Grp_LineBuf32SP[i] = 0;
+			Grp_LineBuf32SP2[i] = GrphPal32[v & 0x0e];//delete Ibit
+		} else {//Ibitあり
+			Grp_LineBuf32SP[i] = GrphPal32[v & 0x0e];//delete Ibit
+			Grp_LineBuf32SP2[i] = 0;
 		}
 
 		if (--x == 0)
@@ -773,24 +777,27 @@ Grp_DrawLine8TR(int32_t page, int32_t opaq)
 		x = GrphScrollX[page * 2] & 0x1ff;
 
 		for (i = 0; i < TextDotX; ++i, x = (x + 1) & 0x1ff) {
-			v0 = Grp_LineBufSP[i];
+			v0 = Grp_LineBuf32SP[i];
 			v = GVRAM[y + x * 2];
 
 			if (v0 != 0) {
 				if (v != 0) {
-					v = GrphPal[v];
+					v = GrphPal32[v];
 					if (v != 0) {
-						v0 &= Pal_HalfMask;
-						if (v & Ibit)
-							v0 |= Pal_Ix2;
-						v &= Pal_HalfMask;
+						v0 &= Pal32_X68kMask;
+						if (v & Abit32){
+							v0 |= Ibit32;
+						}
+						v &= Pal32_X68kMask;
+						v  >>= 1;
+						v0 >>= 1;
 						v += v0;
-						v >>= 1;
 					}
 				}
-			} else
-				v = GrphPal[v];
-			Grp_LineBuf[i] = (uint16_t)v;
+			} else {
+				v = GrphPal32[v];
+			}
+			Grp_LineBuf32[i] = (uint32_t)v;
 		}
 	}
 
@@ -813,7 +820,7 @@ Grp_DrawLine8TR_GT(int32_t page, int32_t opaq)
 		x = GrphScrollX[page * 2] & 0x1ff;
 
 		for (i = 0; i < TextDotX; ++i, x = (x + 1) & 0x1ff) {
-			Grp_LineBuf[i] = (Grp_LineBufSP[i] || Grp_LineBufSP_Tr[i]) ? 0 : GrphPal[GVRAM[y + x * 2]];
+			Grp_LineBuf32[i] = (Grp_LineBuf32SP[i] || Grp_LineBufSP_Tr[i]) ? 0 : GrphPal32[GVRAM[y + x * 2]];
 			Grp_LineBufSP_Tr[i] = 0;
 		}
 	}
@@ -840,48 +847,53 @@ Grp_DrawLine4TR(uint32_t page, int32_t opaq)
 
 		if (opaq) {
 			for (i = 0; i < TextDotX; ++i, x = (x + 1) & 0x1ff) {
-				v0 = Grp_LineBufSP[i];
+				v0 = Grp_LineBuf32SP[i];
 				v = GVRAM[y + x * 2] >> 4;
 
 				if (v0 != 0) {
 					if (v != 0) {
-						v = GrphPal[v];
+						v = GrphPal32[v];
 						if (v != 0) {
-							v0 &= Pal_HalfMask;
-							if (v & Ibit)
-								v0 |= Pal_Ix2;
-							v &= Pal_HalfMask;
+							v0 &= Pal32_X68kMask;
+							if (v & Abit32){
+								v0 |= Ibit32;
+							}
+							v &= Pal32_X68kMask;
+							v  >>= 1;
+							v0 >>= 1;
 							v += v0;
-							v >>= 1;
 						}
 					}
-				} else
-					v = GrphPal[v];
-				Grp_LineBuf[i] = (uint16_t)v;
+				} else {
+					v = GrphPal32[v];
+				}
+				Grp_LineBuf32[i] = (uint32_t)v;
 			}
 		} else {
 			for (i = 0; i < TextDotX; ++i, x = (x + 1) & 0x1ff) {
-				v0 = Grp_LineBufSP[i];
+				v0 = Grp_LineBuf32SP[i];
 
 				if (v0 == 0) {
 					v = GVRAM[y + x * 2] >> 4;
 					if (v != 0)
-						Grp_LineBuf[i] = GrphPal[v];
+						Grp_LineBuf32[i] = GrphPal32[v];
 				} else {
 					v = GVRAM[y + x * 2] >> 4;
 					if (v != 0) {
-						v = GrphPal[v];
+						v = GrphPal32[v];
 						if (v != 0) {
-							v0 &= Pal_HalfMask;
-							if (v & Ibit)
-								v0 |= Pal_Ix2;
-							v &= Pal_HalfMask;
+							v0 &= Pal32_X68kMask;
+							if (v & Abit32){
+								v0 |= Ibit32;
+							}
+							v &= Pal32_X68kMask;
+							v  >>= 1;
+							v0 >>= 1;
 							v += v0;
-							v = GrphPal[v >> 1];
-							Grp_LineBuf[i]=(uint16_t)v;
+							Grp_LineBuf32[i]=(uint32_t)v;
 						}
 					} else
-						Grp_LineBuf[i] = (uint16_t)v;
+						Grp_LineBuf32[i] = (uint32_t)v;
 				}
 			}
 		}
@@ -892,45 +904,51 @@ Grp_DrawLine4TR(uint32_t page, int32_t opaq)
 		if (opaq) {
 			for (i = 0; i < TextDotX; ++i, x = (x + 1) & 0x1ff) {
 				v = GVRAM[y + x * 2] & 0x0f;
-				v0 = Grp_LineBufSP[i];
+				v0 = Grp_LineBuf32SP[i];
 
 				if (v0 != 0) {
 					if (v != 0) {
-						v = GrphPal[v];
+						v = GrphPal32[v];
 						if (v != 0) {
-							v0 &= Pal_HalfMask;
-							if (v & Ibit)
-								v0 |= Pal_Ix2;
-							v &= Pal_HalfMask;
+							v0 &= Pal32_X68kMask;
+							if (v & Abit32){
+								v0 |= Ibit32;
+							}
+							v &= Pal32_X68kMask;
+							v  >>= 1;
+							v0 >>= 1;
 							v += v0;
-							v >>= 1;
 						}
 					}
-				} else
-					v = GrphPal[v];
-				Grp_LineBuf[i] = (uint16_t)v;
+				} else {
+					v = GrphPal32[v];
+				}
+				Grp_LineBuf32[i] = (uint32_t)v;
 			}
 		} else {
 			for (i = 0; i < TextDotX; ++i, x = (x + 1) & 0x1ff) {
 				v = GVRAM[y + x * 2] & 0x0f;
-				v0 = Grp_LineBufSP[i];
+				v0 = Grp_LineBuf32SP[i];
 
 				if (v0 != 0) {
 					if (v != 0) {
-						v = GrphPal[v];
+						v = GrphPal32[v];
 						if (v != 0) {
-							v0 &= Pal_HalfMask;
-							if (v & Ibit)
-								v0 |= Pal_Ix2;
-							v &= Pal_HalfMask;
+							v0 &= Pal32_X68kMask;
+							if (v & Abit32){
+								v0 |= Ibit32;
+							}
+							v &= Pal32_X68kMask;
+							v  >>= 1;
+							v0 >>= 1;
 							v += v0;
-							v >>= 1;
-							Grp_LineBuf[i]=(uint16_t)v;
+							Grp_LineBuf32[i]=(uint32_t)v;
 						}
-					} else
-						Grp_LineBuf[i] = (uint16_t)v;
+					} else {
+						Grp_LineBuf32[i] = (uint32_t)v;
+					}
 				} else if (v != 0)
-					Grp_LineBuf[i] = GrphPal[v];
+					Grp_LineBuf32[i] = GrphPal32[v];
 			}
 		}
 	}

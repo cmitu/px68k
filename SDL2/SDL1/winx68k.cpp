@@ -119,8 +119,6 @@ static int32_t FrameSkipQueue = 0;
 SDL_Surface *sdl_surface;   /*SDL1描画エリア*/
 SDL_Surface *sdl_x68screen;
 
-
-
 void
 WinX68k_SCSICheck(void)
 {
@@ -571,10 +569,11 @@ void WinX68k_Exec(void)
 void
 get_cmd_line(int32_t argc, char *argv[])
 {
-	// *.HDS、*.HDFはHDD、他はFDD
+	// *.HDS、*.HDFはHDD、 MOSはMO、他はFDD
 	char fdimg[] = "D8888DHDMDUP2HDDIMXDFIMG";
 	char saimg[] = "HDF";
 	char scimg[] = "HDS";
+	char moimg[] = "MOS";
 
 	char strwork[20];
 	char *p;
@@ -607,6 +606,12 @@ get_cmd_line(int32_t argc, char *argv[])
 	      if(h1 < 15){h1++;}
 	    }
 	    p = strstr(scimg, strwork);
+	    if(p != NULL){
+	      strcpy((char *)Config.SCSIEXHDImage[s1], argv[i]);
+	      s1++;
+	      if(s1 < 6){s1++;}
+	    }
+	    p = strstr(moimg, strwork);
 	    if(p != NULL){
 	      strcpy((char *)Config.SCSIEXHDImage[s1], argv[i]);
 	      s1++;

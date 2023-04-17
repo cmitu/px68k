@@ -35,7 +35,7 @@
 	uint8_t	BGCHR8[8*8*256];
 	uint8_t	BGCHR16[16*16*256];
 
-	uint16_t	BG_LineBuf[1600];
+	uint32_t	BG_LineBuf32[1600];
 	uint16_t	BG_PriBuf[1600];
 
 	int32_t	VLINEBG = 0;
@@ -52,7 +52,7 @@ void BG_Init(void)
 	memset(BG, 0, 0x8000);
 	memset(BGCHR8, 0, 8*8*256);
 	memset(BGCHR16, 0, 16*16*256);
-	memset(BG_LineBuf, 0, 1600*2);
+	memset(BG_LineBuf32, 0, 1600*4);
 	for (i=0; i<0x12; i++)
 		BG_Write(0xeb0800+i, 0);
 	BG_CHREND = 0x8000;
@@ -329,7 +329,7 @@ Sprite_DrawLineMcr(int32_t pri)
 					if (pal) {
 						pal |= (sctp->sprite_ctrl >> 4) & 0xf0;
 						if (BG_PriBuf[t] >= n * 8) {
-							BG_LineBuf[t] = TextPal[pal];
+							BG_LineBuf32[t] = TextPal32[pal];
 							Text_TrFlag[t] |= 2;
 							BG_PriBuf[t] = n * 8;
 						}
@@ -348,7 +348,7 @@ Sprite_DrawLineMcr(int32_t pri)
 		if (dat == 0)						\
 			continue;					\
 		if ((dat & 0xf) || !(Text_TrFlag[edi + 1] & 2)) {	\
-			BG_LineBuf[1 + edi] = TextPal[dat];		\
+			BG_LineBuf32[1 + edi] = TextPal32[dat];		\
 			Text_TrFlag[edi + 1] |= 2;			\
 		}							\
 	}								\
@@ -361,7 +361,7 @@ Sprite_DrawLineMcr(int32_t pri)
                 dat = *esi & 0xf;			    \
 		if (dat) {				    \
 			dat |= bl;			    \
-                        BG_LineBuf[1 + edi] = TextPal[dat]; \
+                        BG_LineBuf32[1 + edi] = TextPal32[dat]; \
 			Text_TrFlag[edi + 1] |= 2;	    \
                 }					    \
         }						    \
@@ -479,7 +479,7 @@ BG_DrawLine(int32_t opaq, int32_t gd)
 
 	if (opaq) {
 		for (i = 16; i < TextDotX + 16; ++i) {
-			BG_LineBuf[i] = TextPal[0];
+			BG_LineBuf32[i] = TextPal32[0];
 			BG_PriBuf[i] = 0xffff;
 		}
 	} else {

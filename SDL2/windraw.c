@@ -52,7 +52,7 @@
 
 extern int32_t Debug_Text, Debug_Grp, Debug_Sp;
 
-uint16_t *ScrBuf = 0;
+uint32_t *ScrBuf = 0;
 
 #if defined(USE_OGLES11)
 uint16_t *menu_buffer;
@@ -75,6 +75,7 @@ int32_t  SplashFlag = 0;
 int32_t  ScreenClearFlg = 0;
 
 uint16_t WinDraw_Pal16B, WinDraw_Pal16R, WinDraw_Pal16G;
+uint32_t WinDraw_Pal32B, WinDraw_Pal32R, WinDraw_Pal32G;
 
 uint32_t WindowX = 0;
 uint32_t WindowY = 0;
@@ -335,7 +336,7 @@ int32_t WinDraw_Init(uint32_t err_msg_no)
 	WindowY = 512;
 
 	/* SDL2 create Texture */
-	sdl_texture = SDL_CreateTexture(sdl_render,SDL_PIXELFORMAT_RGB565,
+	sdl_texture = SDL_CreateTexture(sdl_render,SDL_PIXELFORMAT_RGBA8888,
 		SDL_TEXTUREACCESS_STREAMING, 800, 600);
 	if (sdl_texture == NULL) {
 		fprintf(stderr, "can't create texture.\n");
@@ -346,6 +347,9 @@ int32_t WinDraw_Init(uint32_t err_msg_no)
 	WinDraw_Pal16R = 0xf800;
 	WinDraw_Pal16G = 0x07e0;
 	WinDraw_Pal16B = 0x001f;
+	WinDraw_Pal32R = 0xff000000;
+	WinDraw_Pal32G = 0x00ff0000;
+	WinDraw_Pal32B = 0x0000ff00;
 	//printf("R: %x, G: %x, B: %x\n", WinDraw_Pal16R, WinDraw_Pal16G, WinDraw_Pal16B);
 
 
@@ -417,7 +421,7 @@ int32_t WinDraw_Init(uint32_t err_msg_no)
 #else // OpenGL ES end
 
 	/* X68000 Drawing Area for SDL2 */
-	sdl_x68screen = SDL_CreateRGBSurface(0, 800, 600, 16, WinDraw_Pal16R, WinDraw_Pal16G, WinDraw_Pal16B, 0);
+	sdl_x68screen = SDL_CreateRGBSurface(0, 800, 600, 32, WinDraw_Pal32R, WinDraw_Pal32G, WinDraw_Pal32B, 0);
 	if (sdl_x68screen == NULL) return FALSE;
 	ScrBuf = sdl_x68screen->pixels;
 
@@ -425,7 +429,7 @@ int32_t WinDraw_Init(uint32_t err_msg_no)
 
 // --- Draw Init Err Message ---
 #include "msg_tif.h"
-	uint16_t *p;
+	uint32_t *p;
 	uint8_t dt;
 	if(err_msg_no != 0){
 	  for(j=0; j<14; j++){
@@ -433,7 +437,7 @@ int32_t WinDraw_Init(uint32_t err_msg_no)
 	    p=ScrBuf + 800*(280+j)+230+(i*8);
 	    dt = no_rom_msg[j*38+i];
 		for(k=0; k<8; k++){
-	    if((dt & 0x80)!=0){*p = 0xffff;} //color depth = 16bit
+	    if((dt & 0x80)!=0){*p = 0xffffff00;} //color depth = 32bit
 		dt = dt << 1;
 		p++;
 		}
@@ -511,14 +515,14 @@ Update_Screen(uint32_t menu)
 
 	/*surface(Main mem.) → texture(Frame buff.) */
 	if(menu){
-	  SDL_UpdateTexture(sdl_texture, NULL, menu_surface->pixels, 800*2);
+	  SDL_UpdateTexture(sdl_texture, NULL, menu_surface->pixels, 800*4);//32bit depth
 	  x68rect.x = CRTrect.x = 0;
 	  x68rect.y = CRTrect.y = 0;
 	  x68rect.w = CRTrect.w = 800;
 	  x68rect.h = CRTrect.h = 600;
 	}
 	else{
-	  SDL_UpdateTexture(sdl_texture, NULL, ScrBuf, 800*2);
+	  SDL_UpdateTexture(sdl_texture, NULL, ScrBuf, 800*4);//32bit depth
 	  /*texture → renderer copy rect */
 	  x68rect.x = 0;
 	  x68rect.y = 0;
@@ -648,8 +652,8 @@ WinDraw_Draw(void)
 		WinDraw_ShowSplash();
 }
 
-
-#define WD_MEMCPY(src) memcpy(&ScrBuf[adr], (src), TextDotX * 2)
+// 32bit depth Copy
+#define WD_MEMCPY(src) memcpy(&ScrBuf[adr], (src), TextDotX * 4)
 
 
 #define WD_LOOP(startA, end, sub)			\
@@ -670,16 +674,16 @@ WinDraw_Draw(void)
 
 INLINE void WinDraw_DrawGrpLine(int32_t opaq)
 {
-#define _DGL_SUB(SUFFIX) WD_SUB(SUFFIX, Grp_LineBuf[i])
+#define _DGL_SUB(SUFFIX) WD_SUB(SUFFIX, Grp_LineBuf32[i])
 
 	int32_t adr;
-	uint16_t w;
+	uint32_t w;
 	uint32_t i;
 
 	adr = VLINE*FULLSCREEN_WIDTH;
 
 	if (opaq) {
-		WD_MEMCPY(Grp_LineBuf);
+		WD_MEMCPY(Grp_LineBuf32);
 	} else {
 		WD_LOOP(0,  TextDotX, _DGL_SUB);
 	}
@@ -687,16 +691,16 @@ INLINE void WinDraw_DrawGrpLine(int32_t opaq)
 
 INLINE void WinDraw_DrawGrpLineNonSP(int32_t opaq)
 {
-#define _DGL_NSP_SUB(SUFFIX) WD_SUB(SUFFIX, Grp_LineBufSP2[i])
+#define _DGL_NSP_SUB(SUFFIX) WD_SUB(SUFFIX, Grp_LineBuf32SP2[i])
 
 	int32_t adr;
-	uint16_t w;
+	uint32_t w;
 	uint32_t i;
 
 	adr = VLINE*FULLSCREEN_WIDTH;
 
 	if (opaq) {
-		WD_MEMCPY(Grp_LineBufSP2);
+		WD_MEMCPY(Grp_LineBuf32SP2);
 	} else {
 		WD_LOOP(0,  TextDotX, _DGL_NSP_SUB);
 	}
@@ -704,7 +708,7 @@ INLINE void WinDraw_DrawGrpLineNonSP(int32_t opaq)
 
 INLINE void WinDraw_DrawTextLine(int32_t opaq, int32_t td)
 {
-#define _DTL_SUB2(SUFFIX) WD_SUB(SUFFIX, BG_LineBuf[i])
+#define _DTL_SUB2(SUFFIX) WD_SUB(SUFFIX, BG_LineBuf32[i])
 #define _DTL_SUB(SUFFIX)		\
 {					\
 	if (Text_TrFlag[i] & 1) {	\
@@ -713,13 +717,13 @@ INLINE void WinDraw_DrawTextLine(int32_t opaq, int32_t td)
 }	
 
 	int32_t adr;
-	uint16_t w;
+	uint32_t w;
 	uint32_t i;
 
 	adr = VLINE*FULLSCREEN_WIDTH;
 
 	if (opaq) {
-		WD_MEMCPY(&BG_LineBuf[16]);
+		WD_MEMCPY(&BG_LineBuf32[16]);
 	} else {
 		if (td) {
 			WD_LOOP(16, TextDotX + 16, _DTL_SUB);
@@ -733,47 +737,48 @@ INLINE void WinDraw_DrawTextLineTR(int32_t opaq)
 {
 #define _DTL_TR_SUB(SUFFIX)			   \
 {						   \
-	w = Grp_LineBufSP[i - 16];		   \
+	w = Grp_LineBuf32SP[i - 16];		   \
 	if (w != 0) {				   \
-		w &= Pal_HalfMask;		   \
-		v = BG_LineBuf[i];		   \
-		if (v & Ibit)			   \
-			w += Pal_Ix2;		   \
-		v &= Pal_HalfMask;		   \
-		v += w;				   \
+		w &= Pal32_X68kMask;		   \
+		v = BG_LineBuf32[i];	   \
+		if (v & Abit32){ w += Ibit32; }	   \
+		v &= Pal32_X68kMask;		   \
 		v >>= 1;			   \
+		w >>= 1;			   \
+		v += w;				   \
 	} else {				   \
-		if (Text_TrFlag[i] & 1)		   \
-			v = BG_LineBuf[i];	   \
-		else				   \
-			v = 0;			   \
+		if (Text_TrFlag[i] & 1){		   \
+			v = BG_LineBuf32[i];	   \
+		}else{				   \
+			v = 0;		   \
+		}	   \
 	}					   \
-	ScrBuf##SUFFIX[adr] = (uint16_t)v;		   \
+	ScrBuf##SUFFIX[adr] = (uint32_t)v;		   \
 }
 
 #define _DTL_TR_SUB2(SUFFIX)			   \
 {						   \
 	if (Text_TrFlag[i] & 1) {		   \
-		w = Grp_LineBufSP[i - 16];	   \
-		v = BG_LineBuf[i];		   \
+		w = Grp_LineBuf32SP[i - 16];	   \
+		v = BG_LineBuf32[i];		   \
 						   \
 		if (v != 0) {			   \
 			if (w != 0) {			\
-				w &= Pal_HalfMask;	\
-				if (v & Ibit)		\
-					w += Pal_Ix2;	\
-				v &= Pal_HalfMask;	\
+				w &= Pal32_X68kMask;	\
+				if (v & Abit32){ w += Ibit32; }	\
+				v &= Pal32_X68kMask;	\
+				v>>=1;		\
+				w>>=1;		\
 				v += w;			\
-				v >>= 1;		\
 			}				\
-			ScrBuf##SUFFIX[adr] = (uint16_t)v;	\
+			ScrBuf##SUFFIX[adr] = (uint32_t)v;	\
 		}					\
 	}						\
 }
 
 	int32_t adr;
 	int32_t v;
-	uint16_t w;
+	uint32_t w;
 	uint32_t i;
 
 	adr = VLINE*FULLSCREEN_WIDTH;
@@ -787,7 +792,7 @@ INLINE void WinDraw_DrawTextLineTR(int32_t opaq)
 
 INLINE void WinDraw_DrawBGLine(int32_t opaq, int32_t td)
 {
-#define _DBL_SUB2(SUFFIX) WD_SUB(SUFFIX, BG_LineBuf[i])
+#define _DBL_SUB2(SUFFIX) WD_SUB(SUFFIX, BG_LineBuf32[i])
 #define _DBL_SUB(SUFFIX)			 \
 {						 \
 	if (Text_TrFlag[i] & 2) {		 \
@@ -796,7 +801,7 @@ INLINE void WinDraw_DrawBGLine(int32_t opaq, int32_t td)
 }
 
 	int32_t adr;
-	uint16_t w;
+	uint32_t w;
 	uint32_t i;
 
 	adr = VLINE*FULLSCREEN_WIDTH;
@@ -813,7 +818,7 @@ INLINE void WinDraw_DrawBGLine(int32_t opaq, int32_t td)
 #endif
 
 	if (opaq) {
-		WD_MEMCPY(&BG_LineBuf[16]);
+		WD_MEMCPY(&BG_LineBuf32[16]);
 	} else {
 		if (td) {
 			WD_LOOP(16, TextDotX + 16, _DBL_SUB);
@@ -829,40 +834,40 @@ INLINE void WinDraw_DrawBGLineTR(int32_t opaq)
 #define _DBL_TR_SUB3()			\
 {					\
 	if (w != 0) {			\
-		w &= Pal_HalfMask;	\
-		if (v & Ibit)		\
-			w += Pal_Ix2;	\
-		v &= Pal_HalfMask;	\
+		w &= Pal32_X68kMask;	\
+		if (v & Abit32){ w += Ibit32; }	\
+		v &= Pal32_X68kMask;	\
+		v>>=1;	\
+		w>>=1;	\
 		v += w;			\
-		v >>= 1;		\
 	}				\
 }
 
 #define _DBL_TR_SUB(SUFFIX) \
 {					\
-	w = Grp_LineBufSP[i - 16];	\
-	v = BG_LineBuf[i];		\
+	w = Grp_LineBuf32SP[i - 16];	\
+	v = BG_LineBuf32[i];		\
 					\
 	_DBL_TR_SUB3()			\
-	ScrBuf##SUFFIX[adr] = (uint16_t)v;	\
+	ScrBuf##SUFFIX[adr] = (uint32_t)v;	\
 }
 
 #define _DBL_TR_SUB2(SUFFIX) \
 {							\
 	if (Text_TrFlag[i] & 2) {  			\
-		w = Grp_LineBufSP[i - 16];		\
-		v = BG_LineBuf[i];			\
+		w = Grp_LineBuf32SP[i - 16];		\
+		v = BG_LineBuf32[i];			\
 							\
 		if (v != 0) {				\
 			_DBL_TR_SUB3()			\
-			ScrBuf##SUFFIX[adr] = (uint16_t)v;	\
+			ScrBuf##SUFFIX[adr] = (uint32_t)v;	\
 		}					\
 	}						\
 }
 
 	int32_t adr;
 	int32_t v;
-	uint16_t w;
+	uint32_t w;
 	uint32_t i;
 
 	adr = VLINE*FULLSCREEN_WIDTH;
@@ -877,10 +882,10 @@ INLINE void WinDraw_DrawBGLineTR(int32_t opaq)
 
 INLINE void WinDraw_DrawPriLine(void)
 {
-#define _DPL_SUB(SUFFIX) WD_SUB(SUFFIX, Grp_LineBufSP[i])
+#define _DPL_SUB(SUFFIX) WD_SUB(SUFFIX, Grp_LineBuf32SP[i])
 
 	int32_t adr;
-	uint16_t w;
+	uint32_t w;
 	uint32_t i;
 
 	adr = VLINE*FULLSCREEN_WIDTH;
@@ -1089,9 +1094,9 @@ void WinDraw_DrawLine(void)
 			{
 				int_fast32_t i;
 				for (i = 16; i < TextDotX + 16; ++i)
-					BG_LineBuf[i] = TextPal[0];
+					BG_LineBuf32[i] = TextPal32[0];
 			} else {		// 20010120 （琥珀色）
-				memset(&BG_LineBuf[16], 0, TextDotX * 2);
+				memset(&BG_LineBuf32[16], 0, TextDotX * 4);// 32bit depth
 			}
 			memset(Text_TrFlag, 0, TextDotX+16);
 			bgon = 1;
@@ -1280,13 +1285,13 @@ void WinDraw_DrawLine(void)
 
 #define _DL_SUB(SUFFIX) \
 {								\
-	w = Grp_LineBufSP[i];					\
-	if (w != 0 && (ScrBuf##SUFFIX[adr] & 0xffff) == 0)	\
-		ScrBuf##SUFFIX[adr] = (w & Pal_HalfMask) >> 1;	\
+	w = Grp_LineBuf32SP[i];					\
+	if (w != 0 && (ScrBuf##SUFFIX[adr] & 0xffffff00) == 0)	\
+		ScrBuf##SUFFIX[adr] = (w & Pal32_FullMask) >> 1;	\
 }
 
 			int32_t adr;
-			uint16_t w;
+			uint32_t w;
 			uint32_t i;
 
 			if(VLINE < 0) return;
@@ -1303,7 +1308,7 @@ void WinDraw_DrawLine(void)
 		if(VLINE < 0) return;
 		adr = VLINE*FULLSCREEN_WIDTH;
 
-		memset(&ScrBuf[adr], 0, TextDotX * 2);
+		memset(&ScrBuf[adr], 0, TextDotX * 4);//32bit depth clear
 
 	}
 }
@@ -1311,10 +1316,10 @@ void WinDraw_DrawLine(void)
 /********** menu 関連ルーチン **********/
 
 struct _px68k_menu {
-	uint16_t *sbp;  // surface buffer ptr
-	uint16_t *mlp; // menu locate ptr
-	uint16_t mcolor; // color of chars to write
-	uint16_t mbcolor; // back ground color of chars to write
+	uint32_t *sbp;  // surface buffer ptr
+	uint32_t *mlp; // menu locate ptr
+	uint32_t mcolor; // color of chars to write
+	uint32_t mbcolor; // back ground color of chars to write
 	int32_t ml_x;
 	int32_t ml_y;
 	int32_t mfs; // menu font size;
@@ -1420,14 +1425,14 @@ static uint32_t get_font_addr(uint16_t sjis, int32_t fs)
 	return FALSE;
 }
 
-// RGB565
-static void set_mcolor(uint16_t c)
+// RGBA8888
+static void set_mcolor(uint32_t c)
 {
 	p6m.mcolor = c;
 }
 
 // mbcolor = 0 なら透明色とする
-static void set_mbcolor(uint16_t c)
+static void set_mbcolor(uint32_t c)
 {
 	p6m.mbcolor = c;
 }
@@ -1444,7 +1449,7 @@ static void set_mlocateC(int32_t x, int32_t y)
 	p6m.ml_x = x * p6m.mfs / 2, p6m.ml_y = y * p6m.mfs;
 }
 
-static void set_sbp(uint16_t *p)
+static void set_sbp(uint32_t *p)
 {
 	p6m.sbp = p;
 }
@@ -1455,7 +1460,7 @@ static void set_mfs(int32_t fs)
 	p6m.mfs = fs;
 }
 
-static uint16_t *get_ml_ptr()
+static uint32_t *get_ml_ptr()
 {
 	p6m.mlp = p6m.sbp + MENU_WIDTH * p6m.ml_y + p6m.ml_x;
 	return p6m.mlp;
@@ -1467,10 +1472,10 @@ static uint16_t *get_ml_ptr()
 static void draw_char(uint16_t sjis)
 {
 	uint32_t f;
-	uint16_t *p;
+	uint32_t *p;
 	int32_t i, j, k, wc, w;
 	uint8_t c;
-	uint16_t bc,ch;
+	uint32_t bc,ch;
 
 	int32_t h = p6m.mfs;
 
@@ -1580,15 +1585,15 @@ int32_t WinDraw_MenuInit(void)
 #else
 
 	/*SDL2 menu-surface */
-	menu_surface = SDL_CreateRGBSurface(SDL_SWSURFACE, 800, 600, 16, WinDraw_Pal16R, WinDraw_Pal16G, WinDraw_Pal16B, 0);
+	menu_surface = SDL_CreateRGBSurface(SDL_SWSURFACE, 800, 600, 32, WinDraw_Pal32R, WinDraw_Pal32G, WinDraw_Pal32B, 0);
 
 	if (!menu_surface)
 		return FALSE;
-	set_sbp((uint16_t *)(menu_surface->pixels));
+	set_sbp((uint32_t *)(menu_surface->pixels));
 	set_mfs(24);
 #endif
 
-	set_mcolor(0xffff);
+	set_mcolor(0xffffff00);// white
 	set_mbcolor(0);
 
 	return TRUE;
@@ -1657,7 +1662,7 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 
 	// タイトル
 	if (scr_type == x68k) {
-		set_mcolor(0x07ff); // cyan
+		set_mcolor(0x00ffff00); // cyan
 		set_mlocateC(0, 0);
 		draw_str(twaku_str,1);
 		set_mlocateC(0, 1);
@@ -1665,32 +1670,32 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 		set_mlocateC(0, 2);
 		draw_str(twaku3_str,1);
 
-		set_mcolor(0xffff);
+		set_mcolor(0xffffff00);
 		set_mlocateC(1, 1);
 		sprintf(tmp, "%s%s", title_str, PX68KVERSTR);
 		draw_str(tmp,1);
 	} else {
-		set_mcolor(0xffff);
+		set_mcolor(0xffffff00); // cyan
 		set_mlocateC(0, 0);
 		sprintf(tmp, "%s%s", pc98_title1_str[Config.MenuLanguage], PX68KVERSTR);
 		draw_str(tmp,1);
 		set_mlocateC(0, 3);
 		draw_str(pc98_title3_str[Config.MenuLanguage],1);
-		set_mcolor(0x07ff);
+		set_mcolor(0xffffff00); // cyan
 		set_mlocateC(0, 1);
 		draw_str(pc98_title2_str,1);
 	}
 
 	// 真ん中
 	if (scr_type == x68k) {
-		set_mcolor(0xffff);
-		set_mlocate(3 * p6m.mfs / 2, 3.5 * p6m.mfs);
+		set_mcolor(0xffffff00);
+		set_mlocate(3 * p6m.mfs / 2, 3.4 * p6m.mfs);
 		draw_str(waku_val_str1[Config.MenuLanguage],1);
-		set_mlocate(17 * p6m.mfs / 2, 3.5 * p6m.mfs);
+		set_mlocate(17 * p6m.mfs / 2, 3.4 * p6m.mfs);
 		draw_str(waku_val_str2[Config.MenuLanguage],1);
 
 		// 真ん中枠
-		set_mcolor(0xffe0); // yellow
+		set_mcolor(0xffff0000); // yellow
 		set_mlocateC(1, 4);
 		draw_str(waku_str,1);
 		for (i = 5; i < 12; i++) {
@@ -1702,30 +1707,30 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 	}
 
 	// アイテム/キーワード
-	set_mcolor(0xffff);
+	set_mcolor(0xffffff00);
 	for (i = 0; i < 7; i++) {
 		set_mlocateC(3, 5 + i);
 		if (menu_state == ms_key && i == (mkey_y - mkey_pos)) {
-			set_mcolor(0x0);
-			set_mbcolor(0xffe0); // yellow);
+			set_mcolor(0x00000000);
+			set_mbcolor(0xffff0000); // yellow;
 		} else {
-			set_mcolor(0xffff);
-			set_mbcolor(0x0);
+			set_mcolor(0xffffff00);
+			set_mbcolor(0x00000000);
 		}
 		draw_str(menu_item_key[i + mkey_pos],1);
 	}
 
 	// アイテム/現在値
-	set_mcolor(0xffff);
-	set_mbcolor(0x0);
+	set_mcolor(0xffffff00);
+	set_mbcolor(0x00000000);
 	for (i = 0; i < 7; i++) {
 		if ((menu_state == ms_value || menu_state == ms_hwjoy_set)
 		    && i == (mkey_y - mkey_pos)) {
-			set_mcolor(0x0);
-			set_mbcolor(0xffe0); // yellow);
+			set_mcolor(0x00000000);
+			set_mbcolor(0xffff0000); // yellow);
 		} else {
-			set_mcolor(0xffff);
-			set_mbcolor(0x0);
+			set_mcolor(0xffffff00);
+			set_mbcolor(0x00000000);
 		}
 		if (scr_type == x68k) {
 			set_mlocateC(17, 5 + i);
@@ -1771,8 +1776,8 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 
 	if (scr_type == x68k) {
 		// 下枠
-		set_mcolor(0x07ff); // cyan
-		set_mbcolor(0x0);
+		set_mcolor(0x00ffff00); // cyan
+		set_mbcolor(0x00000000);
 		set_mlocateC(0, 13);
 		draw_str(swaku_str,1);
 		set_mlocateC(0, 14);
@@ -1784,8 +1789,8 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 	}
 
 	// キャプション
-	set_mcolor(0xffff);
-	set_mbcolor(0x0);
+	set_mcolor(0xffffff00);
+	set_mbcolor(0x00000000);
 	set_mlocateC(2, 14);
 	if(Config.MenuLanguage == 0){draw_str(item_cap_JPN[mkey_y],1);}
 	else						{draw_str(item_cap_US[mkey_y],1);}
@@ -1812,8 +1817,8 @@ void WinDraw_DrawMenufile(struct menu_flist *mfl)
 	// 下枠
 	//set_mcolor(0xf800); // red
 	//set_mcolor(0xf81f); // magenta
-	set_mcolor(0xffff);
-	set_mbcolor(0x1); // 0x0だと透過モード
+	set_mcolor(0xffffff00);
+	set_mbcolor(0x00000001); // 0x0だと透過モード
 	set_mlocateC(1, 1);
 	draw_str(swaku_str,1);
 	for (i = 2; i < 16; i++) {
@@ -1828,11 +1833,11 @@ void WinDraw_DrawMenufile(struct menu_flist *mfl)
 			break;
 		}
 		if (i == mfl->y) {
-			set_mcolor(0x0);
-			set_mbcolor(0xffff);
+			set_mcolor(0x00000000);
+			set_mbcolor(0xffffff00);
 		} else {
-			set_mcolor(0xffff);
-			set_mbcolor(0x1);
+			set_mcolor(0xffffff00);
+			set_mbcolor(0x0000000f);
 		}
 		// ディレクトリだったらファイル名を[]で囲う
 		set_mlocateC(3, i + 2);
@@ -1841,7 +1846,7 @@ void WinDraw_DrawMenufile(struct menu_flist *mfl)
 		if (mfl->type[i + mfl->ptr]) draw_str("]",1);
 	}
 
-	set_mbcolor(0x0); // 透過モードに戻しておく
+	set_mbcolor(0x00000000); // 透過モードに戻しておく
 
 #if defined(USE_OGLES11)
 	ogles11_draw_menu();
@@ -1855,7 +1860,7 @@ void WinDraw_DrawMenufile(struct menu_flist *mfl)
 void WinDraw_ClearMenuBuffer(void)
 {
 #if defined(USE_OGLES11)
-	memset(menu_buffer, 0, 800*600*2);
+	memset(menu_buffer, 0, 800*600*4);// 32bit depth
 #else
 	SDL_FillRect(menu_surface, NULL, 0);
 #endif

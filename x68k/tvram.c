@@ -244,11 +244,11 @@ void FASTCALL Text_DrawLine(int32_t opaq)
 		for (i = 0; (i < TextDotX) && (x > 0); i++, x--, off++) {
 			t = TextDrawWork[addr++] & 0xf;
 			Text_TrFlag[off] = t ? 1 : 0;
-			BG_LineBuf[off] = TextPal[t];
+			BG_LineBuf32[off] = TextPal32[t];
 		}
 		if (i++ != TextDotX) {
 			for (; i < TextDotX; i++, off++) {
-				BG_LineBuf[off] = TextPal[0];
+				BG_LineBuf32[off] = TextPal32[0];
 				Text_TrFlag[off] = 0;
 			}
 		}
@@ -257,7 +257,7 @@ void FASTCALL Text_DrawLine(int32_t opaq)
 			t = TextDrawWork[addr++] & 0xf;
 			if (t) {
 				Text_TrFlag[off] |= 1;
-				BG_LineBuf[off] = TextPal[t];
+				BG_LineBuf32[off] = TextPal32[t];
 			}
 		}
 	}

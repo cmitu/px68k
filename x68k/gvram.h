@@ -4,9 +4,10 @@
 #include "common.h"
 
 extern	uint8_t		GVRAM[0x80000];
-extern	uint16_t	Grp_LineBuf[1024];
-extern	uint16_t	Grp_LineBufSP[1024];
-extern	uint16_t	Grp_LineBufSP2[1024];
+
+extern	uint32_t	Grp_LineBuf32[1024];
+extern	uint32_t	Grp_LineBuf32SP[1024];
+extern	uint32_t	Grp_LineBuf32SP2[1024];
 
 void GVRAM_Init(void);
 

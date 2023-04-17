@@ -9,6 +9,7 @@ SDL_Texture  *sft_kbd_texture;
 SDL_Surface  *keydraw_buffer;
 
 uint8_t Key_X68, LED_X68;
+static uint32_t sleep_counter;
 
 /******* ソフトウェアキーボード描画 *******/
 
@@ -22,11 +23,11 @@ void Soft_kbd_CreateScreen(void)
 {
 	sft_kbd_window  = SDL_CreateWindow("X68000 keyboard", winx+16, winy+380, softkey_width, softkey_hight, SDL_WINDOW_HIDDEN);
 	sft_kbd_render  = SDL_CreateRenderer(sft_kbd_window, -1, SDL_RENDERER_ACCELERATED);
-	sft_kbd_texture = SDL_CreateTexture(sft_kbd_render, SDL_PIXELFORMAT_RGB565,
+	sft_kbd_texture = SDL_CreateTexture(sft_kbd_render, SDL_PIXELFORMAT_RGBA8888,
 							SDL_TEXTUREACCESS_STREAMING, softkey_width, softkey_hight);
 	SDL_SetRenderTarget(sft_kbd_render, sft_kbd_texture);
 
-	keydraw_buffer = SDL_CreateRGBSurface(0, 800, 220, 16, 0xf800, 0x07e0, 0x001f, 0);//描画用
+	keydraw_buffer = SDL_CreateRGBSurface(0, 800, 220, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0);//描画用
 
 	if (sft_kbd_window == NULL) {
 		p6logd("Soft_Keyboard Window: %ld", sft_kbd_window);
@@ -58,7 +59,7 @@ extern void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y, uint8_t keyboardLED);
   if(flg == 2){
 	SDL_SetWindowPosition(sft_kbd_window, winx+16, winy+430);
   }
-
+  sleep_counter = 0;
   return;
 }
 
@@ -66,11 +67,21 @@ extern void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y, uint8_t keyboardLED);
 void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y, uint8_t keyboardLED)
 {
 	int32_t i, x, y,Bpp;
-	uint16_t *p;
-	uint16_t keycolor;
+	uint32_t *p;
+	uint32_t keycolor;
 	SDL_Rect keyrect;
+	uint32_t skb_backcolor;
+	uint32_t skb_keycolor;
 
 	Bpp = keydraw_buffer->format->BytesPerPixel;
+
+	//sleep判定
+	if((keyboardLED == 0xff) && (LED_X68 == 0x80)){
+	  if(sleep_counter<180) sleep_counter++;
+	}
+	else{
+	  if(keyboardLED != 0x80){ sleep_counter = 0; }
+	}
 
 	// LED変化なしの場合はret
 	if((ms_x == 0)&&(ms_y == 0)){
@@ -78,37 +89,47 @@ void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y, uint8_t keyboardLED)
 		if((keyboardLED & 0x7f) == (LED_X68 & 0x7f)) return;
 	}
 
-	//色設定
+	//文字色設定
 	set_mbcolor(0);
 	set_mcolor(0);
 
+	//描画色設定
+	if(sleep_counter > 20){
+		skb_backcolor= ~(sleep_counter<<24 | sleep_counter<<16 | sleep_counter<<8);
+		skb_keycolor = ~((sleep_counter-10)<<24 | (sleep_counter-10)<<16 | (sleep_counter-10)<<8);
+	}
+	else{
+		skb_backcolor= (0xd8000000 | 0x00d80000 | 0x0000d800);
+		skb_keycolor = (0xf3000000 | 0x00f30000 | 0x0000f300);
+	}
+
 	// キーボードの背景(全画面塗りつぶし)
-	SDL_FillRect(keydraw_buffer, NULL, (0x7800 | 0x03e0 | 0x000f));
+	SDL_FillRect(keydraw_buffer, NULL, skb_backcolor);
 
 	// 全キーの描画
 	for (i = 0; kbd_key[i].x != -1; i++) {
 
 	  if((ms_x == 0)&&(ms_y == 0)){// key更新なし(LEDのみ)
-		if(Key_X68 == kbd_key[i].c) keycolor = 0x3333;
-		else keycolor = 0xffff;
+		if(Key_X68 == kbd_key[i].c) keycolor = 0x33333300;
+		else keycolor = skb_keycolor;
 		LED_X68 = keyboardLED;
 	  }
 	  else{//key押下判定
 		// KEY match
 		if((kbd_key[i].x < ms_x) && (kbd_key[i].y < ms_y) && 
 			(kbd_key[i].x+kbd_key[i].w > ms_x) && (kbd_key[i].y+kbd_key[i].h > ms_y)){
-			keycolor = 0x3333;
+			keycolor = 0x33333300;
 		}
 		else{
-			keycolor = 0xffff;
+			keycolor = skb_keycolor;
 		}
 
 		// KEY eventをX68000に送る
-		if((Key_X68 != kbd_key[i].c) && (keycolor == 0x3333)){
+		if((Key_X68 != kbd_key[i].c) && (keycolor == 0x33333300)){
 		  send_keycode((kbd_key[i].c & 0x7f), 2);// send keydown event
 		  Key_X68 = kbd_key[i].c;
 		}
-		if((Key_X68 == kbd_key[i].c) && (keycolor == 0xffff)){
+		if((Key_X68 == kbd_key[i].c) && (keycolor == skb_keycolor)){
 		  send_keycode((kbd_key[i].c & 0x7f), 1);// send keyup event
 		  Key_X68 = 0;
 		}
@@ -117,7 +138,7 @@ void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y, uint8_t keyboardLED)
 		// Key Rect Drawing
 		keyrect.x=kbd_key[i].x; keyrect.y=kbd_key[i].y;
 		keyrect.w=kbd_key[i].w; keyrect.h=kbd_key[i].h;
-		SDL_FillRect(keydraw_buffer, &keyrect, 0x0000);//shadow
+		SDL_FillRect(keydraw_buffer, &keyrect, 0x00000000);//shadow
 		keyrect.w -=2; keyrect.h -=2;
 		SDL_FillRect(keydraw_buffer, &keyrect, keycolor);
 
@@ -136,7 +157,7 @@ void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y, uint8_t keyboardLED)
 		 set_mlocate(x+5,y+5);
 		 draw_str(kbd_key[i].s2,1);
 		}
-		set_sbp((uint16_t *)(menu_surface->pixels));//元に戻す
+		set_sbp((uint32_t *)(menu_surface->pixels));//元に戻す
 		set_mfs(24);
 	}
 
@@ -147,7 +168,7 @@ void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y, uint8_t keyboardLED)
 	for(i=0; i<7; i++){
 	 if(!(y & 0x01)){//かな
 	   keyrect.x=kbd_key[KeyLED[i]].x +8; keyrect.y=kbd_key[KeyLED[i]].y +24;
-	   SDL_FillRect(keydraw_buffer, &keyrect, (0x0000 | 0x03e0 | 0x0000));
+	   SDL_FillRect(keydraw_buffer, &keyrect, (0x00000000 | 0x00ff0000 | 0x00000000));//緑
 	 }
 	 y >>= 1;
 	}
@@ -159,7 +180,7 @@ void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y, uint8_t keyboardLED)
 
 	 // 元に戻す(念のため)
 	set_mfs(24);
-	set_sbp((uint16_t *)(menu_surface->pixels));
+	set_sbp((uint32_t *)(menu_surface->pixels));
 
   return;
 }

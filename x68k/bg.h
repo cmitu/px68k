@@ -17,7 +17,8 @@ extern	int32_t	BG_VLINE;
 extern	int32_t	VLINEBG;
 
 extern	uint8_t		Sprite_DrawWork[1024*1024];
-extern	uint16_t	BG_LineBuf[1600];
+
+extern	uint32_t	BG_LineBuf32[1600];
 
 void BG_Init(void);
 

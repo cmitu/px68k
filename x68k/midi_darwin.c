@@ -130,13 +130,13 @@ mid_inDevList(LPHMIDIOUT phmo)
   OSStatus err_sts;
 
   // Create Client for coreMIDI
-  err_sts = MIDIClientCreate(CFSTR("px68k"), NULL, NULL, &mid_client);
+  //err_sts = MIDIClientCreate(CFSTR("px68k"), NULL, NULL, &mid_client);
 
-  if (err_sts != noErr)
-  {
-    p6logd("MIDI:CoreMIDI: No in client created.\n");
-    return Device_num;
-  }
+  //if (err_sts != noErr)
+  //{
+  //  p6logd("MIDI:CoreMIDI: No in client created.\n");
+  //  return Device_num;
+  //}
 
   // Create input port
   err_sts = MIDIInputPortCreate(mid_client, CFSTR("px68k MIDI in_Port"),

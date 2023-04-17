@@ -13,103 +13,57 @@
 #include	"sysport.h"
 
 	uint8_t	Pal_Regs[1024];
-	uint16_t	TextPal[256];
-	uint16_t	GrphPal[256];
-	uint16_t	Pal16[65536];
-	uint16_t	Ibit;				// 半透明処理とかで使うかも〜
-
-	uint16_t	Pal_HalfMask, Pal_Ix2;
-	uint16_t	Pal_R, Pal_G, Pal_B;		// 画面輝度変更時用
 
 	uint8_t	    Contrast_Value;		//コントラスト追従用
 
-// ----- DDrawの16ビットモードの色マスクからX68k→Win用の変換テーブルを作る -----
-// X68kは「GGGGGRRRRRBBBBBI」の構造。Winは「RRRRRGGGGGGBBBBB」の形が多いみたい。が、
-// 違う場合もあるみたいなので計算してみやう。
-void Pal_SetColor(void)
-{
-	uint16_t TempMask, bit;
-	uint16_t R[5] = {0, 0, 0, 0, 0};
-	uint16_t G[5] = {0, 0, 0, 0, 0};
-	uint16_t B[5] = {0, 0, 0, 0, 0};
-	int32_t r, g, b, i;
+	// for 32bit depth
+	uint32_t	TextPal32[256];
+	uint32_t	GrphPal32[256];
+	uint32_t	Pal32[65536];
 
-	r = g = b = 5;
-	Pal_R = Pal_G = Pal_B = 0;
-	TempMask = 0;				// 使われているビットをチェック（Iビット用）
-	for (bit=0x8000; bit; bit>>=1)
+	uint32_t	Ibit32, Abit32;				// 半透明処理とかで使うかも〜
+	uint32_t	Pal32_FullMask, Pal32_X68kMask;
+
+// 32bit depth Pallete init 
+// SDL2では32bitのRGBA8888:RRRRRIxxGGGGGIxxBBBBBIxx00000000 にしてみやう。
+void Pal32_SetColor(void)
+{
+	uint32_t r, g, b, i;
+	uint32_t TempMask, bit;
+	uint32_t R[6] = {0, 0, 0, 0, 0, 0};
+	uint32_t G[6] = {0, 0, 0, 0, 0, 0};
+	uint32_t B[6] = {0, 0, 0, 0, 0, 0};
+
+	r = g = b = 6;				//RGB 6bitまで探す(18bitColor)
+	TempMask = 0;				// 使われているビットをチェック（MASK用）
+	for (bit=0x80000000; bit; bit>>=1)
 	{					// 各色毎に左（上位）から5ビットずつ拾う
-		if ( (WinDraw_Pal16R&bit)&&(r) )
+		if ( (WinDraw_Pal32R&bit)&&(r) )
 		{
 			R[--r] = bit;
 			TempMask |= bit;
-			Pal_R |= bit;
 		}
-		if ( (WinDraw_Pal16G&bit)&&(g) )
+		if ( (WinDraw_Pal32G&bit)&&(g) )
 		{
 			G[--g] = bit;
 			TempMask |= bit;
-			Pal_G |= bit;
 		}
-		if ( (WinDraw_Pal16B&bit)&&(b) )
+		if ( (WinDraw_Pal32B&bit)&&(b) )
 		{
 			B[--b] = bit;
 			TempMask |= bit;
-			Pal_B |= bit;
 		}
 	}
 
-	Ibit = 1;
-	for (bit=1; bit; bit<<=1)
-	{					// 使われていないビット（通常は6ビット以上ある色の
-		if (!(TempMask&bit))		// 最下位ビット）をIビットとして扱う
-		{				// 0のビットが複数だったときを考えて、Ibit=~TempMask; にはしてないです
-			Ibit = bit;
-			break;
-		}
-	}
+	Ibit32 = B[0] | R[0] | G[0]; //共通Ibit=6bit目 0x04040400
+	Abit32 = 0x0000001;  // α透明bitの割付場所
+	Pal32_X68kMask = TempMask; //RGB有効 6bitのMASK 0xfcfcfc00
+	Pal32_FullMask = (WinDraw_Pal32R | WinDraw_Pal32G | WinDraw_Pal32B);
 
-	// ねこーねこー
-	// Pal_Ix2 = 0 になったらどうしよう… その時は32bit拡張…
+	//printf("Ibit32:%08x Pal32_X68kMask:%08x Pal32_Ix2:%08x \n",Ibit32,Pal32_X68kMask,Pal32_Ix2);
 
-	// → Riva128なんかでは見事になるみたい（笑） でもそれでも特に問題無いかも…
+	Pal32_ChangeContrast(15);
 
-	Pal_HalfMask = ~(B[0] | R[0] | G[0] | Ibit);
-	Pal_Ix2 = Ibit << 1;
-
-/*
-	// どーしても変そうなら、これを入れるか…32bit拡張めんどくさいし（汗
-	if (Ibit==0x8000)			// Ibitが最上位ビットだったら、青の最下位と入れ替え
-	{
-		Ibit = B[0];
-		B[0] = 0;			// 青は4bitになっちゃうけど我慢して ^^;
-		Pal_HalfMask = ~(B[1] | R[0] | G[0] | Ibit | 0x8000);
-		Pal_Ix2 = Ibit << 1;
-	}
-*/
-						// X68kのビット配置に合わせてテーブル作成
-						// すっげ〜手際が悪いね（汗
-	for (i=0; i<65536; i++)
-	{
-		bit = 0;
-		if (i&0x8000) bit |= G[4];
-		if (i&0x4000) bit |= G[3];
-		if (i&0x2000) bit |= G[2];
-		if (i&0x1000) bit |= G[1];
-		if (i&0x0800) bit |= G[0];
-		if (i&0x0400) bit |= R[4];
-		if (i&0x0200) bit |= R[3];
-		if (i&0x0100) bit |= R[2];
-		if (i&0x0080) bit |= R[1];
-		if (i&0x0040) bit |= R[0];
-		if (i&0x0020) bit |= B[4];
-		if (i&0x0010) bit |= B[3];
-		if (i&0x0008) bit |= B[2];
-		if (i&0x0004) bit |= B[1];
-		if (i&0x0002) bit |= B[0];
-		if (i&0x0001) bit |= Ibit;
-		Pal16[i] = bit;
-	}
 }
 
 
@@ -119,9 +73,10 @@ void Pal_SetColor(void)
 void Pal_Init(void)
 {
 	memset(Pal_Regs, 0, 1024);
-	memset(TextPal,  0, 512);
-	memset(GrphPal,  0, 512);
-	Pal_SetColor();
+
+	memset(TextPal32,  0, 1024);
+	memset(GrphPal32,  0, 1024);
+	Pal32_SetColor();
 }
 
 
@@ -163,11 +118,11 @@ void FASTCALL Pal_Write16(int32_t adr, uint16_t data)
 
 	if (adr<0x200)
 	{
-		GrphPal[adr/2] = Pal16[data];
+		GrphPal32[adr/2] = Pal32[data];
 	}
 	else if (adr<0x400)
 	{
-		TextPal[(adr-0x200)/2] = Pal16[data];
+		TextPal32[(adr-0x200)/2] = Pal32[data];
 	}
 }
 
@@ -185,7 +140,7 @@ void FASTCALL Pal_Write(int32_t adr, uint8_t data)
 		Pal_Regs[adr] = data;
 		TVRAM_SetAllDirty();
 		pal = (Pal_Regs[adr&0xffe] << 8) | Pal_Regs[adr|1];
-		GrphPal[adr/2] = Pal16[pal];
+		GrphPal32[adr/2] = Pal32[pal];
 	}
 	else if (adr<0x400)
 	{
@@ -193,7 +148,7 @@ void FASTCALL Pal_Write(int32_t adr, uint8_t data)
 		Pal_Regs[adr] = data;
 		TVRAM_SetAllDirty();
 		pal = (Pal_Regs[adr&0xffe] << 8) | Pal_Regs[adr | 1];
-		TextPal[(adr-0x200)/2] = Pal16[pal];
+		TextPal32[(adr-0x200)/2] = Pal32[pal];
 	}
 }
 
@@ -207,68 +162,44 @@ void Pal_TrackContrast(void)
 	if(SysPort[1] > Contrast_Value){Contrast_Value++;}
 	else{Contrast_Value--;}
 
-	Pal_ChangeContrast(Contrast_Value);
+	Pal32_ChangeContrast(Contrast_Value);
 }
 
 // -----------------------------------------------------------------------
-//   こんとらすと変更（パレットに対するWin側の表示色で実現してます ^^;）
+//   こんとらすと変更（パレットに対するSDL_Surface側の表示色で実現してます ^^;）
+// X68000のRGBI(16bit:GGGGGRRRRRBBBBBI)をRGBA8888の24bitColorに輝度情報含めて変換っすよ
 // -----------------------------------------------------------------------
-void Pal_ChangeContrast(int32_t num)
+void Pal32_ChangeContrast(int32_t num)
 {
-	uint16_t bit;
-	uint16_t R[5] = {0, 0, 0, 0, 0};
-	uint16_t G[5] = {0, 0, 0, 0, 0};
-	uint16_t B[5] = {0, 0, 0, 0, 0};
-	int32_t r, g, b, i;
-	int32_t palr, palg, palb;
-	uint16_t pal;
+	uint32_t i;
+	uint64_t palr, palg, palb;
+	uint32_t pal;
 
 	TVRAM_SetAllDirty();
 
-	r = g = b = 5;
-
-	for (bit=0x8000; bit; bit>>=1)
-	{					// 各色毎に左（上位）から5ビットずつ拾う
-		if ( (WinDraw_Pal16R&bit)&&(r) ) R[--r] = bit;
-		if ( (WinDraw_Pal16G&bit)&&(g) ) G[--g] = bit;
-		if ( (WinDraw_Pal16B&bit)&&(b) ) B[--b] = bit;
-	}
-
+	// Pal32を輝度に合わせて変更する
 	for (i=0; i<65536; i++)
 	{
-		palr = palg = palb = 0;
-		if (i&0x8000) palg |= G[4];
-		if (i&0x4000) palg |= G[3];
-		if (i&0x2000) palg |= G[2];
-		if (i&0x1000) palg |= G[1];
-		if (i&0x0800) palg |= G[0];
-		if (i&0x0400) palr |= R[4];
-		if (i&0x0200) palr |= R[3];
-		if (i&0x0100) palr |= R[2];
-		if (i&0x0080) palr |= R[1];
-		if (i&0x0040) palr |= R[0];
-		if (i&0x0020) palb |= B[4];
-		if (i&0x0010) palb |= B[3];
-		if (i&0x0008) palb |= B[2];
-		if (i&0x0004) palb |= B[1];
-		if (i&0x0002) palb |= B[0];
-		pal = palr | palb | palg;
-		palg = (uint16_t)((palg*num)/15)&Pal_G;
-		palr = (uint16_t)((palr*num)/15)&Pal_R;
-		palb = (uint16_t)((palb*num)/15)&Pal_B;
-		Pal16[i] = palr | palb | palg;
-		if ((pal)&&(!Pal16[i])) Pal16[i] = B[0];
-		if (i&0x0001) Pal16[i] |= Ibit;
+		palg = (i&0xf800) >> 10;// Green
+		palr = (i&0x07c0) >> 5; // Red
+		palb = (i&0x003e);      // Blue
+		if (i&0x0001){ palb |= 0x0001;palr |= 0x0001;palg |= 0001; }// IbitはRGB共通
+		palg = (uint64_t)(((palg*4*num)/15) << 16) & WinDraw_Pal32G;
+		palr = (uint64_t)(((palr*4*num)/15) << 24) & WinDraw_Pal32R;
+		palb = (uint64_t)(((palb*4*num)/15) << 8 ) & WinDraw_Pal32B;
+		Pal32[i] = (uint32_t)(palr | palb | palg);
+		if(i & 0x0001) Pal32[i] |= Abit32; // 透明処理保存用(明るさを変化させてもココが残ってる)
 	}
 
+	// TextPal32とGrphPal32も強制変更する
 	for (i=0; i<256; i++)
 	{
 		pal = Pal_Regs[i*2];
 		pal = (pal<<8)+Pal_Regs[i*2+1];
-		GrphPal[i] = Pal16[pal];
+		GrphPal32[i] = Pal32[pal];
 
 		pal = Pal_Regs[i*2+512];
 		pal = (pal<<8)+Pal_Regs[i*2+513];
-		TextPal[i] = Pal16[pal];
+		TextPal32[i] = Pal32[pal];
 	}
 }

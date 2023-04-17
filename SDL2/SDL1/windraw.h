@@ -9,6 +9,7 @@ extern int32_t ScreenClearFlg;
 extern uint8_t Draw_ClrMenu;
 extern uint32_t FrameCount;
 extern uint16_t WinDraw_Pal16B, WinDraw_Pal16R, WinDraw_Pal16G;
+extern uint32_t WinDraw_Pal32B, WinDraw_Pal32R, WinDraw_Pal32G;
 
 
 extern	int32_t	WindowX;
