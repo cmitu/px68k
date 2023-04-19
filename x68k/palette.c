@@ -160,7 +160,7 @@ void Pal_TrackContrast(void)
 	if(SysPort[1] == Contrast_Value){ return; }
 
 	if(SysPort[1] > Contrast_Value){Contrast_Value++;}
-	else{Contrast_Value--;}
+	if(SysPort[1] < Contrast_Value){Contrast_Value--;}
 
 	Pal32_ChangeContrast(Contrast_Value);
 }
@@ -175,15 +175,17 @@ void Pal32_ChangeContrast(int32_t num)
 	uint64_t palr, palg, palb;
 	uint32_t pal;
 
-	TVRAM_SetAllDirty();
+	if(num > 15) num = 15;
 
+	TVRAM_SetAllDirty();
+	
 	// Pal32を輝度に合わせて変更する
 	for (i=0; i<65536; i++)
 	{
-		palg = (i&0xf800) >> 10;// Green
-		palr = (i&0x07c0) >> 5; // Red
-		palb = (i&0x003e);      // Blue
-		if (i&0x0001){ palb |= 0x0001;palr |= 0x0001;palg |= 0001; }// IbitはRGB共通
+		palg = (i&0xf800) >> 10;// Green 5bit
+		palr = (i&0x07c0) >> 5; // Red  5bit
+		palb = (i&0x003e);      // Blue 5bit
+		if (i&0x0001){ palb |= 0x0001;palr |= 0x0001;palg |= 0001; }// IbitはRGB共通 6bit
 		palg = (uint64_t)(((palg*4*num)/15) << 16) & WinDraw_Pal32G;
 		palr = (uint64_t)(((palr*4*num)/15) << 24) & WinDraw_Pal32R;
 		palb = (uint64_t)(((palb*4*num)/15) << 8 ) & WinDraw_Pal32B;

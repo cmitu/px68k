@@ -784,14 +784,13 @@ Grp_DrawLine8TR(int32_t page, int32_t opaq)
 				if (v != 0) {
 					v = GrphPal32[v];
 					if (v != 0) {
-						v0 &= Pal32_X68kMask;
-						if (v & Abit32){
-							v0 |= Ibit32;
-						}
-						v &= Pal32_X68kMask;
-						v  >>= 1;
-						v0 >>= 1;
-						v += v0;
+						v0 >>= 8;
+						v  >>= 8;
+						v = ((((v&0x00ff0000)+(v0&0x00ff0000))>>1) & 0x00ff0000) |
+							((((v&0x0000ff00)+(v0&0x0000ff00))>>1) & 0x0000ff00) |
+							((((v&0x000000ff)+(v0&0x000000ff))>>1) & 0x000000ff);
+						v <<= 8;
+						v &= Pal32_FullMask;
 					}
 				}
 			} else {
@@ -854,14 +853,13 @@ Grp_DrawLine4TR(uint32_t page, int32_t opaq)
 					if (v != 0) {
 						v = GrphPal32[v];
 						if (v != 0) {
-							v0 &= Pal32_X68kMask;
-							if (v & Abit32){
-								v0 |= Ibit32;
-							}
-							v &= Pal32_X68kMask;
-							v  >>= 1;
-							v0 >>= 1;
-							v += v0;
+							v0 >>= 8;
+							v  >>= 8;
+							v = ((((v&0x00ff0000)+(v0&0x00ff0000))>>1) & 0x00ff0000) |
+								((((v&0x0000ff00)+(v0&0x0000ff00))>>1) & 0x0000ff00) |
+								((((v&0x000000ff)+(v0&0x000000ff))>>1) & 0x000000ff);
+							v <<= 8;
+							v &= Pal32_FullMask;
 						}
 					}
 				} else {
@@ -882,14 +880,13 @@ Grp_DrawLine4TR(uint32_t page, int32_t opaq)
 					if (v != 0) {
 						v = GrphPal32[v];
 						if (v != 0) {
-							v0 &= Pal32_X68kMask;
-							if (v & Abit32){
-								v0 |= Ibit32;
-							}
-							v &= Pal32_X68kMask;
-							v  >>= 1;
-							v0 >>= 1;
-							v += v0;
+							v0 >>= 8;
+							v  >>= 8;
+							v = ((((v&0x00ff0000)+(v0&0x00ff0000))>>1) & 0x00ff0000) |
+								((((v&0x0000ff00)+(v0&0x0000ff00))>>1) & 0x0000ff00) |
+								((((v&0x000000ff)+(v0&0x000000ff))>>1) & 0x000000ff);
+							v <<= 8;
+							v &= Pal32_FullMask;
 							Grp_LineBuf32[i]=(uint32_t)v;
 						}
 					} else
@@ -910,14 +907,13 @@ Grp_DrawLine4TR(uint32_t page, int32_t opaq)
 					if (v != 0) {
 						v = GrphPal32[v];
 						if (v != 0) {
-							v0 &= Pal32_X68kMask;
-							if (v & Abit32){
-								v0 |= Ibit32;
-							}
-							v &= Pal32_X68kMask;
-							v  >>= 1;
-							v0 >>= 1;
-							v += v0;
+							v0 >>= 8;
+							v  >>= 8;
+							v = ((((v&0x00ff0000)+(v0&0x00ff0000))>>1) & 0x00ff0000) |
+								((((v&0x0000ff00)+(v0&0x0000ff00))>>1) & 0x0000ff00) |
+								((((v&0x000000ff)+(v0&0x000000ff))>>1) & 0x000000ff);
+							v <<= 8;
+							v &= Pal32_FullMask;
 						}
 					}
 				} else {
@@ -934,14 +930,13 @@ Grp_DrawLine4TR(uint32_t page, int32_t opaq)
 					if (v != 0) {
 						v = GrphPal32[v];
 						if (v != 0) {
-							v0 &= Pal32_X68kMask;
-							if (v & Abit32){
-								v0 |= Ibit32;
-							}
-							v &= Pal32_X68kMask;
-							v  >>= 1;
-							v0 >>= 1;
-							v += v0;
+							v0 >>= 8;
+							v  >>= 8;
+							v = ((((v&0x00ff0000)+(v0&0x00ff0000))>>1) & 0x00ff0000) |
+								((((v&0x0000ff00)+(v0&0x0000ff00))>>1) & 0x0000ff00) |
+								((((v&0x000000ff)+(v0&0x000000ff))>>1) & 0x000000ff);
+							v <<= 8;
+							v &= Pal32_FullMask;
 							Grp_LineBuf32[i]=(uint32_t)v;
 						}
 					} else {
