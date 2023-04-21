@@ -730,13 +730,14 @@ INLINE void WinDraw_DrawTextLineTR(int32_t opaq)
 {						   \
 	w = Grp_LineBuf32SP[i - 16];		   \
 	if (w != 0) {				   \
-		w &= Pal32_X68kMask;		   \
+		w >>= 8;	   \
 		v = BG_LineBuf32[i];	   \
-		if (v & Abit32){ w += Ibit32; }	   \
-		v &= Pal32_X68kMask;		   \
-		v >>= 1;			   \
-		w >>= 1;			   \
-		v += w;				   \
+		v >>= 8;	   \
+		v = (((v&0x00ff0000)+(w&0x00ff0000))>>1) & 0x00ff0000 |	   \
+			(((v&0x0000ff00)+(w&0x0000ff00))>>1) & 0x0000ff00 |    \
+			(((v&0x000000ff)+(w&0x000000ff))>>1) & 0x000000ff;	   \
+		v <<= 8;	   \
+		v &= Pal32_FullMask;		   \
 	} else {				   \
 		if (Text_TrFlag[i] & 1){		   \
 			v = BG_LineBuf32[i];	   \
@@ -755,12 +756,13 @@ INLINE void WinDraw_DrawTextLineTR(int32_t opaq)
 						   \
 		if (v != 0) {			   \
 			if (w != 0) {			\
-				w &= Pal32_X68kMask;	\
-				if (v & Abit32){ w += Ibit32; }	\
-				v &= Pal32_X68kMask;	\
-				v>>=1;		\
-				w>>=1;		\
-				v += w;			\
+				w >>= 8;	   \
+				v >>= 8;	   \
+				v = (((v&0x00ff0000)+(w&0x00ff0000))>>1) & 0x00ff0000 |	   \
+					(((v&0x0000ff00)+(w&0x0000ff00))>>1) & 0x0000ff00 |    \
+					(((v&0x000000ff)+(w&0x000000ff))>>1) & 0x000000ff;	   \
+				v <<= 8;	   \
+				v &= Pal32_FullMask;		   \
 			}				\
 			ScrBuf##SUFFIX[adr] = (uint32_t)v;	\
 		}					\
@@ -825,12 +827,13 @@ INLINE void WinDraw_DrawBGLineTR(int32_t opaq)
 #define _DBL_TR_SUB3()			\
 {					\
 	if (w != 0) {			\
-		w &= Pal32_X68kMask;	\
-		if (v & Abit32){ w += Ibit32; }	\
-		v &= Pal32_X68kMask;	\
-		v>>=1;	\
-		w>>=1;	\
-		v += w;			\
+		w >>= 8;	   \
+		v >>= 8;	   \
+		v = (((v&0x00ff0000)+(w&0x00ff0000))>>1) & 0x00ff0000 |	   \
+			(((v&0x0000ff00)+(w&0x0000ff00))>>1) & 0x0000ff00 |    \
+			(((v&0x000000ff)+(w&0x000000ff))>>1) & 0x000000ff;	   \
+		v <<= 8;	   \
+		v &= Pal32_FullMask;		   \
 	}				\
 }
 
