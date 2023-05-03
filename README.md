@@ -12,7 +12,8 @@
 * SDL2のRenderer(GPU)を活用、よって"sdl-gfx"は不要
 * Support Full-Screen Mode.(`F11`)
 * 正確なScreen描画の再現(表示域と描画域を個別演算)
-* SCSI DiskImageサポート(`boot from *.HDS`)
+* 最終画面出力を24bitに変更(RGB565→RGBA8888)
+* SCSI DiskImageサポート(`Can boot from *.HDS`)
 * SCSI-IPLの機能もEmu側で実装する？(未)
 * `Support MIDI-Play` (Internal/Munt/fluidsynth/USB-MIDI)
 * MIDI音源FileにSoundFont2使用可(fluidsynth)

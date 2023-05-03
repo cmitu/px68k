@@ -12,7 +12,7 @@
 #include "disk_xdf.h"
 #include "disk_dim.h"
 #include <string.h>
-
+#include <unistd.h>
 
 typedef struct {
 	int32_t SetDelay[4];
@@ -73,10 +73,11 @@ static int32_t GetDiskType(char* file)
 int32_t FASTCALL FDD_Int(uint8_t irq)
 {
 	IRQH_IRQCallBack(irq);
-	if ( irq==1 )
+	if ( irq==1 ){
 		return ((long)IOC_IntVect+1);
-	else
-		return -1;
+	}
+
+	return -1;
 }
 
 
@@ -210,102 +211,131 @@ void FDD_SetFDInt(void)
 
 int32_t FDD_Seek(int32_t drv, int32_t trk, FDCID* id)
 {
+	static int32_t trk_B4=0;
 	int32_t type;
+
 	if ( (drv<0)||(drv>3) ) return FALSE;
+
 	type = fdd.Types[drv];
-	if ( Seek[type] )
+	if ( Seek[type] ){
+		uint32_t movetrack = abs(trk_B4 - trk);
+		usleep(movetrack * 200 + 150);// wait...
+		trk_B4 = trk;
 		return Seek[type](drv, trk, id);
-	else
-		return FALSE;
+	}
+
+	return FALSE;
 }
 
 int32_t FDD_ReadID(int32_t drv, FDCID* id)
 {
 	int32_t type;
+
 	if ( (drv<0)||(drv>3) ) return FALSE;
+
 	type = fdd.Types[drv];
-	if ( ReadID[type] )
+	if ( ReadID[type] ){
 		return ReadID[type](drv, id);
-	else
-		return FALSE;
+	}
+
+	return FALSE;
 }
 
 int32_t FDD_WriteID(int32_t drv, int32_t trk,uint8_t* buf, int32_t num)
 {
 	int32_t type;
+
 	if ( (drv<0)||(drv>3) ) return FALSE;
+
 	type = fdd.Types[drv];
-	if ( WriteID[type] )
+	if ( WriteID[type] ){
 		return WriteID[type](drv, trk, buf, num);
-	else
-		return FALSE;
+	}
+
+	return FALSE;
 }
 
 
 int32_t FDD_Read(int32_t drv, FDCID* id, uint8_t* buf)
 {
 	int32_t type;
+
 	if ( (drv<0)||(drv>3) ) return FALSE;
+
 	type = fdd.Types[drv];
 	if ( Read[type] )
 	{
+		usleep(300);// wait...
 		FDD_IsReading = 1;
 		return Read[type](drv, id, buf);
 	}
-	else
-		return FALSE;
+
+	return FALSE;
 }
 
 
 int32_t FDD_ReadDiag(int32_t drv, FDCID* id, FDCID* retid, uint8_t* buf)
 {
 	int32_t type;
+
 	if ( (drv<0)||(drv>3) ) return FALSE;
+
 	type = fdd.Types[drv];
-	if ( ReadDiag[type] )
+	if ( ReadDiag[type] ){
 		return ReadDiag[type](drv, id, retid, buf);
-	else
-		return FALSE;
+	}
+
+	return FALSE;
 }
 
 
 int32_t FDD_Write(int32_t drv, FDCID* id, uint8_t* buf, int32_t del)
 {
 	int32_t type;
+
 	if ( (drv<0)||(drv>3) ) return FALSE;
+
 	type = fdd.Types[drv];
-	if ( Write[type] )
+	if ( Write[type] ){
+		usleep(300);// wait...
 		return Write[type](drv, id, buf, del);
-	else
-		return FALSE;
+	}
+
+	return FALSE;
 }
 
 
 int32_t FDD_GetCurrentID(int32_t drv, FDCID* id)
 {
 	int32_t type;
+
 	if ( (drv<0)||(drv>3) ) return FALSE;
+
 	type = fdd.Types[drv];
-	if ( GetCurrentID[type] )
+	if ( GetCurrentID[type] ){
 		return GetCurrentID[type](drv, id);
-	else
-		return FALSE;
+	}
+
+	return FALSE;
 }
 
 
 int32_t FDD_IsReady(int32_t drv)
 {
 	if ( (drv<0)||(drv>3) ) return FALSE;
-	if ( (fdd.Types[drv]!=FD_Non)&&(!fdd.SetDelay[drv]) )
+
+	if ( (fdd.Types[drv]!=FD_Non)&&(!fdd.SetDelay[drv]) ){
 		return TRUE;
-	else
-		return FALSE;
+	}
+
+	return FALSE;
 }
 
 
 int32_t FDD_IsReadOnly(int32_t drv)
 {
 	if ( (drv<0)||(drv>3) ) return FALSE;
+
 	return fdd.ROnly[drv];
 }
 
