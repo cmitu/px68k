@@ -13,6 +13,7 @@
 * Support Full-Screen Mode.(`F11`)
 * 正確なScreen描画の再現(表示域と描画域を個別演算)
 * 最終画面出力を24bitに変更(RGB565→RGBA8888)
+* SDL2でソフトキーボード復活(Right click on Menu mode)
 * SCSI DiskImageサポート(`Can boot from *.HDS`)
 * SCSI-IPLの機能もEmu側で実装する？(未)
 * `Support MIDI-Play` (Internal/Munt/fluidsynth/USB-MIDI)
@@ -22,11 +23,13 @@
 * Printer出力をFileに保存
 * Add support CyberStick! (DIGITAL/ANALOG mode)
 * Can use XBOX like GameController (hot-pluggable)
-* Support SoftWare-Keyboard. (only SDL2)
 * `FileNameのutf8/sjis` 自動判別日本語表示(専用table変換)
-* Mac用SDL1/2.frameworkでのbuildスクリプト添付
-* Mac用単独アプリ化ラッパー追加
 * macOS/Linux/MinGW64(win) で動作確認
+
+## for macOS
+* Mac用単独アプリ化ラッパー追加
+* Mac用SDL1/2.frameworkでのbuildスクリプト添付
+* pngからiconリソース生成機能搭載(% make icon)
 
 ## Need
 * SDL2 (still support SDL1)(https://www.libsdl.org/)
@@ -71,6 +74,7 @@
  * CyberStickのアナログモードは確認継続中(認識不完全アリ)
  * SDL1でのkeymapデコードは不完全(¥、ろ)
  * SDL1の描画はCPU依存、よって遅いです。
+ * BigEndianのCPUでは動きません。(例:Wii/U,Mac/G4)
 
 ## How to make `cgrom.tmp`
  * cgrom.datがない場合用に代替ファイルをTrueTypeから生成できます。

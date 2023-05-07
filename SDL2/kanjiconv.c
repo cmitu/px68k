@@ -7346,6 +7346,16 @@ uint32_t conv_utf8tosjis(char *dst,char *src)
 		*dst++ = (unsigned char)((c2 & 0xff00) >> 8);
 		}
 		*dst++ = (unsigned char)(c2 & 0x00ff);
+
+		//UTF8MAC to UTF8
+		if((c2==0x814a)||(c2==0x814b)){// ゛濁点 ゜半濁点
+		  if(((*(dst-4)&0xff) == 0x82) || ((*(dst-4)&0xff) == 0x83)){//か〜ポ範囲
+		   dst -=2;
+		   if(c2==0x814a)  *(dst-1)+=1;//濁点付きへ変換
+		   else            *(dst-1)+=2;//半濁点付きへ変換
+		  }
+		}
+
 	 }
 
 	} /*loop end*/

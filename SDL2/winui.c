@@ -961,6 +961,7 @@ int32_t WinUI_Menu(int32_t first)
 	}
 
 	if (mfile_redraw) {
+		WinDraw_ClearMenuBuffer();
 		WinDraw_DrawMenufile(&mfl); /*File選択*/
 		mfile_redraw = 0;
 	}
