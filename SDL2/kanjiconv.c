@@ -7341,20 +7341,33 @@ uint32_t conv_utf8tosjis(char *dst,char *src)
 			}
 		}
 		if((c2 & 0xff000000) == 0xf0000000){ if(flg<500) flg++; }/*4byte code count*/
+
 		/* Store S-JIS code */
 		if((c2 & 0x00ff) != c2){ /*3byte half kana support*/
 		*dst++ = (unsigned char)((c2 & 0xff00) >> 8);
 		}
 		*dst++ = (unsigned char)(c2 & 0x00ff);
 
-		//UTF8MAC to UTF8
+		/*UTF8MAC to UTF8*/
 		if((c2==0x814a)||(c2==0x814b)){// ゛濁点 ゜半濁点
 		  if(((*(dst-4)&0xff) == 0x82) || ((*(dst-4)&0xff) == 0x83)){//か〜ポ範囲
-		   dst -=2;
+		   dst -=2;//１文字戻す
 		   if(c2==0x814a)  *(dst-1)+=1;//濁点付きへ変換
 		   else            *(dst-1)+=2;//半濁点付きへ変換
 		  }
 		}
+
+		/*ローマ数字代替表示*/
+		if(c == 0xE285A0){*(dst-2)=0x49; dst--;} //Ⅰ
+		if(c == 0xE285A1){*(dst-2)=0x49; *(dst-1)=0x49;} //Ⅱ
+		if(c == 0xE285A2){*(dst-2)=0x49; *(dst-1)=0x49;*dst++=0x49;} //Ⅲ
+		if(c == 0xE285A3){*(dst-2)=0x49; *(dst-1)=0x56;} //Ⅳ
+		if(c == 0xE285A4){*(dst-2)=0x56; dst--;} //Ⅴ
+		if(c == 0xE285A5){*(dst-2)=0x56; *(dst-1)=0x49;} //Ⅵ
+		if(c == 0xE285A6){*(dst-2)=0x56; *(dst-1)=0x49;*dst++=0x49;} //Ⅶ
+		if(c == 0xE285A7){*(dst-2)=0x56; *(dst-1)=0x49;*dst++=0x49;*dst++=0x49;} //Ⅷ
+		if(c == 0xE285A8){*(dst-2)=0x49; *(dst-1)=0x58;} //Ⅸ
+		if(c == 0xE285A9){*(dst-2)=0x58; dst--;} //Ⅹ
 
 	 }
 
