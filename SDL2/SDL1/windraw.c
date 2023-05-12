@@ -1091,7 +1091,7 @@ void WinDraw_DrawLine(void)
 			}
 			else		// 20010120 （琥珀色）
 			{
-				memset(&BG_LineBuf32[16], 0 , TextDotX * 2);
+				memset(&BG_LineBuf32[16], 0 , TextDotX * 4);
 			}
 			memset(Text_TrFlag, 0, TextDotX+16);
 			bgon = 1;
