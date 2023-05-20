@@ -74,7 +74,6 @@ uint32_t FrameCount = 0;
 int32_t  SplashFlag = 0;
 int32_t  ScreenClearFlg = 0;
 
-uint16_t WinDraw_Pal16B, WinDraw_Pal16R, WinDraw_Pal16G;
 uint32_t WinDraw_Pal32B, WinDraw_Pal32R, WinDraw_Pal32G;
 
 uint32_t WindowX = 0;
@@ -343,14 +342,11 @@ int32_t WinDraw_Init(uint32_t err_msg_no)
 		return FALSE;
 	}
 
-	// SDL2 Color Table
-	WinDraw_Pal16R = 0xf800;
-	WinDraw_Pal16G = 0x07e0;
-	WinDraw_Pal16B = 0x001f;
+	// SDL1/2 Color Table
 	WinDraw_Pal32R = 0xff000000;
 	WinDraw_Pal32G = 0x00ff0000;
 	WinDraw_Pal32B = 0x0000ff00;
-	//printf("R: %x, G: %x, B: %x\n", WinDraw_Pal16R, WinDraw_Pal16G, WinDraw_Pal16B);
+	//printf("R: %x, G: %x, B: %x\n", WinDraw_Pal32R, WinDraw_Pal32G, WinDraw_Pal32B);
 
 
 #if defined(USE_OGLES11)

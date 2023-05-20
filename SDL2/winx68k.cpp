@@ -277,6 +277,7 @@ WinX68k_LoadROMs(void)
 	}
 	if (fp == 0) {
 		Error("BIOS ROM イメージが見つかりません.");
+		memset(IPL, 0x00, 0x40000);/*IPL clear*/
 		return FALSE;
 	}
 	File_Read(fp, &IPL[0x20000], 0x20000);/*128K*/

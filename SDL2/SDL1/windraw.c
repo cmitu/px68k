@@ -73,7 +73,6 @@ uint32_t FrameCount = 0;
 int32_t  SplashFlag = 0;
 int32_t  ScreenClearFlg = 0;
 
-uint16_t WinDraw_Pal16B, WinDraw_Pal16R, WinDraw_Pal16G;
 uint32_t WinDraw_Pal32B, WinDraw_Pal32R, WinDraw_Pal32G;
 
 uint32_t WindowX = 0;
@@ -86,6 +85,9 @@ static GLuint texid[11];
 /* Drawing SDL1 buffer */
 extern SDL_Surface *sdl_surface;
 extern SDL_Surface *sdl_x68screen;
+#if !defined(USE_OGLES11)
+SDL_Surface *menu_surface;
+#endif
 
 extern int32_t VID_MODE, CHANGEAV_TIMING;
 
@@ -327,10 +329,6 @@ int32_t WinDraw_Init(uint32_t err_msg_no)
 		return FALSE;
 	}
 
-	// SDL1 Color Table
-	WinDraw_Pal16R = sdl_surface->format->Rmask;
-	WinDraw_Pal16G = sdl_surface->format->Gmask;
-	WinDraw_Pal16B = sdl_surface->format->Bmask;
 	// SDL1 32bit color depth
 	WinDraw_Pal32R = 0xff000000;
 	WinDraw_Pal32G = 0x00ff0000;
@@ -405,7 +403,7 @@ int32_t WinDraw_Init(uint32_t err_msg_no)
 
 #else // OPEN_GL ES end
 
-	/* X68000 32bit Showing Area for SDL1*/
+	/* X68000 32bit Display Area for SDL1*/
 	sdl_x68screen = SDL_CreateRGBSurface(0, 800, 600, 32, WinDraw_Pal32R, WinDraw_Pal32G, WinDraw_Pal32B, 0);
 	if (sdl_x68screen == NULL) return FALSE;
 
@@ -494,15 +492,69 @@ void draw_all_buttons(GLfloat *tex, GLfloat *ver, GLfloat scale, int32_t is_menu
 }
 #endif // USE_OGLES11
 
+/*==SDL1 Update Screen===*/
+void
+Update_Screen(uint32_t menu)
+{
+	int32_t x,y;
+	uint32_t *p;
+	uint16_t *dst16;
+	uint32_t *dst32;
+	int32_t xk;
+	int32_t yk;
+	int32_t Bpp= sdl_surface->format->BytesPerPixel;
+
+	if(menu){ /* ==Menu Drawing==*/
+	 SDL_BlitSurface(menu_surface,NULL,sdl_surface,NULL);
+	}
+	else{     /* ==X68000 Drawing==*/
+
+	if(ScreenClearFlg != 0){ 			/*change screen*/
+	  WinDraw_ChangeSizeGO();
+	  if(ScreenClearFlg++>2){ ScreenClearFlg=0; }
+	  ScreenClearFlg=0;
+	}
+
+	// ===通常表示===拡大する
+	for (y = 0; y < 600; y++) {
+		yk=(surfaceH*y)/600;
+		p = ScrBuf + (800 * (yk-drawH))-drawW;
+		dst16 = sdl_x68screen->pixels + (sdl_x68screen->w * Bpp * y);
+		dst32 = sdl_x68screen->pixels + (sdl_x68screen->w * Bpp * y);
+		for (x = 0; x < 800; x++) {
+			xk=(surfaceW*x)/800;
+			if  (Bpp == 4) {
+				if(yk>=drawH && yk<(TextDotY+drawH) && xk>=(drawW) && xk<(TextDotX+(drawW))){
+				*dst32++ = (uint32_t)*(p+xk);
+				}
+				else{*dst32++ = 0; }
+			} else if (Bpp == 2) {
+				if(yk>=drawH && yk<(TextDotY+drawH) && xk>=(drawW) && xk<(TextDotX+(drawW))){
+				*dst16++ = *(p+xk);
+				}
+				else{*dst16++ = 0; }
+			} else {
+				// xxx not suported
+			}
+		}
+	}
+
+	// X68000 to Display buffer
+	SDL_BlitSurface(sdl_x68screen,NULL,sdl_surface,NULL);
+	}
+
+
+	/*SDL1_Window画面表示*/
+	SDL_UpdateRect(sdl_surface, 0, 0, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT);
+
+ return;
+}
 
 /*描画バッファから表示バッファへの転送*/
 /* X68K VRAM to Screen buffer   */
 void FASTCALL
 WinDraw_Draw(void)
 {
-
-	int32_t x,y;
-
 
 #if defined(USE_OGLES11)
 	GLfloat texture_coordinates[8];
@@ -585,52 +637,7 @@ WinDraw_Draw(void)
 
 #else // OpenGL ES end.
 
-	if(ScreenClearFlg != 0){ 			/*change screen*/
-	  WinDraw_ChangeSizeGO();
-	  //if(ScreenClearFlg++>2){ ScreenClearFlg=0; }
-	  ScreenClearFlg=0;
-	}
-
-	/* ====SDL1 Drawing====*/
-	int32_t Bpp;
-	uint32_t *p;
-	uint16_t *dst16;
-	uint32_t *dst32;
-	int32_t xk;
-	int32_t yk;
-
-	Bpp = sdl_surface->format->BytesPerPixel;
-
-	// ===通常表示===拡大する
-		for (y = 0; y < 600; y++) {
-			yk=(surfaceH*y)/600;
-			p = ScrBuf + (800 * (yk-drawH))-drawW;
-			dst16 = sdl_x68screen->pixels + (sdl_x68screen->w * Bpp * y);
-			dst32 = sdl_x68screen->pixels + (sdl_x68screen->w * Bpp * y);
-			for (x = 0; x < 800; x++) {
-				xk=(surfaceW*x)/800;
-				if  (Bpp == 4) {
-					if(yk>=drawH && yk<(TextDotY+drawH) && xk>=(drawW) && xk<(TextDotX+(drawW))){
-					*dst32++ = (uint32_t)*(p+xk);
-					}
-					else{*dst32++ = 0; }
-				} else if (Bpp == 2) {
-					if(yk>=drawH && yk<(TextDotY+drawH) && xk>=(drawW) && xk<(TextDotX+(drawW))){
-					*dst16++ = *(p+xk);
-					}
-					else{*dst16++ = 0; }
-				} else {
-					// xxx not suported
-				}
-			}
-		}
-
-	// X68000 to Display buffer
-	SDL_BlitSurface(sdl_x68screen,NULL,sdl_surface,NULL);
-
-	/*SDL1_Window画面表示*/
-	SDL_UpdateRect(sdl_surface, 0, 0, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT);
-
+	Update_Screen(0);// SDL1 Drawing Screen
 
 #endif	// OpenGL ES END
 
@@ -1320,10 +1327,6 @@ struct _px68k_menu {
 	int32_t mfs; // menu font size;
 } p6m;
 
-#if !defined(USE_OGLES11)
-SDL_Surface *menu_surface;
-#endif
-
 // 画面タイプを変更する
 enum ScrType {x68k, pc98};
 int32_t scr_type = x68k;
@@ -1584,10 +1587,10 @@ int32_t WinDraw_MenuInit(void)
 #else
 
 	/*SDL1 menu-surface */
-	menu_surface = SDL_GetVideoSurface();
+	//menu_surface = SDL_GetVideoSurface();
+	menu_surface = SDL_CreateRGBSurface(0, 800, 600, 32, WinDraw_Pal32R, WinDraw_Pal32G, WinDraw_Pal32B, 0);
+	if (menu_surface == NULL) return FALSE;
 
-	if (!menu_surface)
-		return FALSE;
 	set_sbp((uint32_t *)(menu_surface->pixels));
 	set_mfs(24);
 #endif
@@ -1845,8 +1848,7 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 	ogles11_draw_menu();
 #else
 
-/*画面更新(SDL1)*/
-	SDL_UpdateRect(menu_surface, 0, 0, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT);
+	Update_Screen(1);// SDL1 Drawing Screen
 
 #endif
 }
@@ -1894,8 +1896,7 @@ void WinDraw_DrawMenufile(struct menu_flist *mfl)
 	ogles11_draw_menu();
 #else
 
-/*画面更新(SDL1)*/
-	SDL_UpdateRect(menu_surface, 0, 0, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT);
+	Update_Screen(1);// SDL1 Drawing Screen
 
 #endif
 }
