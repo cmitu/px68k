@@ -259,6 +259,7 @@ mac:: $(PROGRAM)
 	mkdir "$(PROGRAM).app/Contents/"
 	mkdir "$(PROGRAM).app/Contents/MacOS"
 	cp -r "osx/Contents/" "$(PROGRAM).app/Contents"
+	cp -r "osx/Info.plist" "$(PROGRAM).app/Contents/Info.plist"
 	cp $(PROGRAM) "$(PROGRAM).app/Contents/MacOS/px68k"
 
 c68k::

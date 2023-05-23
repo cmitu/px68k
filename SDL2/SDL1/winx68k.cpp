@@ -271,8 +271,10 @@ WinX68k_LoadROMs(void)
 	}
 	if (fp == 0) {
 		Error("BIOS ROM イメージが見つかりません.");
-		return FALSE;
+		memset(IPL, 0x00, 0x40000);/*IPL clear*/
+		flg = FALSE;
 	}
+	else {
 	File_Read(fp, &IPL[0x20000], 0x20000);
 	File_Close(fp);
 	if(i==1) strcat(window_title," EXPERT");//ver 1.0
@@ -281,6 +283,7 @@ WinX68k_LoadROMs(void)
 	if(i==4) strcat(window_title," X68030");//ver 1.3
 
 	WinX68k_SCSICheck();	// SCSI IPLなら、$fc0000～にSCSI BIOSを置く
+	}
 
 // for little endian 
 #ifndef C68K_BIG_ENDIAN
@@ -833,7 +836,7 @@ int32_t main(int32_t argc, char *argv[])
 	while (1) {
 		// OPM_RomeoOut(Config.BufferSize * 5);
 		if (menu_mode == menu_out
-		    && (Config.NoWaitMode || Timer_GetCount())) {
+		    && (Config.NoWaitMode || Timer_GetCount()) && err_msg_no != 2) {
 			WinX68k_Exec();
 #if defined(ANDROID) || TARGET_OS_IPHONE
 			if (vk_cnt > 0) {
@@ -988,7 +991,7 @@ int32_t main(int32_t argc, char *argv[])
 				}
 				break;
 			case SDL_KEYUP:
-				p6logd("keyup: 0x%x 0x%x\n", ev.key.keysym.sym,ev.key.keysym.scancode);
+				//p6logd("keyup: 0x%x 0x%x\n", ev.key.keysym.sym,ev.key.keysym.scancode);
 				Keyboard_KeyUp(ev.key.keysym.sym,ev.key.keysym.scancode);//phisical code + α
 				break;
 			}

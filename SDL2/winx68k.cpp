@@ -278,8 +278,10 @@ WinX68k_LoadROMs(void)
 	if (fp == 0) {
 		Error("BIOS ROM イメージが見つかりません.");
 		memset(IPL, 0x00, 0x40000);/*IPL clear*/
-		return FALSE;
+		strcat(window_title," NO-IPL");
+		flg = FALSE;
 	}
+	else {
 	File_Read(fp, &IPL[0x20000], 0x20000);/*128K*/
 	File_Close(fp);
 	if(i==1) strcat(window_title," EXPERT");//ver 1.0
@@ -288,6 +290,7 @@ WinX68k_LoadROMs(void)
 	if(i==4) strcat(window_title," X68030");//ver 1.3
 
 	WinX68k_SCSICheck();	// Load SCSI IPL in:$fc0000～ ex:ea0000
+	}
 
 // for little endian 
 #ifndef C68K_BIG_ENDIAN
@@ -303,9 +306,10 @@ WinX68k_LoadROMs(void)
 		fp = File_OpenCurDir((char *)FONTFILETMP);
 		if (fp == 0) {
 			//if (make_cgromdat(FONT, NULL, NULL, FALSE )==0){/* 暫定フォント生成 */
-			memset(IPL, 0, 0x40000);/*IPL clear*/
+			 memset(IPL, 0, 0x40000);/*IPL clear*/
 			//}
 			Error("フォントROMイメージが見つかりません.\n");
+			strcat(window_title," NO-FONT");
 			flg = FALSE;
 		}
 	}
@@ -844,7 +848,7 @@ int32_t main(int32_t argc, char *argv[])
 	while (1) {
 		// OPM_RomeoOut(Config.BufferSize * 5);
 		if (menu_mode == menu_out
-		    && (Config.NoWaitMode || Timer_GetCount())) {
+		    && (Config.NoWaitMode || Timer_GetCount()) && err_msg_no != 2) {
 			WinX68k_Exec();
 #if defined(ANDROID) || TARGET_OS_IPHONE
 			if (vk_cnt > 0) {
