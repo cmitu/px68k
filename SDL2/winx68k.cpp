@@ -265,10 +265,11 @@ WinX68k_LoadROMs(void)
 	static const char *BIOSFILE[] = {
 		"iplrom.dat", "iplromxv.dat", "iplromco.dat", "iplrom30.dat"
 	};
-	static const char FONTFILE[] = "cgrom.dat";
-	static const char FONTFILETMP[] = "cgrom.tmp";
+	static const char *FONTFILE[] = {
+		"cgrom30.dat", "cgrom30.tmp", "cgrom.dat", "cgrom.tmp"
+	};
 	FILEH fp;
-	int32_t i;
+	int32_t i,x68030=0;
 	uint16_t tmp;
 	int32_t flg = TRUE;
 
@@ -287,8 +288,9 @@ WinX68k_LoadROMs(void)
 	if(i==1) strcat(window_title," EXPERT");//ver 1.0
 	if(i==2) strcat(window_title," XVI");   //ver 1.1
 	if(i==3) strcat(window_title," XVIcpt");//ver 1.2
-	if(i==4) strcat(window_title," X68030");//ver 1.3
-
+	if(i==4){strcat(window_title," X68030");//ver 1.3
+	  x68030 = 1;
+	}
 	WinX68k_SCSICheck();	// Load SCSI IPL in:$fc0000～ ex:ea0000
 	}
 
@@ -300,21 +302,18 @@ WinX68k_LoadROMs(void)
 	}
 #endif
 
-	fp = File_OpenCurDir((char *)FONTFILE);
-	if (fp == 0) {
-		// cgrom.tmpがある？
-		fp = File_OpenCurDir((char *)FONTFILETMP);
-		if (fp == 0) {
-			//if (make_cgromdat(FONT, NULL, NULL, FALSE )==0){/* 暫定フォント生成 */
-			 memset(IPL, 0, 0x40000);/*IPL clear*/
-			//}
-			Error("フォントROMイメージが見つかりません.\n");
-			strcat(window_title," NO-FONT");
-			flg = FALSE;
-		}
+	for (fp = 0, i = 0; fp == 0 && i < NELEMENTS(FONTFILE); i++) {
+		fp = File_OpenCurDir((char *)FONTFILE[i]);
 	}
-
-	if (fp != 0){
+	if (fp == 0) {
+		//if (make_cgromdat(FONT, NULL, NULL, x68030 )==0){/* 暫定フォント生成 */
+		 memset(IPL, 0, 0x40000);/*IPL clear*/
+		 flg = FALSE;
+		//}
+		Error("フォントROMイメージが見つかりません.\n");
+		strcat(window_title," NO-FONT");
+	}
+	else{
 	 File_Read(fp, FONT, 0xc0000);
 	 File_Close(fp);
 	}
@@ -876,6 +875,10 @@ int32_t main(int32_t argc, char *argv[])
 
 		menu_key_down = SDLK_UNKNOWN;
 
+		/* menu clickable area */
+		uint32_t menu_mouse_area_xr =  30, menu_mouse_area_xl = 720;
+		uint32_t menu_mouse_area_yu = 110, menu_mouse_area_yd = 300;
+
 		while (SDL_PollEvent(&ev)) {
 			switch (ev.type) {
 			case SDL_QUIT:
@@ -890,20 +893,36 @@ int32_t main(int32_t argc, char *argv[])
 			break;
 			case SDL_MOUSEBUTTONDOWN:
 				if(ev.button.button == SDL_BUTTON_LEFT){//左ボタンを押した
-					if(ev.window.windowID == SDL_GetWindowID(sdl_window)){ Mouse_Event((int)1, 1, 0); }
-					if(ev.window.windowID == SDL_GetWindowID(sft_kbd_window)){ draw_soft_kbd(ev.button.x,ev.button.y, 0); }// DrawSoftKey
-					//printf("DOWN/LEFT:x=%d,y=%d\n", ev.button.x,ev.button.y);
+				  if(menu_mode == menu_in){//menu mode
+					 if((ev.button.x > menu_mouse_area_xr)&&(ev.button.x < menu_mouse_area_xl)&&
+					    (ev.button.y > menu_mouse_area_yu)&&(ev.button.y < menu_mouse_area_yd)){
+				     menu_key_down = 0x0d; // click Left button = return
+					 }
+				  }
+				  else{
+				    if(ev.window.windowID == SDL_GetWindowID(sdl_window)){ Mouse_Event((int)1, 1, 0); }
+				    if(ev.window.windowID == SDL_GetWindowID(sft_kbd_window)){
+				       draw_soft_kbd(ev.button.x,ev.button.y, 0); // DrawSoftKey
+				    }
+				  }
 				}
 				else if(ev.button.button == SDL_BUTTON_RIGHT){//右ボタン押した
-					Mouse_Event((int)2, 1, 0);
-					//p6logd("DOWN/RIGHT:x=%d,y=%d\n", ev.button.x,ev.button.y);
-					if(menu_mode == menu_in){
+					if(menu_mode == menu_in){//menu mode
 						if(ev.window.windowID == SDL_GetWindowID(sdl_window)){
 						  int x, y;
 						  SDL_GetWindowPosition(sdl_window, &x, &y);
+						  if((ev.button.x > menu_mouse_area_xr)&&(ev.button.x < menu_mouse_area_xl)&&
+						     (ev.button.y > menu_mouse_area_yu)&&(ev.button.y < menu_mouse_area_yd)){
+						   menu_key_down = 0x1b; // click Right button = esc
+						  }
+						  else{
 						  SDL_SetWindowPosition(sft_kbd_window, ev.button.x + x, ev.button.y + y);
+						  Soft_kbd_Show(1);// SoftKey Window ON						}
+						  }
 						}
-						Soft_kbd_Show(1);// SoftKey Window ON
+					}
+					else{
+					 Mouse_Event((int)2, 1, 0);
 					}
 				}
 			break;
@@ -923,6 +942,14 @@ int32_t main(int32_t argc, char *argv[])
 				Mouse_Event((int)0,	(float)ev.motion.xrel * Config.MouseSpeed /10,
 									(float)ev.motion.yrel * Config.MouseSpeed /10);/*mouse support*/
 				//p6logd("x:%d y:%d xrel:%d yrel:%d\n", ev.motion.x, ev.motion.y, ev.motion.xrel, ev.motion.yrel);
+				}
+				break;
+			case SDL_MOUSEWHEEL:
+				if(menu_mode != menu_out){//menu mode
+				if(ev.wheel.y > 0) menu_key_down = 0x40000052; // Up   Wheel
+				if(ev.wheel.y < 0) menu_key_down = 0x40000051; // Down Wheel
+				if(ev.wheel.x > 0) menu_key_down = 0x4000004f; // Right Wheel
+				if(ev.wheel.x < 0) menu_key_down = 0x40000050; // Left Wheel
 				}
 				break;
 #if defined(ANDROID) || TARGET_OS_IPHONE

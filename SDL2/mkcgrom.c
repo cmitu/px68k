@@ -9,10 +9,13 @@ $05e00 16x16 JIS第1/2第1水準漢字3,008文字、第2水準漢字3,478文字 
 $3a000 8x8[1Byte] 8x256=$800
 $3a800 8x16[1Byte] 16x256=$1000
 $3b800 12(16)x12 16x12x256/8=$1800
-$3d000 12(16)x24[1Byte] 3x24x256=$4800
+$3d000 12(16)x24[1Byte] 2x24x256=$3000
 
 $40000 24x24 JIS非漢字 3x24x752=$d380
 $4d380 24x24 JIS第1/2 3x24x6486=$72030
+
+$bf400 6(8)x12 [1Byte] 12x256=$0C00 ※X68030のみ
+
 $c0000 END
 
 by kameya 2022/11/02
@@ -119,13 +122,14 @@ getfont(uint8_t *addr, uint32_t size_x, uint32_t size_y,int32_t fullw) {
 	   if(*(fntbuf+(surface->pitch/4)*y+x)==0xffffff){strcat(prt,"-");}
 	   else{
 	    strcat(prt,"●");
-	    if(size_x== 8){Font_dotset(addr,size_x,size_y,ch*16+ch1,x*size_x/surface->w,y*size_y/surface->h);}
-	    if(size_y==16){
+	    if((size_x == 8)&&(size_y == 12)){Font_dotset(addr,size_x,size_y,ch*16+ch1,x*6/surface->w,y*size_y/surface->h);}//6x12
+	    if((size_x == 8)&&(size_y == 16)){Font_dotset(addr,size_x,size_y,ch*16+ch1,x*size_x/surface->w,y*size_y/surface->h);}//8x16
+	    if((size_x ==16)&&(size_y == 16)){//16x16
 		   if(surface->w<size_x){ Font_dotset(addr,size_x,size_y,ch*16+ch1,x+(size_x-surface->w)/2,y); }
 		   else{ Font_dotset(addr,size_x,size_y,ch*16+ch1,x*8/surface->w,y); }
 	    }
-	    if(size_y==12){Font_dotset(addr,size_x,size_y,ch*16+ch1,x,y);}
-	    if(size_y==24){
+	    if((size_x == 16)&&(size_y==12)){Font_dotset(addr,size_x,size_y,ch*16+ch1,x,y);}//12x12
+	    if(size_y==24){//24x24 or 12x24
 	       if(surface->w<12){Font_dotset(addr,size_x,size_y,ch*16+ch1,x+(12-surface->w)/2,y);}
 		   else{ Font_dotset(addr,size_x,size_y,ch*16+ch1,x*12/surface->w,y); }
 	    }
@@ -329,6 +333,16 @@ make_cgromdat(uint8_t *buf, char *FONT1, char *FONT2, uint32_t x68030)
 	TTF_CloseFont(font);
 	memset(buf+0x3d000+(0x82*48)+22, 0, 4);//「｜」の真ん中に切れ目を入れる
 	//cpy2fnt24(buf + 0x3a000, buf + 0x3d000,12,24);//8x8->12x24にスケーリングで生成
+
+	if(x68030){// only X68030 6x12 ANK Font
+	// 8(6)x12
+	size_x = 8;
+	size_y = 12;
+	if (set_font(FONT1, size_y) == 0){ return FALSE; }
+	getfont(buf + 0xbf400,size_x,size_y,1);
+	TTF_CloseFont(font);
+	memset(buf+0xbf400+(0x82*12)+5, 0, 2);//「｜」の真ん中に切れ目を入れる
+	}
 
   /*16x16 JIS非漢字752文字*/
   printf("16x16 JIS非漢字752文字\n");
