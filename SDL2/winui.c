@@ -802,7 +802,7 @@ int32_t WinUI_Menu(int32_t first)
 				}
 			} else if (mfl.y + 1 < mfl.num) {
 				mfl.y++;
-				printf("mfl.y %d\n", mfl.y);
+				//printf("mfl.y %d\n", mfl.y);
 			}
 			mfile_redraw = 1;
 			break;

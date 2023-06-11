@@ -253,7 +253,7 @@ icon::
 	-iconutil -c icns "$(px68kicon)/Resources/px68k.iconset"
 	-rm -rf "$(px68kicon)/Resources/px68k.iconset"
 
-mac:: $(PROGRAM)
+mac:: $(PROGRAM) icon
 	-rm -rf "$(PROGRAM).app/"
 	mkdir "$(PROGRAM).app/"
 	mkdir "$(PROGRAM).app/Contents/"

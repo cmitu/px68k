@@ -894,10 +894,11 @@ int32_t main(int32_t argc, char *argv[])
 			case SDL_MOUSEBUTTONDOWN:
 				if(ev.button.button == SDL_BUTTON_LEFT){//左ボタンを押した
 				  if(menu_mode == menu_in){//menu mode
-					 if((ev.button.x > menu_mouse_area_xr)&&(ev.button.x < menu_mouse_area_xl)&&
+					 if((menu_state!=ms_file)&&(ev.button.x > menu_mouse_area_xr)&&(ev.button.x < menu_mouse_area_xl)&&
 					    (ev.button.y > menu_mouse_area_yu)&&(ev.button.y < menu_mouse_area_yd)){
 				     menu_key_down = 0x0d; // click Left button = return
 					 }
+					 if(menu_state==ms_file) menu_key_down = 0x0d; // click Left button = return
 				  }
 				  else{
 				    if(ev.window.windowID == SDL_GetWindowID(sdl_window)){ Mouse_Event((int)1, 1, 0); }
@@ -911,6 +912,7 @@ int32_t main(int32_t argc, char *argv[])
 						if(ev.window.windowID == SDL_GetWindowID(sdl_window)){
 						  int x, y;
 						  SDL_GetWindowPosition(sdl_window, &x, &y);
+						  if(menu_state==ms_file) menu_mouse_area_yd += 90;//file選択モードは範囲拡大
 						  if((ev.button.x > menu_mouse_area_xr)&&(ev.button.x < menu_mouse_area_xl)&&
 						     (ev.button.y > menu_mouse_area_yu)&&(ev.button.y < menu_mouse_area_yd)){
 						   menu_key_down = 0x1b; // click Right button = esc
@@ -938,10 +940,25 @@ int32_t main(int32_t argc, char *argv[])
 				}
 			break;
 			case SDL_MOUSEMOTION:
-				if(ev.window.windowID == SDL_GetWindowID(sdl_window)){
+				if(ev.window.windowID == SDL_GetWindowID(sdl_window)){//on main-window
+				if(menu_mode != menu_out){//menu mode
+					if((menu_state!=ms_file)&&(ev.button.x>25)&&(ev.button.x<190) &&(ev.button.y>121)&&(ev.button.y<289)){
+					uint32_t m_locate=(ev.button.y-121)/24;
+					extern int32_t mkey_pos,mkey_y;
+					if( m_locate + mkey_pos > mkey_y) menu_key_down = 0x40000051; // Down Wheel
+					if( m_locate + mkey_pos < mkey_y) menu_key_down = 0x40000052; // Up   Wheel
+					}
+					if((menu_state==ms_file)&&(ev.button.x>25)&&(ev.button.x<700) &&(ev.button.y>50)&&(ev.button.y<385)){
+					uint32_t m_locate=(ev.button.y-50)/24;
+					if( m_locate > mfl.y) menu_key_down = 0x40000051; // Down menu
+					if( m_locate < mfl.y) menu_key_down = 0x40000052; // Up   menu
+					}
+				}
+				else{
 				Mouse_Event((int)0,	(float)ev.motion.xrel * Config.MouseSpeed /10,
 									(float)ev.motion.yrel * Config.MouseSpeed /10);/*mouse support*/
 				//p6logd("x:%d y:%d xrel:%d yrel:%d\n", ev.motion.x, ev.motion.y, ev.motion.xrel, ev.motion.yrel);
+				}
 				}
 				break;
 			case SDL_MOUSEWHEEL:
