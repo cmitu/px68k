@@ -634,23 +634,6 @@ Human_ipl(void)
   return;
 }
 
-// ----------------------
-/* SCSI IPL/IOCS 分岐 */
-// ----------------------
-void SCSI_vecs(uint32_t adr, uint8_t SCSIiocs)
-{
-
-if(adr == 0xe9f800) // SCSI-IOCS
-	SCSI_iocs(SCSIiocs);
-
-if(adr == 0xe9f810) //SCSI 起動
-	SCSI_ipl();
-
-if(adr == 0xe9f820) //Human 起動
-	Human_ipl();
-
- return;
-}
 
 // -----------------------------------
 //   Read (Ex-SCSI area)
@@ -751,13 +734,6 @@ void FASTCALL SCSI_Write(uint32_t adr, uint8_t data)
 {
 	uint8_t i;
 
-if(adr>=0xea0020){
-	  printf("WriteROM:%6X  DATA:%2X\n",adr,data);
-}
-else{
-	  printf("SCSISPC-W:%6X  %2X\n",adr,data);
-}
-
  switch(adr)
  {
 	case 0xea0000:
@@ -854,6 +830,17 @@ else{
 	  break;
 	case 0xea001f:
 	  break;
+
+	case 0xea0100:
+	  SCSI_iocs(data);// SCSI-IOCS
+	  break;
+	case 0xea0200:
+	  SCSI_ipl();	// SCSI 起動
+	  break;
+	case 0xea0300:
+	  Human_ipl();	// Human-IOCS
+	  break;
+
 	default:
 	  BusErrFlag = 1;
 	  break;

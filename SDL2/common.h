@@ -30,8 +30,10 @@
 
 #define STDCALL
 #define	LABEL
-#define	__stdcall
 
+#undef	__stdcall
+#define	__stdcall
+/*
 typedef uint8_t	UINT8;
 typedef uint16_t	UINT16;
 typedef uint32_t	UINT32;
@@ -46,7 +48,7 @@ typedef union {
 	} b;
 	uint16_t w;
 } PAIR;
-
+*/
 #ifdef __cplusplus
 extern "C" {
 #endif

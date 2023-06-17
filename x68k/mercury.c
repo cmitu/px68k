@@ -296,7 +296,16 @@ void Mcry_Init(int32_t samplerate, const char* path)
 
 	Mcry_SetClock();
 
-	M288_Init(8000000, samplerate, path);
+#ifdef _WIN32
+char slash = '\\';
+#else
+char slash = '/';
+#endif
+
+	char	m288_path[MAX_PATH];
+
+	snprintf(m288_path, sizeof(m288_path), "%s%c", path, slash);
+	M288_Init(8000000, samplerate, m288_path);
 }
 
 
