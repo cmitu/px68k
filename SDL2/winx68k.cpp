@@ -893,6 +893,20 @@ int32_t main(int32_t argc, char *argv[])
 			break;
 			case SDL_MOUSEBUTTONDOWN:
 				if(ev.button.button == SDL_BUTTON_LEFT){//左ボタンを押した
+				 if(ev.window.windowID == SDL_GetWindowID(sft_kbd_window)){//SoftKey Window
+				   draw_soft_kbd(ev.button.x,ev.button.y, 0);
+				   if(menu_mode == menu_in){//menu mode
+				    extern uint8_t Key_X68;
+				    if(Key_X68 == 0x3c) menu_key_down = 0x40000052; //  up
+				    if(Key_X68 == 0x3e) menu_key_down = 0x40000051; //  dawn
+				    if(Key_X68 == 0x1d) menu_key_down = 0x0d; //  return
+				    if(Key_X68 == 0x01) menu_key_down = 0x1b; //  escape
+				    if(Key_X68 == 0x2b) menu_key_down = 0x78; //  x
+				    if(Key_X68 == 0x2a) menu_key_down = 0x7a; //  z
+				   Keyboard_Init();
+				   }
+				 }
+				 else if(ev.window.windowID == SDL_GetWindowID(sdl_window)){// SDL Window
 				  if(menu_mode == menu_in){//menu mode
 					 if((menu_state!=ms_file)&&(ev.button.x > menu_mouse_area_xr)&&(ev.button.x < menu_mouse_area_xl)&&
 					    (ev.button.y > menu_mouse_area_yu)&&(ev.button.y < menu_mouse_area_yd)){
@@ -900,32 +914,33 @@ int32_t main(int32_t argc, char *argv[])
 					 }
 					 if(menu_state==ms_file) menu_key_down = 0x0d; // click Left button = return
 				  }
-				  else{
+				  else{//X68000 mode
 				    if(ev.window.windowID == SDL_GetWindowID(sdl_window)){ Mouse_Event((int)1, 1, 0); }
-				    if(ev.window.windowID == SDL_GetWindowID(sft_kbd_window)){
-				       draw_soft_kbd(ev.button.x,ev.button.y, 0); // DrawSoftKey
-				    }
 				  }
+				 }
 				}
 				else if(ev.button.button == SDL_BUTTON_RIGHT){//右ボタン押した
+				 if(ev.window.windowID == SDL_GetWindowID(sft_kbd_window)){//SoftKey Window
+				   // none.
+				 }
+				 else if(ev.window.windowID == SDL_GetWindowID(sdl_window)){// SDL Window
 					if(menu_mode == menu_in){//menu mode
-						if(ev.window.windowID == SDL_GetWindowID(sdl_window)){
-						  int x, y;
-						  SDL_GetWindowPosition(sdl_window, &x, &y);
-						  if(menu_state==ms_file) menu_mouse_area_yd += 90;//file選択モードは範囲拡大
-						  if((ev.button.x > menu_mouse_area_xr)&&(ev.button.x < menu_mouse_area_xl)&&
-						     (ev.button.y > menu_mouse_area_yu)&&(ev.button.y < menu_mouse_area_yd)){
-						   menu_key_down = 0x1b; // click Right button = esc
-						  }
-						  else{
-						  SDL_SetWindowPosition(sft_kbd_window, ev.button.x + x, ev.button.y + y);
-						  Soft_kbd_Show(1);// SoftKey Window ON						}
-						  }
-						}
+					  int x, y;
+					  SDL_GetWindowPosition(sdl_window, &x, &y);
+					  if(menu_state==ms_file) menu_mouse_area_yd += 90;//file選択モードは範囲拡大
+					  if((ev.button.x > menu_mouse_area_xr)&&(ev.button.x < menu_mouse_area_xl)&&
+					     (ev.button.y > menu_mouse_area_yu)&&(ev.button.y < menu_mouse_area_yd)){
+					   menu_key_down = 0x1b; // click Right button = esc
+					  }
+					  else{
+					   SDL_SetWindowPosition(sft_kbd_window, ev.button.x + x, ev.button.y + y);
+					   Soft_kbd_Show(1);// SoftKey Window ON	
+					  }
 					}
-					else{
+					else{// X68000 mode
 					 Mouse_Event((int)2, 1, 0);
 					}
+				 }
 				}
 			break;
 			case SDL_MOUSEBUTTONUP:
