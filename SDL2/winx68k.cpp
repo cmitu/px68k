@@ -724,7 +724,7 @@ int32_t main(int32_t argc, char *argv[])
 	uint32_t flags = SDL_WINDOW_SHOWN;
 	if (Config.WinStrech == 1){flags |= SDL_WINDOW_RESIZABLE;} /*Windowサイズ変更可能？*/
 	sdl_window = SDL_CreateWindow(window_title, winx, winy, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, flags);
-	sdl_render = SDL_CreateRenderer( sdl_window ,-1, SDL_RENDERER_ACCELERATED);
+	sdl_render = SDL_CreateRenderer( sdl_window ,-1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	SDL_RenderSetLogicalSize( sdl_render ,FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT);
 	SDL_SetRenderDrawColor(sdl_render, 0, 0, 0, 0);	/* select color (black) */
 	SDL_RenderClear(sdl_render);

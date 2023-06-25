@@ -22,7 +22,7 @@ static uint32_t sleep_counter;
 void Soft_kbd_CreateScreen(void)
 {
 	sft_kbd_window  = SDL_CreateWindow("X68000 keyboard", winx+16, winy+380, softkey_width, softkey_hight, SDL_WINDOW_HIDDEN);
-	sft_kbd_render  = SDL_CreateRenderer(sft_kbd_window, -1, SDL_RENDERER_ACCELERATED);
+	sft_kbd_render  = SDL_CreateRenderer(sft_kbd_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	sft_kbd_texture = SDL_CreateTexture(sft_kbd_render, SDL_PIXELFORMAT_RGBA8888,
 							SDL_TEXTUREACCESS_STREAMING, softkey_width, softkey_hight);
 	SDL_SetRenderTarget(sft_kbd_render, sft_kbd_texture);
