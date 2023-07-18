@@ -111,8 +111,8 @@ midOutChg(uint32_t port_no, uint32_t bank)
 	}
 
 	/* select BANK CC20 LSB */
-	msg = ((bank << 16) | (0x20 << 8) | 0xb0);/*Bank select2*/
-	midiOutShortMsg(hmo, msg);
+	//msg = ((bank << 16) | (0x20 << 8) | 0xb0);/*Bank select2*/
+	//midiOutShortMsg(hmo, msg);
 
  return;
 }

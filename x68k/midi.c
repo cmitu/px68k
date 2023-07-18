@@ -49,13 +49,12 @@ enum {						// 各機種リセット用に一応。
 
 HMIDIOUT	hOut = 0;
 MIDIHDR		hHdr;
-int32_t		MIDI_CTRL;
-int32_t		MIDI_POS;
-int32_t		MIDI_SYSCOUNT;
-uint8_t		MIDI_LAST;
-uint8_t		MIDI_BUF[MIDIBUFFERS];
+
 uint8_t		MIDI_EXCVBUF[MIDIBUFFERS];
 uint8_t		MIDI_EXCVWAIT;
+
+static uint32_t Tx_ptr;
+static uint8_t  Tx_buff[MIDIBUFFERS];
 
 HMIDIIN		hIn = 0;
 uint8_t		Rx_buff[MIDIFIFOSIZE];
@@ -112,32 +111,24 @@ static	uint8_t		TONEMAP[3][128];
 // ------------------------------------------------------------------
 
 
-static uint8_t EXCV_MTRESET[] = { 0xfe, 0xfe, 0xfe};
+static uint8_t EXCV_LARESET[] = { 0xf0, 0x41, 0x10, 0x16, 0x12, 0x7f, 0x01, 0xf7};
 static uint8_t EXCV_GMRESET[] = { 0xf0, 0x7e, 0x7f, 0x09, 0x01, 0xf7};
 static uint8_t EXCV_GSRESET[] = { 0xf0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7f, 0x00, 0x41, 0xf7};
 static uint8_t EXCV_XGRESET[] = { 0xf0, 0x43, 0x10, 0x4C, 0x00, 0x00, 0x7E, 0x00, 0xf7};
 
-#define	MIDICTRL_READY		0
-#define	MIDICTRL_2BYTES		1
-#define	MIDICTRL_3BYTES		2
-#define	MIDICTRL_EXCLUSIVE	3
-#define	MIDICTRL_TIMECODE	4
-#define MIDICTRL_SYSTEM		5
 
 #define	MIDI_EXCLUSIVE		0xf0
 #define MIDI_TIMECODE		0xf1
 #define MIDI_SONGPOS		0xf2
 #define MIDI_SONGSELECT		0xf3
 #define	MIDI_TUNEREQUEST	0xf6
-#define	MIDI_EOX		0xf7
-#define	MIDI_TIMING		0xf8
-#define MIDI_START		0xfa
+#define	MIDI_EOX			0xf7
+#define	MIDI_TIMING			0xf8
+#define MIDI_START			0xfa
 #define MIDI_CONTINUE		0xfb
-#define	MIDI_STOP		0xfc
+#define	MIDI_STOP			0xfc
 #define	MIDI_ACTIVESENSE	0xfe
 #define	MIDI_SYSTEMRESET	0xff
-
-#define MIDIOUTS(a,b,c) (((uint32_t)c << 16) | ((uint32_t)b << 8) | (uint32_t)a)
 
 // -----------------------------------------------------------------------
 //   割り込み
@@ -277,7 +268,7 @@ void MIDI_Reset(void) {
 				// ちょっと乱暴かなぁ…
 				// 一応 SC系でも通る筈ですけど…
 				MIDI_Waitlastexclusiveout();
-				MIDI_Sendexclusive(EXCV_MTRESET, sizeof(EXCV_MTRESET));
+				MIDI_Sendexclusive(EXCV_LARESET, sizeof(EXCV_LARESET));
 				break;
 			case MIDI_SC55:
 			case MIDI_SC88:
@@ -295,7 +286,7 @@ void MIDI_Reset(void) {
 				break;
 		}
 		MIDI_Waitlastexclusiveout();
-		for (msg=0x7bb0; msg<0x7bc0; msg++) {
+		for (msg=0x7bb0; msg<0x7bc0; msg++) {// all note off
 			midiOutShortMsg(hOut, msg);
 		}
 	}
@@ -318,12 +309,12 @@ void MIDI_Init(void) {
 	MIDI_IntFlag = 0;
 	MIDI_R05 = 0;
 
-	MIDI_CTRL = MIDICTRL_READY;
-	MIDI_LAST = 0x80;
 	MIDI_EXCVWAIT = 0;
 
 	RxW_point = 0;
 	RxR_point = 0;
+
+	Tx_ptr = 0;
 
 	if (!hOut) {
 		if(!Config.MIDI_SW){ /* if MIDI inactive?*/
@@ -366,7 +357,7 @@ void MIDI_Init(void) {
 void MIDI_Cleanup(void) {
 
 	if (hOut) {
-		MIDI_Reset();
+		if (Config.MIDI_SW && Config.MIDI_Reset)  MIDI_Reset();// りせっと〜
 		MIDI_Waitlastexclusiveout();
 		midiOutReset(hOut);
 		midiOutClose(hOut);
@@ -377,174 +368,78 @@ void MIDI_Cleanup(void) {
 	}
 }
 
+/* New MIDI Packet sender */
+/* by kameya 2023/07/07   */
+void  midi_data_out( uint8_t data )
+{
+  uint32_t leng;
 
-// -----------------------------------------------------------------------
-//   メッセージ判別
-// -----------------------------------------------------------------------
-void MIDI_Message(uint8_t mes) {
+  if (!hOut) { return; } // Sound Not open
 
-	if (!hOut) {
-		return;
-	}
+  Tx_buff[Tx_ptr] = data; // Store Data
 
-	switch(mes) {								// ここの対応はお好みで
-		case MIDI_TIMING:
-		case MIDI_START:
-		case MIDI_CONTINUE:
-		case MIDI_STOP:
-		case MIDI_ACTIVESENSE:
-			return;
-		case MIDI_SYSTEMRESET:					// 一応イリーガル〜
-			return;
-	}
+  if(Tx_ptr>sizeof(Tx_buff)-5){// over run check
+	Tx_buff[0] = 0x00;
+	Tx_ptr = 0;
+	return;
+  }
 
-	if (MIDI_CTRL == MIDICTRL_READY) {			// 初回限定
-		if (mes & 0x80) {
-			// status
-			MIDI_POS = 0;
-			switch(mes & 0xf0) {
-				case 0xc0:
-				case 0xd0:
-					MIDI_CTRL = MIDICTRL_2BYTES;
-					break;
-				case 0x80:
-				case 0x90:
-				case 0xa0:
-				case 0xb0:
-				case 0xe0:
-					MIDI_LAST = mes;			// この方が失敗しないなり…
-					MIDI_CTRL = MIDICTRL_3BYTES;
-					break;
-				default:
-					switch(mes) {
-						case MIDI_EXCLUSIVE:
-							MIDI_CTRL = MIDICTRL_EXCLUSIVE;
-							break;
-						case MIDI_TIMECODE:
-							MIDI_CTRL = MIDICTRL_TIMECODE;
-							break;
-						case MIDI_SONGPOS:
-							MIDI_CTRL = MIDICTRL_SYSTEM;
-							MIDI_SYSCOUNT = 3;
-							break;
-						case MIDI_SONGSELECT:
-							MIDI_CTRL = MIDICTRL_SYSTEM;
-							MIDI_SYSCOUNT = 2;
-							break;
-						case MIDI_TUNEREQUEST:
-							MIDI_CTRL = MIDICTRL_SYSTEM;
-							MIDI_SYSCOUNT = 1;
-							break;
-						default:
-							return;
-					}
-					break;
-			}
-		}
-		else {						// Key-onのみな気がしたんだけど忘れた…
-			// running status
-			MIDI_BUF[0] = MIDI_LAST;
-			MIDI_POS = 1;
-			MIDI_CTRL = MIDICTRL_3BYTES;
-		}
-	}
-	else if ( (mes&0x80) && ((MIDI_CTRL!=MIDICTRL_EXCLUSIVE)||(mes!=MIDI_EOX)) )
-	{			// メッセージのデータ部にコントロールバイトが出た時…（GENOCIDE2）
-		// status
-		MIDI_POS = 0;
-		switch(mes & 0xf0) {
-			case 0xc0:
-			case 0xd0:
-				MIDI_CTRL = MIDICTRL_2BYTES;
-				break;
-			case 0x80:
-			case 0x90:
-			case 0xa0:
-			case 0xb0:
-			case 0xe0:
-				MIDI_LAST = mes;			// この方が失敗しないなり…
-				MIDI_CTRL = MIDICTRL_3BYTES;
-				break;
-			default:
-				switch(mes) {
-					case MIDI_EXCLUSIVE:
-						MIDI_CTRL = MIDICTRL_EXCLUSIVE;
-						break;
-					case MIDI_TIMECODE:
-						MIDI_CTRL = MIDICTRL_TIMECODE;
-						break;
-					case MIDI_SONGPOS:
-						MIDI_CTRL = MIDICTRL_SYSTEM;
-						MIDI_SYSCOUNT = 3;
-						break;
-					case MIDI_SONGSELECT:
-						MIDI_CTRL = MIDICTRL_SYSTEM;
-						MIDI_SYSCOUNT = 2;
-						break;
-					case MIDI_TUNEREQUEST:
-						MIDI_CTRL = MIDICTRL_SYSTEM;
-						MIDI_SYSCOUNT = 1;
-						break;
-					default:
-						return;
-				}
-				break;
-		}
-	}
+  if((Tx_ptr == 0)&&(data>0x7f)){// first command store
+   Tx_buff[0] = data; // Store Data
+   Tx_ptr = 1;
+   return;
+  }
 
-	MIDI_BUF[MIDI_POS++] = mes;
+  switch(Tx_buff[0]){ // command length
+   case 0xc0 ... 0xdf:
+   case 0xf1:
+   case 0xf3:
+	leng = 2;
+	break;
+   case 0xf4 ... 0xff:
+	leng = 1;
+	break;
+   default:
+	leng = 3;
+	break;
+  }
 
-	switch(MIDI_CTRL) {
-		case MIDICTRL_2BYTES:
-			if (MIDI_POS >= 2) {
-				if (ENABLE_TONEMAP) {
-					if (((MIDI_BUF[0] & 0xf0) == 0xc0) &&
-						(TONE_CH[MIDI_BUF[0] & 0x0f] < MIMPI_RHYTHM)) {
-						MIDI_BUF[1] = TONEMAP[ TONE_CH[MIDI_BUF[0] & 0x0f] ][ MIDI_BUF[1] & 0x7f ];
-					}
-				}
-				MIDI_Waitlastexclusiveout();
-				midiOutShortMsg(hOut, MIDIOUTS(MIDI_BUF[0], MIDI_BUF[1], 0));
-				MIDI_CTRL = MIDICTRL_READY;
-			}
-			break;
-		case MIDICTRL_3BYTES:
-			if (MIDI_POS >= 3) {
-				MIDI_Waitlastexclusiveout();
-				midiOutShortMsg(hOut, 
-							MIDIOUTS(MIDI_BUF[0], MIDI_BUF[1], MIDI_BUF[2]));
-				MIDI_CTRL = MIDICTRL_READY;
-			}
-			break;
-		case MIDICTRL_EXCLUSIVE:
-			if (mes == MIDI_EOX) {
-				MIDI_Waitlastexclusiveout();
-				MIDI_Sendexclusive(MIDI_BUF, MIDI_POS);
-				MIDI_CTRL = MIDICTRL_READY;
-			}
-			else if (MIDI_POS >= MIDIBUFFERS) {		// おーばーふろー
-				MIDI_CTRL = MIDICTRL_READY;
-			}
-			break;
-		case MIDICTRL_TIMECODE:
-			if (MIDI_POS >= 2) {
-				if ((mes == 0x7e) || (mes == 0x7f)) {
-					// exclusiveと同じでいい筈…
-					MIDI_CTRL = MIDICTRL_EXCLUSIVE;
-				}
-				else {
-					MIDI_CTRL = MIDICTRL_READY;
-				}
-			}
-			break;
-		case MIDICTRL_SYSTEM:
-			if (MIDI_POS >= MIDI_SYSCOUNT) {
-				MIDI_CTRL = MIDICTRL_READY;
-			}
-			break;
-	}
+  switch(Tx_buff[0]){ // send command
+  case 0x80 ... 0xef:
+  case 0xf1 ... 0xff:
+    if(data>0x7f){
+      Tx_buff[0] = data; // Store Data
+      Tx_ptr = 1;
+      break;
+    }
+    if(Tx_ptr == (leng -1)){ // short message 
+      MIDI_Waitlastexclusiveout();
+      midiOutShortMsg(hOut, (Tx_buff[0] | Tx_buff[1]<<8 | Tx_buff[2]<<16));
+      Tx_ptr = 1;
+    }
+    else{
+     Tx_ptr ++;
+    }
+    break;
+  case 0xf0:
+    if((Tx_buff[Tx_ptr-1] == 0xf7)&&(data != 0xf7)){//exclusive message and end.
+      MIDI_Waitlastexclusiveout();
+      MIDI_Sendexclusive(Tx_buff,Tx_ptr);
+      Tx_buff[0] = data;
+      Tx_ptr = 1;
+    }
+    else{
+     Tx_ptr ++;
+    }
+    break;
+  default: // error (no command)
+    Tx_buff[0] = 0x00;
+    Tx_ptr = 0;
+    break;
+  }
+
+  return;
 }
-
 
 // -----------------------------------------------------------------------
 //   I/O Read
@@ -729,7 +624,7 @@ void MIDI_DelayOut(uint32_t delay)
 	uint32_t t = timeGetTime();
 	while ( DBufPtrW!=DBufPtrR ) {
 		if ( (t-DelayBuf[DBufPtrR].time)>=delay ) {
-			MIDI_Message(DelayBuf[DBufPtrR].msg);
+			midi_data_out(DelayBuf[DBufPtrR].msg);
 			DBufPtrR = (DBufPtrR+1)%MIDIDELAYBUF;
 		} else
 			break;
