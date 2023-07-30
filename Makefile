@@ -19,44 +19,59 @@ endif
 endif
 
 # for SDL1
-ifdef SDL
-CDEBUGFLAGS = -DSDL1
+ifndef SDL3
+CDEBUGFLAGS = -DSDL2
 endif
 
-# for SDL1/2-config
+SDL_INCLUDE=""
+
+# SDL2/3 framework (for macOS)
 ifeq "$(PLATFORM)" "Darwin"
-ifdef SDL
-SDL_CONFIG?= ./osx/sdl-config-mac
-SDL_TTF_INC = -I/Library/Frameworks/SDL_ttf.framework/Headers
-SDL_TTF_LIB = -F/Library/Frameworks -framework SDL_ttf
-PROGRAM = px68k.sdl
-else
-SDL_CONFIG?= ./osx/sdl2-config-mac
+ifndef SDL3
+PROGRAM = px68k.sdl2
+filename = SDL2.framework
+filechk = $(shell ls /Library/Frameworks | grep ${filename})
+ifeq (${filechk}, ${filename})
+SDL_INCLUDE= -I/Library/Frameworks/SDL2.framework/Headers -D_THREAD_SAFE
+SDL_LIB= -F/Library/Frameworks -framework SDL2
 SDL_TTF_INC = -I/Library/Frameworks/SDL2_ttf.framework/Headers
 SDL_TTF_LIB = -F/Library/Frameworks -framework SDL2_ttf
-PROGRAM = px68k.sdl2
 endif
+else
+PROGRAM = px68k.sdl3
+filename = SDL3.framework
+filechk = $(shell ls /Library/Frameworks | grep ${filename})
+ifeq (${filechk}, ${filename})
+SDL_INCLUDE= -I/Library/Frameworks/SDL3.framework/Headers -D_THREAD_SAFE
+SDL_LIB= -F/Library/Frameworks -framework SDL3
+endif
+endif
+endif
+
+# for SDL2/3 LINK (use pkg-config)
+ifeq (${SDL_INCLUDE}, "")
+ifndef SDL3
+SDL_INCLUDE= $(shell pkg-config sdl2 --cflags)
+SDL_LIB= $(shell pkg-config sdl2 --libs)
+PROGRAM = px68k.sdl2
+else
+SDL_INCLUDE= $(shell pkg-config sdl3 --cflags)
+SDL_LIB= $(shell pkg-config sdl3 --libs)
+PROGRAM = px68k.sdl3
+endif
+endif
+
+ifeq "$(PLATFORM)" "Darwin"
+# none.
 else
 ifeq "$(PLATFORM)" "Linux"
-ifdef SDL
-SDL_CONFIG?= sdl-config
-SDL_TTF_LIB = -lSDL_ttf -lrt
-PROGRAM = px68k.sdl
+SDL_LIB +=  -lrt
 else
-SDL_CONFIG?= sdl2-config
-SDL_TTF_LIB = -lSDL2_ttf -lrt
-PROGRAM = px68k.sdl2
-endif
-else
-# for CygWin(windows)
-ifdef SDL
-SDL_CONFIG?= sdl-config
-SDL_TTF_LIB = -lSDL_ttf
-PROGRAM = px68k.sdl.exe
-else
-SDL_CONFIG?= sdl2-config
-SDL_TTF_LIB = -lSDL2_ttf
+# for CygWin "windows"
+ifndef SDL3
 PROGRAM = px68k.sdl2.exe
+else
+PROGRAM = px68k.sdl3.exe
 endif
 endif
 endif
@@ -124,8 +139,8 @@ CDEBUGFLAGS+=-DPX68K_VERSION=$(PX68K_VERSION)
 
 CDEBUGFLAGS+=-DHAVE_STDINT_H
 
-SDL_INCLUDE=	`$(SDL_CONFIG) --cflags`
-SDL_LIB=		`$(SDL_CONFIG) --libs`
+# SDL_INCLUDE=	`$(SDL_CONFIG) --cflags`
+# SDL_LIB=		`$(SDL_CONFIG) --libs`
 
 LDLIBS = -lm -lpthread
 
@@ -166,7 +181,7 @@ endif
 endif
 endif
 
-EXTRA_INCLUDES= -I./SDL2 -I./x68k -I./fmgen -I./win32api $(SDL_INCLUDE) $(FLUID_INCLUDE) $(SDL_TTF_INC)
+EXTRA_INCLUDES= -I./SDL3 -I./x68k -I./fmgen -I./win32api $(SDL_INCLUDE) $(FLUID_INCLUDE) $(SDL_TTF_INC)
 
 CXXDEBUGFLAGS= $(CDEBUGFLAGS)
 
@@ -182,21 +197,21 @@ X68KOBJS= x68k/adpcm.o x68k/bg.o x68k/crtc.o x68k/dmac.o x68k/fdc.o x68k/fdd.o x
 
 FMGENOBJS= fmgen/fmgen.o fmgen/fmg_wrap.o fmgen/file.o fmgen/fmtimer.o fmgen/opm.o fmgen/opna.o fmgen/psg.o
 
-SDL2OBJS= SDL2/juliet.o SDL2/mouse.o SDL2/status.o SDL2/timer.o SDL2/about.o SDL2/common.o SDL2/prop.o SDL2/winui.o SDL2/dswin.o SDL2/keyboard.o
+SDL3OBJS= SDL3/juliet.o SDL3/mouse.o SDL3/status.o SDL3/timer.o SDL3/about.o SDL3/common.o SDL3/prop.o SDL3/winui.o SDL3/dswin.o SDL3/keyboard.o
 
-ifdef SDL
-SDLOBJS= SDL2/SDL1/windraw.o SDL2/SDL1/joystick.o
-SDLCXXOBJS= SDL2/SDL1/winx68k.o
+ifdef SDL3
+SDLOBJS= SDL3/windraw.o SDL3/GamePad.o
+SDLCXXOBJS= SDL3/winx68k.o
 else
-SDLOBJS= SDL2/windraw.o SDL2/GameController.o
-SDLCXXOBJS= SDL2/winx68k.o
+SDLOBJS= SDL3/SDL2/windraw.o SDL3/SDL2/GameController.o
+SDLCXXOBJS= SDL3/SDL2/winx68k.o
 endif
 
 
 WIN32APIOBJS= win32api/dosio.o win32api/fake.o win32api/peace.o
-CGROMOBJS=	SDL2/mkcgrom.o SDL2/tool/create_cgrom.o
+CGROMOBJS=	SDL3/mkcgrom.o SDL3/tool/create_cgrom.o
 
-COBJS=		$(X68KOBJS) $(SDL2OBJS) $(SDLOBJS) $(WIN32APIOBJS) $(CPUOBJS) $(C68KOBJS) $(MIDIOBJS)
+COBJS=		$(X68KOBJS) $(SDL3OBJS) $(SDLOBJS) $(WIN32APIOBJS) $(CPUOBJS) $(C68KOBJS) $(MIDIOBJS)
 CXXOBJS=	$(FMGENOBJS) $(SDLCXXOBJS)
 OBJS=		$(COBJS) $(CXXOBJS)
 
@@ -214,7 +229,7 @@ SRCS=		$(CSRCS) $(CXXSRCS)
 .cpp.o:
 	$(CXX) -o $@ $(CXXFLAGS) -c $*.cpp
 
-px68kicon = ./osx/Contents
+px68kicon = ./macOS/Contents
 
 all:: $(PROGRAM)
 
@@ -240,16 +255,16 @@ icon::
 	mkdir "$(px68kicon)/Resources/"
 	mkdir "$(px68kicon)/Resources/ja.lproj/"
 	mkdir "$(px68kicon)/Resources/px68k.iconset/"
-	-sips -s format png -z 16 16 ./osx/x68k.png -s dpiHeight 72.0 -s dpiWidth 72.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_16.png"
-	-sips -s format png -z 32 32 ./osx/x68k.png -s dpiHeight 144.0 -s dpiWidth 144.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_16@2x.png"
-	-sips -s format png -z 32 32 ./osx/x68k.png -s dpiHeight 72.0 -s dpiWidth 72.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_32.png"
-	-sips -s format png -z 64 64 ./osx/x68k.png -s dpiHeight 144.0 -s dpiWidth 144.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_32@2x.png"
-	-sips -s format png -z 128 128 ./osx/x68k.png -s dpiHeight 72.0 -s dpiWidth 72.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_128.png"
-	-sips -s format png -z 256 256 ./osx/x68k.png -s dpiHeight 144.0 -s dpiWidth 144.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_128@2x.png"
-	-sips -s format png -z 256 256 ./osx/x68k.png -s dpiHeight 72.0 -s dpiWidth 72.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_256.png"
-	-sips -s format png -z 512 512 ./osx/x68k.png -s dpiHeight 144.0 -s dpiWidth 144.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_256@2x.png"
-	-sips -s format png -z 512 512 ./osx/x68k.png -s dpiHeight 72.0 -s dpiWidth 72.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_512.png"
-	-sips -s format png -z 1024 1024 ./osx/x68k.png -s dpiHeight 144.0 -s dpiWidth 144.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_512@2x.png"
+	-sips -s format png -z 16 16 ./macOS/x68k.png -s dpiHeight 72.0 -s dpiWidth 72.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_16.png"
+	-sips -s format png -z 32 32 ./macOS/x68k.png -s dpiHeight 144.0 -s dpiWidth 144.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_16@2x.png"
+	-sips -s format png -z 32 32 ./macOS/x68k.png -s dpiHeight 72.0 -s dpiWidth 72.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_32.png"
+	-sips -s format png -z 64 64 ./macOS/x68k.png -s dpiHeight 144.0 -s dpiWidth 144.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_32@2x.png"
+	-sips -s format png -z 128 128 ./macOS/x68k.png -s dpiHeight 72.0 -s dpiWidth 72.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_128.png"
+	-sips -s format png -z 256 256 ./macOS/x68k.png -s dpiHeight 144.0 -s dpiWidth 144.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_128@2x.png"
+	-sips -s format png -z 256 256 ./macOS/x68k.png -s dpiHeight 72.0 -s dpiWidth 72.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_256.png"
+	-sips -s format png -z 512 512 ./macOS/x68k.png -s dpiHeight 144.0 -s dpiWidth 144.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_256@2x.png"
+	-sips -s format png -z 512 512 ./macOS/x68k.png -s dpiHeight 72.0 -s dpiWidth 72.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_512.png"
+	-sips -s format png -z 1024 1024 ./macOS/x68k.png -s dpiHeight 144.0 -s dpiWidth 144.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_512@2x.png"
 	-iconutil -c icns "$(px68kicon)/Resources/px68k.iconset"
 	-rm -rf "$(px68kicon)/Resources/px68k.iconset"
 
@@ -258,8 +273,8 @@ mac:: $(PROGRAM) icon
 	mkdir "$(PROGRAM).app/"
 	mkdir "$(PROGRAM).app/Contents/"
 	mkdir "$(PROGRAM).app/Contents/MacOS"
-	cp -r "osx/Contents/" "$(PROGRAM).app/Contents"
-	cp -r "osx/Info.plist" "$(PROGRAM).app/Contents/Info.plist"
+	cp -r "macOS/Contents/" "$(PROGRAM).app/Contents"
+	cp -r "macOS/Info.plist" "$(PROGRAM).app/Contents/Info.plist"
 	cp $(PROGRAM) "$(PROGRAM).app/Contents/MacOS/px68k"
 
 c68k::
@@ -271,5 +286,5 @@ c68k::
 	cmake --build ./m68000/c68k
 
 cgrom:: $(MKCGROMOBJS)
-	$(RM) SDL2/tool/mkcgrom
-	$(CXXLINK) -o SDL2/tool/mkcgrom $(MKCGROMOBJS) $(SDL_LIB) $(SDL_TTF_LIB)
+	$(RM) SDL3/tool/mkcgrom
+	$(CXXLINK) -o SDL3/tool/mkcgrom $(MKCGROMOBJS) $(SDL_LIB) $(SDL_TTF_LIB)

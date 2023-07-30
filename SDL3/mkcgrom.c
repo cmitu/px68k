@@ -26,8 +26,13 @@ by kameya 2022/11/02
 #include <stdlib.h>
 #include <math.h>
 
+#ifndef SDL2
+#include <SDL3/SDL.h>
+#include <SDL_ttf.h>
+#else
 #include <SDL2/SDL.h>
 #include <SDL_ttf.h>
+#endif
 
 #include "common.h"
 #include "dosio.h"

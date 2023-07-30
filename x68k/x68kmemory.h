@@ -1,7 +1,7 @@
 #ifndef _WINX68K_MEMORY_H
 #define _WINX68K_MEMORY_H
 
-#include "../SDL2/common.h"
+#include "../SDL3/common.h"
 
 #define	Memory_ReadB	cpu_readmem24
 #define Memory_ReadW	cpu_readmem24_word

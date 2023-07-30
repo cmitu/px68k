@@ -96,11 +96,11 @@ SDL_Surface *menu_surface;
 extern int32_t VID_MODE, CHANGEAV_TIMING;
 
 
-int32_t WinDraw_Init(uint32_t err_msg_no);
-void WinDraw_StartupScreen(void);
-void WinDraw_Draw(void);
-int32_t WinDraw_ChangeSize(void);
-uint32_t conv_utf8tosjis();
+//int32_t WinDraw_Init(void);
+//void WinDraw_StartupScreen(void);
+//void WinDraw_Draw(void);
+//int32_t WinDraw_ChangeSize(void);
+//uint32_t conv_utf8tosjis();
 
 #define	APPNAME	"Keropi"
 
@@ -327,7 +327,7 @@ void WinDraw_HideSplash(void)
 
 static void draw_kbd_to_tex(void);
 
-int32_t WinDraw_Init(uint32_t err_msg_no)
+int32_t WinDraw_Init(void)
 {
 	int32_t i, j, k;
 
@@ -423,27 +423,25 @@ int32_t WinDraw_Init(uint32_t err_msg_no)
 
 #endif
 
-// --- Draw Init Err Message ---
-#include "msg_tif.h"
-	uint32_t *p;
-	uint8_t dt;
-	if(err_msg_no != 0){
-	  for(j=0; j<14; j++){
-	   for(i=0; i<38; i++){ // 304/8=38byte
-	    p=ScrBuf + 800*(280+j)+230+(i*8);
-	    dt = no_rom_msg[j*38+i];
-		for(k=0; k<8; k++){
-	    if((dt & 0x80)!=0){*p = 0xffffff00;} //color depth = 32bit
-		dt = dt << 1;
-		p++;
-		}
-	   }
-	  }
-	  TextDotX=800; TextDotY=600;
-	  WinDraw_Draw();
-	}
-
 	return TRUE;
+}
+
+void
+WinDraw_Message(uint32_t Err_Mess_No)
+{
+  static const char *err_message[] = {
+	"Boot up X68000 system.",
+	"Low Memorry. (not enought RAM)",
+	"No found iplrom.dat/cgrom.dat in .keropi folder.",
+	"SDL window initialize Error.",
+	"There is No-Sound Mode."
+  };
+
+  if(Err_Mess_No<=3){
+   SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"WARNING!",err_message[Err_Mess_No],NULL);
+  }
+
+ return;
 }
 
 void

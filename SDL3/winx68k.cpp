@@ -5,9 +5,9 @@ extern "C" {
 #include <sys/stat.h>
 #include <errno.h>
 
-#include "SDL2/SDL.h"
-#ifdef USE_OGLES11
-#include "SDL2/SDL_opengles.h"
+#include "SDL3/SDL.h"
+#ifdef USE_OGLES20
+#include "SDL3/SDL3_opengles.h"
 #endif
 #include "common.h"
 #include "dosio.h"
@@ -15,7 +15,7 @@ extern "C" {
 #include "keyboard.h"
 #include "prop.h"
 #include "status.h"
-#include "GameController.h"
+#include "GamePad.h"
 #include "mkcgrom.h"
 #include "winx68k.h"
 #include "windraw.h"
@@ -115,7 +115,7 @@ static int32_t FrameSkipQueue = 0;
 #endif
 
 
-/*SDL2関係の宣言*/
+/*SDL3関係の宣言*/
 SDL_Window *sdl_window;   /*SDL screen*/
 SDL_Renderer *sdl_render; /*SDL GPU frame buf*/
 SDL_Texture *sdl_texture; /*SDL GPU transfer buf*/
@@ -674,14 +674,16 @@ int32_t main(int32_t argc, char *argv[])
 	SRAM_Init();
 	LoadConfig();
 
-#ifndef NOSOUND
+#ifdef NOSOUND
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+		return 1;
+	}
+#else
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
-		p6logd("SDL_Init error\n");		
-#endif
+		p6logd("SDL_Init error\n");
 		if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 			return 1;
 		}
-#ifndef NOSOUND
 	} else {
 		sdlaudio = 0;
 	}
@@ -689,17 +691,7 @@ int32_t main(int32_t argc, char *argv[])
 
 	strcat(window_title,APPNAME);
 
-#if !SDL_VERSION_ATLEAST(2, 0, 0)
-	strcat(window_title," SDL");
-	SDL_WM_SetCaption(window_title, NULL);
-
-	/*SDL1*/
-	if (SDL_SetVideoMode(FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, 16, SDL_SWSURFACE) == NULL) {
-		puts("SDL_SetVideoMode() failed");
-		return 1;
-	}
-#else
-#ifdef USE_OGLES11
+#ifdef USE_OGLES20
 	SDL_DisplayMode sdl_dispmode;
 	SDL_GetCurrentDisplayMode(0, &sdl_dispmode);
 	p6logd("width: %d height: %d", sdl_dispmode.w, sdl_dispmode.h);
@@ -713,20 +705,22 @@ int32_t main(int32_t argc, char *argv[])
 
 #if TARGET_OS_IPHONE
 	/* for iPhone */
-	sdl_window = SDL_CreateWindow(window_title, 0, 0, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, SDL_WINDOW_OPENGL|SDL_WINDOW_SHOWN|SDL_WINDOW_BORDERLESS);
+	sdl_window = SDL_CreateWindow(window_title, 0, 0, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT,
+			SDL_WINDOW_OPENGL|SDL_WINDOW_SHOWN|SDL_WINDOW_BORDERLESS);
 #else
 	/* for Android: window sizeの指定は関係なくフルスクリーンになるみたい*/
-	sdl_window = SDL_CreateWindow(window_title, 0, 0, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, SDL_WINDOW_OPENGL|SDL_WINDOW_SHOWN);
+	sdl_window = SDL_CreateWindow(window_title, 0, 0, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT,
+			SDL_WINDOW_OPENGL|SDL_WINDOW_SHOWN);
 #endif
 #else
-	/* SDL2 for GPU */
-	strcat(window_title," SDL2");
-	uint32_t flags = SDL_WINDOW_SHOWN;
+	/* SDL3 for GPU */
+	strcat(window_title," SDL3");
+	uint32_t flags = 0;
 	if (Config.WinStrech == 1){flags |= SDL_WINDOW_RESIZABLE;} /*Windowサイズ変更可能？*/
-	sdl_window = SDL_CreateWindow(window_title, winx, winy, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, flags);
-	sdl_render = SDL_CreateRenderer( sdl_window ,-1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-	SDL_RenderSetLogicalSize( sdl_render ,FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT);
-	SDL_SetRenderDrawColor(sdl_render, 0, 0, 0, 0);	/* select color (black) */
+	sdl_window = SDL_CreateWindowWithPosition(window_title, winx, winy,FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, flags);
+	sdl_render = SDL_CreateRenderer( sdl_window ,NULL, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	SDL_SetRenderLogicalPresentation( sdl_render ,FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT,SDL_LOGICAL_PRESENTATION_LETTERBOX,SDL_SCALEMODE_LINEAR);
+	SDL_SetRenderDrawColor(sdl_render, 64, 64, 64, 0);	/* select color (black) */
 	SDL_RenderClear(sdl_render);
 #endif
 
@@ -736,7 +730,7 @@ int32_t main(int32_t argc, char *argv[])
 
 	Soft_kbd_CreateScreen();// Soft Keyboard Window init.
 
-#ifdef USE_OGLES11
+#ifdef USE_OGLES20
 	SDL_GLContext glcontext = SDL_GL_CreateContext(sdl_window);
 
         glClearColor( 0, 0, 0, 0 );
@@ -754,7 +748,6 @@ int32_t main(int32_t argc, char *argv[])
 	//  glOrthof(0, 1024, 0, 1024, -1, 1);
 	glMatrixMode(GL_MODELVIEW);
 #endif
-#endif // !SDL_VERSION_ATLEAST(2, 0, 0)
 
 	if (!WinDraw_MenuInit()) {
 		WinX68k_Cleanup();
@@ -791,11 +784,13 @@ int32_t main(int32_t argc, char *argv[])
 	Keyboard_Init(); //WinDraw_Init()前に移動
 	Keymap_Init(); //Load Key Map file
 
-	if (!WinDraw_Init(err_msg_no)) {
+	if (!WinDraw_Init()) {
 		WinDraw_Cleanup();
 		Error("Error: Can't init screen.\n");
-		return 1;
+		err_msg_no = 3;
 	}
+
+	if(err_msg_no != 0) WinDraw_Message(err_msg_no);
 
 	if ( SoundSampleRate ) {
 		ADPCM_Init(SoundSampleRate);
@@ -814,8 +809,8 @@ int32_t main(int32_t argc, char *argv[])
 	FDD_Init();
 	SysPort_Init();
 	Mouse_Init();
-	GameController_Open(); // Mapping XBOX like Game Controller
 	WinX68k_Reset();
+	GameController_Open(); // Mapping XBOX like Game Controller
 	Timer_Init();
 
 	//MIDI_Init();
@@ -847,7 +842,7 @@ int32_t main(int32_t argc, char *argv[])
 	while (1) {
 		// OPM_RomeoOut(Config.BufferSize * 5);
 		if (menu_mode == menu_out
-		    && (Config.NoWaitMode || Timer_GetCount()) && err_msg_no != 2) {
+		    && (Config.NoWaitMode || Timer_GetCount()) && err_msg_no == 0) {
 			WinX68k_Exec();
 #if defined(ANDROID) || TARGET_OS_IPHONE
 			if (vk_cnt > 0) {
@@ -881,17 +876,16 @@ int32_t main(int32_t argc, char *argv[])
 
 		while (SDL_PollEvent(&ev)) {
 			switch (ev.type) {
-			case SDL_QUIT:
+			case SDL_EVENT_QUIT:
 				goto end_loop;
-			case SDL_WINDOWEVENT:
-				if(ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED){ ScreenClearFlg = 1;}
-				if(ev.window.event == SDL_WINDOWEVENT_RESIZED ){ ScreenClearFlg = 1; }
-				if(ev.window.event == SDL_WINDOWEVENT_CLOSE ){
+			case SDL_EVENT_WINDOW_RESIZED:
+				ScreenClearFlg = 1;
+			break;
+			case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
 					if(ev.window.windowID == SDL_GetWindowID(sdl_window)){ goto end_loop; }
 					if(ev.window.windowID == SDL_GetWindowID(sft_kbd_window)){ Soft_kbd_Show(0); }//消す
-				}
 			break;
-			case SDL_MOUSEBUTTONDOWN:
+			case SDL_EVENT_MOUSE_BUTTON_DOWN:
 				if(ev.button.button == SDL_BUTTON_LEFT){//左ボタンを押した
 				 if(ev.window.windowID == SDL_GetWindowID(sft_kbd_window)){//SoftKey Window
 				   draw_soft_kbd(ev.button.x,ev.button.y, 0);
@@ -943,7 +937,7 @@ int32_t main(int32_t argc, char *argv[])
 				 }
 				}
 			break;
-			case SDL_MOUSEBUTTONUP:
+			case SDL_EVENT_MOUSE_BUTTON_UP:
 				if(ev.button.button == SDL_BUTTON_LEFT){//Mouse L-button release
 					if(ev.window.windowID == SDL_GetWindowID(sdl_window)){ Mouse_Event((int)1, 0, 0); }
 					if(ev.window.windowID == SDL_GetWindowID(sft_kbd_window)){ draw_soft_kbd(1,1,0); }// ReDrawSoftKey
@@ -954,7 +948,7 @@ int32_t main(int32_t argc, char *argv[])
 					//p6logd("UP/RIGHT:x=%d,y=%d\n", ev.button.x,ev.button.y);
 				}
 			break;
-			case SDL_MOUSEMOTION:
+			case SDL_EVENT_MOUSE_MOTION:
 				if(ev.window.windowID == SDL_GetWindowID(sdl_window)){//on main-window
 				if(menu_mode != menu_out){//menu mode
 					if((menu_state!=ms_file)&&(ev.button.x>25)&&(ev.button.x<190) &&(ev.button.y>121)&&(ev.button.y<289)){
@@ -976,7 +970,7 @@ int32_t main(int32_t argc, char *argv[])
 				}
 				}
 				break;
-			case SDL_MOUSEWHEEL:
+			case SDL_EVENT_MOUSE_WHEEL:
 				if(menu_mode != menu_out){//menu mode
 				if(ev.wheel.y > 0) menu_key_down = 0x40000052; // Up   Wheel
 				if(ev.wheel.y < 0) menu_key_down = 0x40000051; // Down Wheel
@@ -1021,7 +1015,7 @@ int32_t main(int32_t argc, char *argv[])
 				}
 				break;
 #endif
-			case SDL_KEYDOWN:
+			case SDL_EVENT_KEY_DOWN:
 #if defined(ANDROID) || TARGET_OS_IPHONE
 				static uint32_t bef = 0;
 				uint32_t now;
@@ -1078,25 +1072,25 @@ int32_t main(int32_t argc, char *argv[])
 					Keyboard_KeyDown(ev.key.keysym.sym,ev.key.keysym.scancode);//phisical code + α
 				}
 				break;
-			case SDL_KEYUP:
+			case SDL_EVENT_KEY_UP:
 				//p6logd("keyup: 0x%x 0x%x\n", ev.key.keysym.sym,ev.key.keysym.scancode);
 				Keyboard_KeyUp(ev.key.keysym.sym,ev.key.keysym.scancode);//phisical code + α
 				break;
 			//case SDL_JOYDEVICEADDED:
-			case SDL_CONTROLLERDEVICEADDED:
-				strcpy(menu_items[13][ev.cdevice.which],SDL_GameControllerNameForIndex(ev.cdevice.which));
-				strcpy(menu_items[13][ev.cdevice.which +1],"\0"); // Menu item END
-				if ( ev.cdevice.which == 0 ){// No Device +1 ?
-				 sdl_gamepad = SDL_GameControllerOpen( ev.cdevice.which );
+			case SDL_EVENT_GAMEPAD_ADDED:
+				strcpy(menu_items[13][ev.gdevice.which],SDL_GetGamepadInstanceName(ev.gdevice.which));
+				strcpy(menu_items[13][ev.gdevice.which +1],"\0"); // Menu item END
+				if ( ev.gdevice.which == 0 ){// No Device +1 ?
+				 sdl_gamepad = SDL_OpenGamepad( ev.gdevice.which );
 				}
-				p6logd("GameController %s Connected.\n",SDL_GameControllerNameForIndex(ev.cdevice.which));
+				p6logd("GamePad %s Connected.\n",SDL_GetGamepadInstanceName(ev.gdevice.which));
 				break;
-			case SDL_CONTROLLERDEVICEREMOVED:
-				  SDL_GameControllerClose( sdl_gamepad );//閉じる
-				  p6logd("GameController Disconnected.\n");
+			case SDL_EVENT_GAMEPAD_REMOVED:
+				  SDL_CloseGamepad( sdl_gamepad );//閉じる
+				  p6logd("GamePad Disconnected.\n");
 
-				uint32_t nr_joys;
-				nr_joys = SDL_NumJoysticks();
+				int nr_joys;
+				SDL_GetJoysticks(&nr_joys);
 				if (nr_joys == 0){
 				 strcpy(menu_items[13][0],"No device found");
 				 strcpy(menu_items[13][1],"\0"); // Menu item END
@@ -1104,32 +1098,34 @@ int32_t main(int32_t argc, char *argv[])
 				}
 				uint32_t i;
 				for (i = 0; i < nr_joys; i++) {
-				  if ( SDL_IsGameController(i) ){
-				    strcpy(menu_items[13][i],SDL_GameControllerNameForIndex(i));
+				  if ( SDL_IsGamepad(i) ){
+				    strcpy(menu_items[13][i],SDL_GetGamepadInstanceName(i));
 				  }
 				  else{
-				    strcpy(menu_items[13][i],"Not compatible GameController");
+				    strcpy(menu_items[13][i],"Not compatible GamePad");
 				  }
 				}
 				strcpy(menu_items[13][i],"\0"); // Menu item END
-				sdl_gamepad = SDL_GameControllerOpen(0);//defaultに戻す
+				sdl_gamepad = SDL_OpenGamepad(0);//defaultに戻す
 				break;
-			case SDL_CONTROLLERAXISMOTION:
-				GameControllerAxis_Update(ev.caxis.which, ev.caxis.axis, ev.caxis.value);
+			case SDL_EVENT_GAMEPAD_AXIS_MOTION:
+				GameControllerAxis_Update(ev.gaxis.which, ev.gaxis.axis, ev.gaxis.value);
 				break;
-			case SDL_CONTROLLERBUTTONDOWN:
-				GameControllerButton_Update(ev.cbutton.which, ev.cbutton.button, 1);
+			case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+				GameControllerButton_Update(ev.gbutton.which, ev.gbutton.button, 1);
 				if((menu_mode == menu_out) && (get_joy_downstate() == (JOY_HOME ^ 0xff)) ){// HOME(Menu in)
 				  menu_mode = menu_enter;
 				  reset_joy_downstate();
 				  DSound_Stop();
 				}
 				break;
-			case SDL_CONTROLLERBUTTONUP:
-				GameControllerButton_Update(ev.cbutton.which, ev.cbutton.button, 0);
+			case SDL_EVENT_GAMEPAD_BUTTON_UP:
+				GameControllerButton_Update(ev.gbutton.which, ev.gbutton.button, 0);
 				break;
-			case SDL_CONTROLLERDEVICEREMAPPED:
+			case SDL_EVENT_GAMEPAD_REMAPPED:
 				p6logd("Game Controller Re-mapped.\n");
+				break;
+			default:
 				break;
 			}
 		}
@@ -1198,7 +1194,7 @@ int32_t main(int32_t argc, char *argv[])
 				p6logd("do_kbd");
 			}
 			if (kbd_x < 700) {
-#ifdef USE_OGLES11
+#ifdef USE_OGLES20
 				Keyboard_skbd();
 #endif
 			}
@@ -1222,7 +1218,7 @@ end_loop:
 	Mcry_Cleanup();
 #endif
 
-	Config.DisplayNo=SDL_GetWindowDisplayIndex(sdl_window);
+	Config.DisplayNo=SDL_GetDisplayForWindow(sdl_window);
 	SDL_GetWindowPosition(sdl_window,&Config.WinPosX,&Config.WinPosY);
 
 	GameController_Cleanup();

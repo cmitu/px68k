@@ -27,7 +27,8 @@ void WinDraw_HideSplash(void);
 void WinGetRootSize(void);
 
 extern int32_t WinDraw_ChangeSize(void);
-extern int32_t WinDraw_Init(uint32_t err_msg_no);
+extern int32_t WinDraw_Init(void);
+extern void WinDraw_Message(uint32_t Err_Mess_No);
 
 void WinDraw_StartupScreen(void);
 void WinDraw_CleanupScreen(void);
@@ -35,11 +36,18 @@ void WinDraw_CleanupScreen(void);
 int32_t WinDraw_MenuInit(void);
 void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int32_t *mval_y);
 
+void Update_Screen(uint32_t menu);
+
 extern struct menu_flist mfl;
 
 void WinDraw_DrawMenufile(struct menu_flist *mfl);
 void WinDraw_ClearMenuBuffer(void);
 void WinDraw_reverse_key(int32_t x, int32_t y);
+
+extern void Soft_kbd_CreateScreen(void);
+extern void Soft_kbd_Show(uint32_t flg);
+extern void draw_soft_kbd(uint32_t x, uint32_t y, uint8_t LED);
+extern void Soft_kbd_CleanupScreen(void);
 
 #endif //winx68k_windraw_h
 

@@ -30,6 +30,12 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+#ifndef SDL2
+#include "GamePad.h"
+#else
+#include "SDL2/GameController.h"
+#endif
+
 #include "common.h"
 #include "about.h"
 #include "keyboard.h"
@@ -37,7 +43,6 @@
 #include "dswin.h"
 #include "prop.h"
 #include "status.h"
-#include "GameController.h"
 #include "mouse.h"
 #include "winx68k.h"
 #include "version.h"
@@ -112,7 +117,7 @@ int32_t mval_y[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 0, 1, 1, 1}; /*初期
 enum menu_id {M_SYS, M_JOM, M_FD0, M_FD1, M_HD0, M_HD1, M_FS, M_SR, M_MO, M_MI, M_VKS, M_VBS, M_JMD, M_HJS, M_NW, M_JK, M_RAM};
 
 // Max # of characters is 17.
-char menu_item_key[][18] = {"SYSTEM", "Joy/Mouse", "FDD0", "FDD1", "HDD0", "HDD1", "Frame Skip", "Sound Rate", "MIDI Out", "MIDI In ", "VKey Size", "VBtn Swap", "JoyMode", "HwJoy Setting", "No Wait Mode", "JoyKey", "RAM", "uhyo", ""};
+char menu_item_key[][18] = {"SYSTEM", "Joy/Mouse", "FDD0", "FDD1", "HDD0", "HDD1", "Frame Skip", "Sound Rate", "MIDI Out", "MIDI In ", "VKey Size", "VBtn Swap", "GamePad Mode", "USB GamePad", "No Wait Mode", "JoyKey", "RAM", "uhyo", ""};
 
 // Max # of characters is 30.
 // Max # of items including terminater `""' in each line is 15.
@@ -595,12 +600,16 @@ static void menu_joymode_setting(int32_t v)
 
 static void menu_hwjoy_setting(int32_t v)
 {
-#if !SDL_VERSION_ATLEAST(2, 0, 0) //==SDL1==
-		menu_state = ms_hwjoy_set; // 設定
+	GameController_Change(v);
+ return;
+#if SDL_VERSION_ATLEAST(3, 0, 0)
+		SDL_CloseGamepad(sdl_gamepad); // 旧GameController破棄
+		sdl_gamepad = SDL_OpenGamepad(v); // 新GameController 選択
 #else
-		SDL_GameControllerClose(sdl_gamepad); // 旧GameController破棄
-		sdl_gamepad = SDL_GameControllerOpen(v); // 新GameController 選択
+		SDL_GameControllerClose(sdl_gamepad); // 旧GameController破棄(SDL2)
+		sdl_gamepad = SDL_GameControllerOpen(v); // 新GameController 選択(SDL2)
 #endif
+
 }
 
 static void menu_nowait(int32_t v)
@@ -684,6 +693,7 @@ int32_t WinUI_Menu(int32_t first)
 	int32_t pad_changed = 0;
 	int32_t mfile_redraw = 0;
 	char *p;
+	uint32_t back_color = 0x00000000; //menuの背景色
 
 	if (first) {
 		menu_state = ms_key;
@@ -693,7 +703,7 @@ int32_t WinUI_Menu(int32_t first)
 		first = 0;
 		//  The screen is not rewritten without any key actions,
 		// so draw screen first.
-		WinDraw_ClearMenuBuffer();
+		WinDraw_ClearMenuBuffer(back_color);
 		WinDraw_DrawMenu(menu_state, mkey_pos, mkey_y, mval_y);
 	}
 
@@ -701,7 +711,7 @@ int32_t WinUI_Menu(int32_t first)
 	joy = get_joy_downstate();
 	reset_joy_downstate();
 
-	/* JoyPad setting */
+	/* JoyPad setting 
 	if (menu_state == ms_hwjoy_set && sdl_joy) {
 		int32_t y;
 		y = mval_y[mkey_y];
@@ -717,7 +727,7 @@ int32_t WinUI_Menu(int32_t first)
 					else{
 						JoyDirection = 1;
 					}
-					menu_hwjoy_print(y);/*for Debug*/
+					menu_hwjoy_print(y);//for Debug
 					pad_changed = 1;
 					break;
 				}
@@ -726,13 +736,13 @@ int32_t WinUI_Menu(int32_t first)
 			for (i = 0; i < SDL_JoystickNumButtons(sdl_joy); i++) {
 				if (SDL_JoystickGetButton(sdl_joy, i)) {
 					Config.HwJoyBtn[y - 3] = i;
-					menu_hwjoy_print(y);/*for Debug*/
+					menu_hwjoy_print(y);//for Debug
 					pad_changed = 1;
 					break;
 				}
 			}
 		}
-	}
+	}*/
 
 	if (!(joy & JOY_HOME)) {
 			return WUM_MENU_END;//HOMEボタンでMenuEnd
@@ -967,7 +977,7 @@ int32_t WinUI_Menu(int32_t first)
 
 	if (menu_redraw) {
 		//p6logd("RedrawMenu\n");
-		WinDraw_ClearMenuBuffer();
+		WinDraw_ClearMenuBuffer(back_color);
 		WinDraw_DrawMenu(menu_state, mkey_pos, mkey_y, mval_y);/*Menu ReDraw*/
 	}
 

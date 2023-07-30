@@ -3,14 +3,9 @@
 
 #include "common.h"
 
-#ifndef SDL1
-#include "SDL2/SDL.h"
-#include "SDL2/SDL_keycode.h"
-#include "SDL2/SDL_gamecontroller.h"
-#else
-#include <SDL/SDL.h>
-#include <SDL/SDL_joystick.h>
-#endif
+#include "SDL3/SDL.h"
+#include "SDL3/SDL_keycode.h"
+#include "SDL3/SDL_gamepad.h"
 
 #define	JOY_UP		0x01
 #define	JOY_DOWN	0x02
@@ -44,14 +39,15 @@ typedef struct _vbtn_points {
 uint8_t FASTCALL Joystick_Read(uint8_t num);
 void FASTCALL Joystick_Write(uint8_t num, uint8_t data);
 
-#if !SDL_VERSION_ATLEAST(2, 0, 0)
-typedef signed int SDL_Keycode;
-#else
-extern SDL_GameController *sdl_gamepad;
-#endif
+//#if !SDL_VERSION_ATLEAST(2, 0, 0)
+//typedef signed int SDL_Keycode;
+//#else
+extern SDL_Gamepad *sdl_gamepad;
+//#endif
 
-void GameController_Open(void);
 void GameController_Init(void);
+void GameController_Open(void);
+void GameController_Change(uint32_t Pad_No);
 void GameController_Cleanup(void);
 void FASTCALL GameControllerAxis_Update(int32_t which, uint8_t axis, int32_t value);
 void FASTCALL GameControllerButton_Update(int32_t which, uint8_t button, uint8_t on );
@@ -69,6 +65,5 @@ uint8_t Joystick_get_vbtn_state(uint16_t n);
 #endif
 
 extern uint8_t JoyKeyState;
-extern SDL_Joystick *sdl_joy;
 
 #endif

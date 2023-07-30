@@ -23,16 +23,15 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SDL1
-#include "SDL2/SDL.h"
-#include "keymap.h"
-#include "GameController.h"
+#ifndef SDL2
+#include "SDL3/SDL.h"
+#include "GamePad.h"
 #else
-#include "SDL/SDL.h"
-#include "./SDL1/keymap.h"
-#include "./SDL1/joystick.h"
+#include "SDL2/SDL.h"
+#include "SDL2/GameController.h"
 #endif
 
+#include "keymap.h"
 #include "common.h"
 #include "prop.h"
 #include "keyboard.h"

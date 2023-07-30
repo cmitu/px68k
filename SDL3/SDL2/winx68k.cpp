@@ -5,9 +5,9 @@ extern "C" {
 #include <sys/stat.h>
 #include <errno.h>
 
-#include "SDL/SDL.h"
+#include "SDL2/SDL.h"
 #ifdef USE_OGLES11
-#include "SDL/SDL_opengles.h"
+#include "SDL2/SDL_opengles.h"
 #endif
 #include "common.h"
 #include "dosio.h"
@@ -15,15 +15,15 @@ extern "C" {
 #include "keyboard.h"
 #include "prop.h"
 #include "status.h"
-#include "joystick.h"
-//#include "mkcgrom.h"
+#include "GameController.h"
+#include "mkcgrom.h"
 #include "winx68k.h"
 #include "windraw.h"
 #include "winui.h"
-//#include "../../x68k/m68000.h" // xxx これはいずれいらなくなるはず
-#include "../../m68000/m68000.h"
-#include "../../m68000/c68k/c68k.h"
-#include "../../x68k/x68kmemory.h"
+//#include "../x68k/m68000.h" // xxx これはいずれいらなくなるはず
+#include "../m68000/m68000.h"
+#include "../m68000/c68k/c68k.h"
+#include "../x68k/x68kmemory.h"
 #include "mfp.h"
 #include "opm.h"
 #include "bg.h"
@@ -67,7 +67,7 @@ int32_t rfd_sock;
 extern	uint16_t	BG_CHREND;
 extern	uint16_t	BG_BGTOP;
 extern	uint16_t	BG_BGEND;
-extern	uint8_t	BG_CHRSIZE;
+extern	uint8_t		BG_CHRSIZE;
 
 extern int32_t ICount;
 extern void m68000_init(void);
@@ -115,30 +115,35 @@ static int32_t FrameSkipQueue = 0;
 #endif
 
 
-/*SDL1関係の宣言*/
-SDL_Surface *sdl_surface;   /*SDL1描画エリア*/
-SDL_Surface *sdl_x68screen;
+/*SDL2関係の宣言*/
+SDL_Window *sdl_window;   /*SDL screen*/
+SDL_Renderer *sdl_render; /*SDL GPU frame buf*/
+SDL_Texture *sdl_texture; /*SDL GPU transfer buf*/
+SDL_Surface *sdl_x68screen; /*X68K drawing buf*/
+int32_t realdisp_w, realdisp_h; /*SDLGetScreenSize*/
+extern SDL_Surface *menu_surface; /*for Menu Drawing*/
+extern SDL_Window *sft_kbd_window;// softkeyboard
 
 void
-WinX68k_SCSICheck(void)
+WinX68k_SCSICheck()
 {
-// オリジナルのCZ6BS1のSCSI ROM
+// オリジナルのCZ6BS1のSCSI ROMの代替
 // 動作：SCSI IOCSが呼ばれると、SCSI IOCS番号を $e9f800 に出力します。
 // SCSIデバイスからの起動は不可、初期化ルーチンはSCSI IOCS($F5)のベクタ設定のみを行います。
-	static	uint8_t	EX_SCSIIMG[] = {
+	static	const uint8_t	EX_SCSIIMG[] = {
 		0x00, 0xea, 0x00, 0x34,			// $ea0020 SCSI起動用のエントリアドレス
 		0x00, 0xea, 0x00, 0x52,			// $ea0024 Human-Loader(必ず"Human68k"の8バイト前)
 		0x00, 0xea, 0x00, 0x4a,			// $ea0028 SCSI IOCSエントリアドレス
 		0x48, 0x75, 0x6d, 0x61,0x6e, 0x36, 0x38, 0x6b,	// $ea002c ↓"Human68k"	(必ず起動エントリポイントの直前)
-		0x13, 0xc1, 0x00, 0xe9, 0xf8, 0x10,	// $ea0034 "move.b d1, $e9f810"	 (SCSI 起動エントリポイント)
+		0x13, 0xc1, 0x00, 0xea, 0x02, 0x00,	// $ea0034 "move.b d1, $ea0200"	 (SCSI 起動エントリポイント)
 		0x0c, 0x11, 0x00, 0x60,				// $ea003a "cmp.b #$60,(a1)"
 		0x66, 0x02,							// $ea003e "bne $(pc+2)"
 		0x4e, 0x91,							// $ea0040 "jsr(a1)"
 		0x4e, 0x75,							// $ea0042 "rts"
 		0x53, 0x43, 0x53, 0x49, 0x45, 0x58,	// $ea0044 ID "SCSIEX"		(SCSIカードのID)
-		0x13, 0xc1, 0x00, 0xe9, 0xf8, 0x00,	// $ea004a "move.b d1, $e9f800"	(SCSI IOCSコールエントリポイント)
+		0x13, 0xc1, 0x00, 0xea, 0x01, 0x00,	// $ea004a "move.b d1, $ea0100"	(SCSI IOCSコールエントリポイント)
 		0x4e, 0x75,							// $ea0050 "rts"
-		0x13, 0xc1, 0x00, 0xe9, 0xf8, 0x20,	// $ea0052 "move.b d1, $e9f820"	(Human 起動エントリポイント)
+		0x13, 0xc1, 0x00, 0xea, 0x03, 0x00,	// $ea0052 "move.b d1, $ea0300"	(Human 起動エントリポイント)
 		0x4e, 0x75,							// $ea0058 "rts"
 	};
 
@@ -148,7 +153,7 @@ WinX68k_SCSICheck(void)
 		0x00, 0xfc, 0x00, 0x32,			// $fc0004 Human-Loader(必ず"Human68k"の8バイト前)
 		0x00, 0xfc, 0x00, 0x2a,			// $fc0008 SCSI IOCSエントリアドレス
 		0x48, 0x75, 0x6d, 0x61,0x6e, 0x36, 0x38, 0x6b,	// $fc000c ↓"Human68k"	(必ず起動エントリポイントの直前)
-		0x13, 0xc1, 0x00, 0xe9, 0xf8, 0x10,	// $fc0014 "move.b d1, $e9f810"	 (SCSI 起動エントリポイント)
+		0x13, 0xc1, 0x00, 0xea, 0x02, 0x00,	// $fc0014 "move.b d1, $ea0200"	 (SCSI 起動エントリポイント)
 		0x0c, 0x11, 0x00, 0x60,				// $fc001a "cmp.b #$60,(a1)"
 		0x66, 0x02,							// $fc001e "bne $(pc+2)"
 		0x4e, 0x91,							// $fc0020 "jsr(a1)"
@@ -157,14 +162,14 @@ WinX68k_SCSICheck(void)
 // 内蔵SCSIをONにすると、SASIは自動的にOFFになっちゃうらしい…
 // よって、IDはマッチしないようにしておく…
 		0x44, 0x55, 0x4d, 0x4d, 0x59, 0x20,	// $fc0024 ID "DUMMY "
-		0x13, 0xc1, 0x00, 0xe9, 0xf8, 0x00,	// $fc002a "move.b d1, $e9f800"	(SCSI IOCSコールエントリポイント)
+		0x13, 0xc1, 0x00, 0xea, 0x01, 0x00,	// $fc002a "move.b d1, $ea0100"	(SCSI IOCSコールエントリポイント)
 		0x4e, 0x75,							// $fc0030 "rts"
-		0x13, 0xc1, 0x00, 0xe9, 0xf8, 0x20,	// $fc0032 "move.b d1, $e9f820"	(Human 起動エントリポイント)
+		0x13, 0xc1, 0x00, 0xea, 0x03, 0x00,	// $fc0032 "move.b d1, $ea0300"	(Human 起動エントリポイント)
 		0x4e, 0x75,							// $fc0038 "rts"
 	};
 
 	static const uint8_t EX_SCSIIOCS[] = {
-			0x13, 0xc1, 0x00, 0xe9, 0xf8, 0x00,	// $ "move.b d1, $e9f800"	(SCSI IOCSコールエントリポイント)
+			0x13, 0xc1, 0x00, 0xea, 0x01, 0x00,	// $ "move.b d1, $ea0100"	(SCSI IOCSコールエントリポイント)
 			0x4e, 0x75,	0x00					// $ "rts"
 	};
 
@@ -189,7 +194,7 @@ WinX68k_SCSICheck(void)
 		}
 	}
 
-	// InSCSI(XVI/Compact/030)
+	// InSCSI(XVI/Compact/030) Append SCSI-IPL
 	if (scsi) {
 		fp = File_OpenCurDir((char *)SCSIINIPLFILE);/*InSCSI-IPL*/
 		if (fp == 0) {
@@ -209,12 +214,12 @@ WinX68k_SCSICheck(void)
 		//Memory_SetSCSIMode();
 	}
 
-	// ExSCSI(origin X68000)
+	// ExSCSI(origin X68000) CZ-6BS1を常に有効にする
 	fp = File_OpenCurDir((char *)CZ6BS1IPLFILE);/*ExSCSI-IPL*/
 	if (fp == 0) {
 		//p6logd("NO-SCSI-IPL for CZ-6BS1.\n");// No CZ-6BS1-IPL
 		memset(SCSIIPL, 0, 0x02000);		// clear
-		memcpy(&SCSIIPL[0x20], EX_SCSIIMG, sizeof(EX_SCSIIMG));	// Dummy-SCSI BIOS Load
+		//memcpy(&SCSIIPL[0x20], EX_SCSIIMG, sizeof(EX_SCSIIMG));	// Dummy-SCSI BIOS Load(FDD起動を阻害するので注意！)
 	}
 	else{
 		//p6logd("SCSI-IPL for CZ-6BS1.\n");// Yes CZ-6BS1-IPL
@@ -241,6 +246,7 @@ WinX68k_SCSICheck(void)
 		 }
 		}
 	}
+
 	// for little endian 
 #ifndef C68K_BIG_ENDIAN
 	for (i = 0; i < 0x02000; i += 2) {
@@ -259,10 +265,11 @@ WinX68k_LoadROMs(void)
 	static const char *BIOSFILE[] = {
 		"iplrom.dat", "iplromxv.dat", "iplromco.dat", "iplrom30.dat"
 	};
-	static const char FONTFILE[] = "cgrom.dat";
-	static const char FONTFILETMP[] = "cgrom.tmp";
+	static const char *FONTFILE[] = {
+		"cgrom30.dat", "cgrom30.tmp", "cgrom.dat", "cgrom.tmp"
+	};
 	FILEH fp;
-	int32_t i;
+	int32_t i,x68030=0;
 	uint16_t tmp;
 	int32_t flg = TRUE;
 
@@ -272,17 +279,19 @@ WinX68k_LoadROMs(void)
 	if (fp == 0) {
 		Error("BIOS ROM イメージが見つかりません.");
 		memset(IPL, 0x00, 0x40000);/*IPL clear*/
+		strcat(window_title," NO-IPL");
 		flg = FALSE;
 	}
 	else {
-	File_Read(fp, &IPL[0x20000], 0x20000);
+	File_Read(fp, &IPL[0x20000], 0x20000);/*128K*/
 	File_Close(fp);
 	if(i==1) strcat(window_title," EXPERT");//ver 1.0
 	if(i==2) strcat(window_title," XVI");   //ver 1.1
 	if(i==3) strcat(window_title," XVIcpt");//ver 1.2
-	if(i==4) strcat(window_title," X68030");//ver 1.3
-
-	WinX68k_SCSICheck();	// SCSI IPLなら、$fc0000～にSCSI BIOSを置く
+	if(i==4){strcat(window_title," X68030");//ver 1.3
+	  x68030 = 1;
+	}
+	WinX68k_SCSICheck();	// Load SCSI IPL in:$fc0000～ ex:ea0000
 	}
 
 // for little endian 
@@ -293,20 +302,18 @@ WinX68k_LoadROMs(void)
 	}
 #endif
 
-	fp = File_OpenCurDir((char *)FONTFILE);
-	if (fp == 0) {
-		// cgrom.tmpがある？
-		fp = File_OpenCurDir((char *)FONTFILETMP);
-		if (fp == 0) {
-			//if (make_cgromdat(FONT, NULL, NULL, FALSE )==0){/* 暫定フォント生成 */
-			memset(IPL, 0, 0x40000);/*IPL clear*/
-			//}
-			Error("フォントROMイメージが見つかりません.\n");
-			flg = FALSE;
-		}
+	for (fp = 0, i = 0; fp == 0 && i < NELEMENTS(FONTFILE); i++) {
+		fp = File_OpenCurDir((char *)FONTFILE[i]);
 	}
-
-	if (fp != 0){
+	if (fp == 0) {
+		//if (make_cgromdat(FONT, NULL, NULL, x68030 )==0){/* 暫定フォント生成 */
+		 memset(IPL, 0, 0x40000);/*IPL clear*/
+		 flg = FALSE;
+		//}
+		Error("フォントROMイメージが見つかりません.\n");
+		strcat(window_title," NO-FONT");
+	}
+	else{
 	 File_Read(fp, FONT, 0xc0000);
 	 File_Close(fp);
 	}
@@ -319,7 +326,7 @@ WinX68k_LoadROMs(void)
 	}
 #endif
 
-	//SDL_SetWindowTitle(sdl_window, window_title); /*SDL2 only*/
+	SDL_SetWindowTitle(sdl_window, window_title); /*SDL2 only*/
 
 	return flg;
 }
@@ -346,7 +353,7 @@ WinX68k_Reset(void)
 	SCC_Init();
 	Keyboard_Init();
 	PIA_Init();
-	Joystick_Init();
+	GameController_Init();
 	RTC_Init();
 	TVRAM_Init();
 	GVRAM_Init();
@@ -356,6 +363,7 @@ WinX68k_Reset(void)
 	MIDI_Init();
 
 	ICount = 0;
+	ScreenClearFlg = 1;  /* clear screen く*/
 
 	DSound_Stop();
 	SRAM_VirusCheck();
@@ -404,9 +412,9 @@ WinX68k_Cleanup(void)
 }
 
 #define CLOCK_SLICE 200
-// -----------------------------------------------------------------------------------
+// ----------------------------------------------------
 //  コアのめいんるーぷ
-// -----------------------------------------------------------------------------------
+// ----------------------------------------------------
 void WinX68k_Exec(void)
 {
 	//char *test = NULL;
@@ -553,7 +561,6 @@ void WinX68k_Exec(void)
 		}
 	}
 
-	Joystick_Update(FALSE, SDLK_UNKNOWN);
 
 	FDD_SetFDInt();
 	if ( !DispFrame )
@@ -572,7 +579,7 @@ void WinX68k_Exec(void)
 void
 get_cmd_line(int32_t argc, char *argv[])
 {
-	// *.HDS、*.HDFはHDD、 MOSはMO、他はFDD
+	// *.HDS、*.HDFはHDD、他はFDD MOSはMO
 	char fdimg[] = "D8888DHDMDUP2HDDIMXDFIMG";
 	char saimg[] = "HDF";
 	char scimg[] = "HDS";
@@ -667,14 +674,16 @@ int32_t main(int32_t argc, char *argv[])
 	SRAM_Init();
 	LoadConfig();
 
-#ifndef NOSOUND
+#ifdef NOSOUND
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+		return 1;
+	}
+#else
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
 		p6logd("SDL_Init error\n");		
-#endif
 		if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 			return 1;
 		}
-#ifndef NOSOUND
 	} else {
 		sdlaudio = 0;
 	}
@@ -682,20 +691,6 @@ int32_t main(int32_t argc, char *argv[])
 
 	strcat(window_title,APPNAME);
 
-#if !SDL_VERSION_ATLEAST(2, 0, 0)
-	strcat(window_title," SDL");
-	SDL_WM_SetCaption(APPNAME" SDL", NULL);
-
-	/*SDL1*/
-	uint32_t flags = SDL_SWSURFACE;
-	if(Config.WinStrech == 1){
-		flags |= SDL_RESIZABLE;
-	}
-	if (SDL_SetVideoMode(FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, 16, flags) == NULL) {
-		p6logd("SDL_SetVideoMode() failed");
-		return 1;
-	}
-#else
 #ifdef USE_OGLES11
 	SDL_DisplayMode sdl_dispmode;
 	SDL_GetCurrentDisplayMode(0, &sdl_dispmode);
@@ -718,12 +713,20 @@ int32_t main(int32_t argc, char *argv[])
 #else
 	/* SDL2 for GPU */
 	strcat(window_title," SDL2");
-	sdl_window = SDL_CreateWindow(window_title, winx, winy, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+	uint32_t flags = SDL_WINDOW_SHOWN;
+	if (Config.WinStrech == 1){flags |= SDL_WINDOW_RESIZABLE;} /*Windowサイズ変更可能？*/
+	sdl_window = SDL_CreateWindow(window_title, winx, winy, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, flags);
+	sdl_render = SDL_CreateRenderer( sdl_window ,-1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	SDL_RenderSetLogicalSize( sdl_render ,FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT);
+	SDL_SetRenderDrawColor(sdl_render, 0, 0, 0, 0);	/* select color (black) */
+	SDL_RenderClear(sdl_render);
 #endif
 
 	if (sdl_window == NULL) {
 		p6logd("sdl_window: %ld", sdl_window);
 	}
+
+	Soft_kbd_CreateScreen();// Soft Keyboard Window init.
 
 #ifdef USE_OGLES11
 	SDL_GLContext glcontext = SDL_GL_CreateContext(sdl_window);
@@ -743,7 +746,7 @@ int32_t main(int32_t argc, char *argv[])
 	//  glOrthof(0, 1024, 0, 1024, -1, 1);
 	glMatrixMode(GL_MODELVIEW);
 #endif
-#endif // !SDL_VERSION_ATLEAST(2, 0, 0)
+
 
 	if (!WinDraw_MenuInit()) {
 		WinX68k_Cleanup();
@@ -763,28 +766,23 @@ int32_t main(int32_t argc, char *argv[])
 
 	uint32_t err_msg_no = 0;
 	if (!WinX68k_Init()) {
-		//WinX68k_Cleanup();
-		//WinDraw_Cleanup();
 		err_msg_no = 1;
-		//return 1;
 	}
 
 	if (!WinX68k_LoadROMs()) {
-		//WinX68k_Cleanup();
-		//WinDraw_Cleanup();
 		err_msg_no = 2;
-		//exit (1);
 	}
 	memcpy(&MEM[0xbffffc], &SCSIIPL[0x20], 4); /*RST Vect patch for ROM v1.0*/
 
 	Keyboard_Init(); //WinDraw_Init()前に移動
 	Keymap_Init(); //Load Key Map file
 
-	if (!WinDraw_Init(err_msg_no)) {
+	if (!WinDraw_Init()) {
 		WinDraw_Cleanup();
-		Error("Error: Can't init screen.\n");
-		return 1;
+		err_msg_no = 3;
 	}
+
+	if(err_msg_no != 0) WinDraw_Message(err_msg_no);
 
 	if ( SoundSampleRate ) {
 		ADPCM_Init(SoundSampleRate);
@@ -803,8 +801,8 @@ int32_t main(int32_t argc, char *argv[])
 	FDD_Init();
 	SysPort_Init();
 	Mouse_Init();
-	Joystick_Open();
 	WinX68k_Reset();
+	GameController_Open(); // Mapping XBOX like Game Controller
 	Timer_Init();
 
 	//MIDI_Init();
@@ -836,7 +834,7 @@ int32_t main(int32_t argc, char *argv[])
 	while (1) {
 		// OPM_RomeoOut(Config.BufferSize * 5);
 		if (menu_mode == menu_out
-		    && (Config.NoWaitMode || Timer_GetCount()) && err_msg_no != 2) {
+		    && (Config.NoWaitMode || Timer_GetCount()) && err_msg_no == 0) {
 			WinX68k_Exec();
 #if defined(ANDROID) || TARGET_OS_IPHONE
 			if (vk_cnt > 0) {
@@ -864,37 +862,114 @@ int32_t main(int32_t argc, char *argv[])
 
 		menu_key_down = SDLK_UNKNOWN;
 
+		/* menu clickable area */
+		uint32_t menu_mouse_area_xr =  30, menu_mouse_area_xl = 720;
+		uint32_t menu_mouse_area_yu = 110, menu_mouse_area_yd = 300;
+
 		while (SDL_PollEvent(&ev)) {
 			switch (ev.type) {
 			case SDL_QUIT:
 				goto end_loop;
-			case SDL_VIDEORESIZE:
-				ScreenClearFlg = 1;
+			case SDL_WINDOWEVENT:
+				if(ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED){ ScreenClearFlg = 1;}
+				if(ev.window.event == SDL_WINDOWEVENT_RESIZED ){ ScreenClearFlg = 1; }
+				if(ev.window.event == SDL_WINDOWEVENT_CLOSE ){
+					if(ev.window.windowID == SDL_GetWindowID(sdl_window)){ goto end_loop; }
+					if(ev.window.windowID == SDL_GetWindowID(sft_kbd_window)){ Soft_kbd_Show(0); }//消す
+				}
 			break;
 			case SDL_MOUSEBUTTONDOWN:
 				if(ev.button.button == SDL_BUTTON_LEFT){//左ボタンを押した
-					Mouse_Event((int)1, 1, 0);
-					//printf("DOWN/LEFT:x=%d,y=%d\n", ev.button.x,ev.button.y);
+				 if(ev.window.windowID == SDL_GetWindowID(sft_kbd_window)){//SoftKey Window
+				   draw_soft_kbd(ev.button.x,ev.button.y, 0);
+				   if(menu_mode == menu_in){//menu mode
+				    extern uint8_t Key_X68;
+				    if(Key_X68 == 0x3c) menu_key_down = 0x40000052; //  up
+				    if(Key_X68 == 0x3e) menu_key_down = 0x40000051; //  dawn
+				    if(Key_X68 == 0x1d) menu_key_down = 0x0d; //  return
+				    if(Key_X68 == 0x01) menu_key_down = 0x1b; //  escape
+				    if(Key_X68 == 0x2b) menu_key_down = 0x78; //  x
+				    if(Key_X68 == 0x2a) menu_key_down = 0x7a; //  z
+				   Keyboard_Init();
+				   }
+				 }
+				 else if(ev.window.windowID == SDL_GetWindowID(sdl_window)){// SDL Window
+				  if(menu_mode == menu_in){//menu mode
+					 if((menu_state!=ms_file)&&(ev.button.x > menu_mouse_area_xr)&&(ev.button.x < menu_mouse_area_xl)&&
+					    (ev.button.y > menu_mouse_area_yu)&&(ev.button.y < menu_mouse_area_yd)){
+				     menu_key_down = 0x0d; // click Left button = return
+					 }
+					 if(menu_state==ms_file) menu_key_down = 0x0d; // click Left button = return
+				  }
+				  else{//X68000 mode
+				    if(ev.window.windowID == SDL_GetWindowID(sdl_window)){ Mouse_Event((int)1, 1, 0); }
+				  }
+				 }
 				}
 				else if(ev.button.button == SDL_BUTTON_RIGHT){//右ボタン押した
-					Mouse_Event((int)2, 1, 0);
-					//p6logd("DOWN/RIGHT:x=%d,y=%d\n", ev.button.x,ev.button.y);
+				 if(ev.window.windowID == SDL_GetWindowID(sft_kbd_window)){//SoftKey Window
+				   // none.
+				 }
+				 else if(ev.window.windowID == SDL_GetWindowID(sdl_window)){// SDL Window
+					if(menu_mode == menu_in){//menu mode
+					  int x, y;
+					  SDL_GetWindowPosition(sdl_window, &x, &y);
+					  if(menu_state==ms_file) menu_mouse_area_yd += 90;//file選択モードは範囲拡大
+					  if((ev.button.x > menu_mouse_area_xr)&&(ev.button.x < menu_mouse_area_xl)&&
+					     (ev.button.y > menu_mouse_area_yu)&&(ev.button.y < menu_mouse_area_yd)){
+					   menu_key_down = 0x1b; // click Right button = esc
+					  }
+					  else{
+					   SDL_SetWindowPosition(sft_kbd_window, ev.button.x + x, ev.button.y + y);
+					   Soft_kbd_Show(1);// SoftKey Window ON	
+					  }
+					}
+					else{// X68000 mode
+					 Mouse_Event((int)2, 1, 0);
+					}
+				 }
 				}
 			break;
 			case SDL_MOUSEBUTTONUP:
 				if(ev.button.button == SDL_BUTTON_LEFT){//Mouse L-button release
-					Mouse_Event((int)1, 0, 0);
+					if(ev.window.windowID == SDL_GetWindowID(sdl_window)){ Mouse_Event((int)1, 0, 0); }
+					if(ev.window.windowID == SDL_GetWindowID(sft_kbd_window)){ draw_soft_kbd(1,1,0); }// ReDrawSoftKey
 					//p6logd("UP/LEFT:x=%d,y=%d\n", ev.button.x,ev.button.y);
 				}
 				else if(ev.button.button == SDL_BUTTON_RIGHT){//Mouse R-button release
-					Mouse_Event((int)2, 0, 0);
+					if(ev.window.windowID == SDL_GetWindowID(sdl_window)){ Mouse_Event((int)2, 0, 0); }
 					//p6logd("UP/RIGHT:x=%d,y=%d\n", ev.button.x,ev.button.y);
 				}
 			break;
 			case SDL_MOUSEMOTION:
+				if(ev.window.windowID == SDL_GetWindowID(sdl_window)){//on main-window
+				if(menu_mode != menu_out){//menu mode
+					if((menu_state!=ms_file)&&(ev.button.x>25)&&(ev.button.x<190) &&(ev.button.y>121)&&(ev.button.y<289)){
+					uint32_t m_locate=(ev.button.y-121)/24;
+					extern int32_t mkey_pos,mkey_y;
+					if( m_locate + mkey_pos > mkey_y) menu_key_down = 0x40000051; // Down Wheel
+					if( m_locate + mkey_pos < mkey_y) menu_key_down = 0x40000052; // Up   Wheel
+					}
+					if((menu_state==ms_file)&&(ev.button.x>25)&&(ev.button.x<700) &&(ev.button.y>50)&&(ev.button.y<385)){
+					uint32_t m_locate=(ev.button.y-50)/24;
+					if( m_locate > mfl.y) menu_key_down = 0x40000051; // Down menu
+					if( m_locate < mfl.y) menu_key_down = 0x40000052; // Up   menu
+					}
+				}
+				else{
 				Mouse_Event((int)0,	(float)ev.motion.xrel * Config.MouseSpeed /10,
 									(float)ev.motion.yrel * Config.MouseSpeed /10);/*mouse support*/
 				//p6logd("x:%d y:%d xrel:%d yrel:%d\n", ev.motion.x, ev.motion.y, ev.motion.xrel, ev.motion.yrel);
+				}
+				}
+				break;
+			case SDL_MOUSEWHEEL:
+				if(menu_mode != menu_out){//menu mode
+				if(ev.wheel.y > 0) menu_key_down = 0x40000052; // Up   Wheel
+				if(ev.wheel.y < 0) menu_key_down = 0x40000051; // Down Wheel
+				if(ev.wheel.x > 0) menu_key_down = 0x4000004f; // Right Wheel
+				if(ev.wheel.x < 0) menu_key_down = 0x40000050; // Left Wheel
+				}
 				break;
 #if defined(ANDROID) || TARGET_OS_IPHONE
 			case SDL_APP_WILLENTERBACKGROUND:
@@ -969,6 +1044,7 @@ int32_t main(int32_t argc, char *argv[])
 					} else {
 						DSound_Play();
 						menu_mode = menu_out;
+						ScreenClearFlg = 1;
 						break;
 					}
 				}
@@ -985,8 +1061,7 @@ int32_t main(int32_t argc, char *argv[])
 #endif
 				if (menu_mode != menu_out) {
 					menu_key_down = ev.key.keysym.sym;
-				}
-				else {
+				} else {
 					Keyboard_KeyDown(ev.key.keysym.sym,ev.key.keysym.scancode);//phisical code + α
 				}
 				break;
@@ -994,9 +1069,57 @@ int32_t main(int32_t argc, char *argv[])
 				//p6logd("keyup: 0x%x 0x%x\n", ev.key.keysym.sym,ev.key.keysym.scancode);
 				Keyboard_KeyUp(ev.key.keysym.sym,ev.key.keysym.scancode);//phisical code + α
 				break;
+			//case SDL_JOYDEVICEADDED:
+			case SDL_CONTROLLERDEVICEADDED:
+				strcpy(menu_items[13][ev.cdevice.which],SDL_GameControllerNameForIndex(ev.cdevice.which));
+				strcpy(menu_items[13][ev.cdevice.which +1],"\0"); // Menu item END
+				if ( ev.cdevice.which == 0 ){// No Device +1 ?
+				 sdl_gamepad = SDL_GameControllerOpen( ev.cdevice.which );
+				}
+				p6logd("GameController %s Connected.\n",SDL_GameControllerNameForIndex(ev.cdevice.which));
+				break;
+			case SDL_CONTROLLERDEVICEREMOVED:
+				  SDL_GameControllerClose( sdl_gamepad );//閉じる
+				  p6logd("GameController Disconnected.\n");
+
+				uint32_t nr_joys;
+				nr_joys = SDL_NumJoysticks();
+				if (nr_joys == 0){
+				 strcpy(menu_items[13][0],"No device found");
+				 strcpy(menu_items[13][1],"\0"); // Menu item END
+				 break;
+				}
+				uint32_t i;
+				for (i = 0; i < nr_joys; i++) {
+				  if ( SDL_IsGameController(i) ){
+				    strcpy(menu_items[13][i],SDL_GameControllerNameForIndex(i));
+				  }
+				  else{
+				    strcpy(menu_items[13][i],"Not compatible GameController");
+				  }
+				}
+				strcpy(menu_items[13][i],"\0"); // Menu item END
+				sdl_gamepad = SDL_GameControllerOpen(0);//defaultに戻す
+				break;
+			case SDL_CONTROLLERAXISMOTION:
+				GameControllerAxis_Update(ev.caxis.which, ev.caxis.axis, ev.caxis.value);
+				break;
+			case SDL_CONTROLLERBUTTONDOWN:
+				GameControllerButton_Update(ev.cbutton.which, ev.cbutton.button, 1);
+				if((menu_mode == menu_out) && (get_joy_downstate() == (JOY_HOME ^ 0xff)) ){// HOME(Menu in)
+				  menu_mode = menu_enter;
+				  reset_joy_downstate();
+				  DSound_Stop();
+				}
+				break;
+			case SDL_CONTROLLERBUTTONUP:
+				GameControllerButton_Update(ev.cbutton.which, ev.cbutton.button, 0);
+				break;
+			case SDL_CONTROLLERDEVICEREMAPPED:
+				p6logd("Game Controller Re-mapped.\n");
+				break;
 			}
 		}
-
 
 #if defined(ANDROID) || TARGET_OS_IPHONE
 
@@ -1031,11 +1154,10 @@ int32_t main(int32_t argc, char *argv[])
 		if (menu_mode != menu_out) {
 			int32_t ret; 
 
-			Joystick_Update(TRUE, menu_key_down);
+			Menu_GameController_Update(menu_key_down); // XBOX like GamePad and KeyPad
 
 			if(ScreenClearFlg == 1){/*Resizable Window support in MENU*/
-			 extern SDL_Surface *menu_surface;
-			 SDL_UpdateRect(menu_surface, 0, 0, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT);
+			 Update_Screen(1);
 			}
 
 			ret = WinUI_Menu(menu_mode == menu_enter);
@@ -1087,10 +1209,10 @@ end_loop:
 	Mcry_Cleanup();
 #endif
 
-	//Config.DisplayNo=SDL_GetWindowDisplayIndex(sdl_window);
-	//SDL_GetWindowPosition(sdl_window,&Config.WinPosX,&Config.WinPosY);
+	Config.DisplayNo=SDL_GetWindowDisplayIndex(sdl_window);
+	SDL_GetWindowPosition(sdl_window,&Config.WinPosX,&Config.WinPosY);
 
-	Joystick_Cleanup();
+	GameController_Cleanup();
 	SRAM_Cleanup();
 	FDD_Cleanup();
 	//CDROM_Cleanup();
@@ -1098,6 +1220,7 @@ end_loop:
 	DSound_Cleanup();
 	WinX68k_Cleanup();
 	WinDraw_Cleanup();
+	Soft_kbd_CleanupScreen();
 	WinDraw_CleanupScreen();
 
 	SaveConfig();

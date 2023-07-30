@@ -11,7 +11,7 @@
 #include	"dosio.h"
 #include	"winx68k.h"
 #include	"../m68000/m68000.h"
-#include	"../SDL2/prop.h"
+#include	"../SDL3/prop.h"
 #include	"../m68000/c68k/c68k.h"
 #include	"x68kmemory.h"
 #include	"scsi.h"

@@ -185,24 +185,9 @@ static uint32_t	cyber_tick = 0;//時間計測用
 
 void GameController_Open(void)
 {
-	static const char gamepaddb_filename[] = "gamecontrollerdb.txt";
-	const char *gamepad_db;
-
-	int32_t  nr_prod, nr_vers, nr_btns, nr_joys;
+	int32_t nr_joys;
 	const char *name;
-	int i,num;
-
-	SDL_Init(SDL_INIT_GAMECONTROLLER);
-
-	// GamePad をイベントで駆動する
-	SDL_JoystickEventState(SDL_ENABLE);
-	SDL_GameControllerEventState(SDL_ENABLE);
-
-	gamepad_db = File_Getcd((char *)gamepaddb_filename);
-	num = SDL_GameControllerAddMappingsFromFile((char *)gamepad_db);
-	if(num > 0) p6logd("%d Game Controller mapped.\n",num);
-
-	sdl_gamepad = NULL;
+	int i;
 
 	nr_joys = SDL_NumJoysticks();
 	if (nr_joys == 0){
@@ -231,10 +216,35 @@ void GameController_Open(void)
  return;
 }
 
+void GameController_Change(uint32_t Pad_No)
+{
+	SDL_GameControllerClose(sdl_gamepad);
+	sdl_gamepad = SDL_GameControllerOpen(Pad_No);// Re-Open
+
+	if(sdl_gamepad == NULL) sdl_gamepad = SDL_GameControllerOpen(0);// default
+
+ return;
+}
 
 // 変数初期化
 void GameController_Init(void)
 {
+	static const char gamepaddb_filename[] = "gamecontrollerdb.txt";
+	const char *gamepad_db;
+	int num;
+
+	SDL_Init(SDL_INIT_GAMECONTROLLER);
+
+	// GamePad をイベントで駆動する
+	SDL_JoystickEventState(SDL_ENABLE);
+	SDL_GameControllerEventState(SDL_ENABLE);
+
+	gamepad_db = File_Getcd((char *)gamepaddb_filename);
+	num = SDL_GameControllerAddMappingsFromFile((char *)gamepad_db);
+	if(num > 0) p6logd("%d Game Controller mapped.\n",num);
+
+	sdl_gamepad = NULL;
+
 	joy[0] = 1;  // active only one
 	joy[1] = 0;
 	JoyKeyState = 0;

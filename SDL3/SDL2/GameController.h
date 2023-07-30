@@ -3,8 +3,14 @@
 
 #include "common.h"
 
-#include "SDL/SDL.h"
-#include "SDL/SDL_joystick.h"
+#ifndef SDL1
+#include "SDL2/SDL.h"
+#include "SDL2/SDL_keycode.h"
+#include "SDL2/SDL_gamecontroller.h"
+#else
+#include <SDL/SDL.h>
+#include <SDL/SDL_joystick.h>
+#endif
 
 #define	JOY_UP		0x01
 #define	JOY_DOWN	0x02
@@ -12,6 +18,7 @@
 #define	JOY_RIGHT	0x08
 #define	JOY_TRGA	0x20
 #define	JOY_TRGB	0x40
+#define	JOY_HOME	0x80
 
 #define	JOY_ThUP	0x01
 #define	JOY_ThDN	0x02
@@ -34,17 +41,22 @@ typedef struct _vbtn_points {
 
 #define need_Vpad() (is_menu || Keyboard_IsSwKeyboard() || (!Config.JoyOrMouse && !sdl_joy))
 
-void Joystick_Open(void);
-void Joystick_Init(void);
-void Joystick_Cleanup(void);
 uint8_t FASTCALL Joystick_Read(uint8_t num);
 void FASTCALL Joystick_Write(uint8_t num, uint8_t data);
 
 #if !SDL_VERSION_ATLEAST(2, 0, 0)
 typedef signed int SDL_Keycode;
+#else
+extern SDL_GameController *sdl_gamepad;
 #endif
 
-void FASTCALL Joystick_Update(int32_t is_menu, SDL_Keycode key);
+void GameController_Init(void);
+void GameController_Open(void);
+void GameController_Change(uint32_t Pad_No);
+void GameController_Cleanup(void);
+void FASTCALL GameControllerAxis_Update(int32_t which, uint8_t axis, int32_t value);
+void FASTCALL GameControllerButton_Update(int32_t which, uint8_t button, uint8_t on );
+void Menu_GameController_Update( SDL_Keycode key );
 
 uint8_t get_joy_downstate(void);
 void reset_joy_downstate(void);

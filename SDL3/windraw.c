@@ -24,10 +24,10 @@
  */
 #include <unistd.h>
 #include "common.h"
-#include "SDL/SDL.h"
+#include "SDL3/SDL.h"
 
-#ifdef USE_OGLES11
-#include "SDL/SDL_opengles.h"
+#ifdef USE_OGLES20
+#include "SDL3/SDL3_opengles.h"
 #endif
 
 #include "winx68k.h"
@@ -41,9 +41,10 @@
 #include "prop.h"
 #include "status.h"
 #include "tvram.h"
-#include "joystick.h"
+#include "GamePad.h"
 #include "keyboard.h"
 #include "x68kmemory.h"
+#include "mfp.h"
 
 #if 0
 #include "../icons/keropi.xpm"
@@ -53,7 +54,7 @@ extern int32_t Debug_Text, Debug_Grp, Debug_Sp;
 
 uint32_t *ScrBuf = 0;
 
-#if defined(USE_OGLES11)
+#if defined(USE_OGLES20)
 uint16_t *menu_buffer;
 uint16_t *kbd_buffer;
 #endif
@@ -78,28 +79,32 @@ uint32_t WinDraw_Pal32B, WinDraw_Pal32R, WinDraw_Pal32G;
 uint32_t WindowX = 0;
 uint32_t WindowY = 0;
 
-#ifdef USE_OGLES11
+#ifdef USE_OGLES20
 static GLuint texid[11];
 #endif
 
-/* Drawing SDL1 buffer */
-extern SDL_Surface *sdl_surface;
+/* Drawing SDL2 buffer */
+extern SDL_Window *sdl_window;
+extern SDL_Renderer *sdl_render;
+extern SDL_Texture *sdl_texture;
 extern SDL_Surface *sdl_x68screen;
-#if !defined(USE_OGLES11)
+
+#if !defined(USE_OGLES20)
 SDL_Surface *menu_surface;
 #endif
 
 extern int32_t VID_MODE, CHANGEAV_TIMING;
 
-int32_t WinDraw_Init(uint32_t err_msg_no);
-void WinDraw_Draw(void);
-int32_t WinDraw_ChangeSize(void);
-uint32_t conv_utf8tosjis();
-int32_t WinDraw_MenuInit(void);
+
+//int32_t WinDraw_Init(void);
+//void WinDraw_StartupScreen(void);
+//void WinDraw_Draw(void);
+//int32_t WinDraw_ChangeSize(void);
+//uint32_t conv_utf8tosjis();
 
 #define	APPNAME	"Keropi"
 
-static uint32_t drawW=0,drawH=0; /*start X ,Y*/
+static int32_t drawW=0,drawH=0; /*start X ,Y*/
 static uint32_t surfaceW=800,surfaceH=600; /*width Hight*/
 static uint32_t HLINE_TOTAL_1,CRTC_HSTART_1,CRTC_HEND_1;/*Store*/
 static uint32_t VLINE_TOTAL_1,CRTC_VSTART_1,CRTC_VEND_1,CRTC_VStep_1;
@@ -143,13 +148,13 @@ int32_t WinDraw_ChangeSizeGO(void)
 	// Screen Size は総数から非表示部分を取り除いて求める(TextDotX/Yは実際のCRTの表示範囲ではない)
 	uint32_t ScreenX = HLINE_TOTAL  * 0.69; ScreenX /=32; ScreenX++; ScreenX *=32;
 	uint32_t ScreenY = VLINE_TOTAL2 * 0.90; ScreenY /=32; ScreenY++; ScreenY *=32;
-
+	
 	// 表示範囲がオーバースキャンの場合
 	if(ScreenX<TextDotX){ScreenX=TextDotX;HSTART2=0;}
 	if(ScreenY<TextDotY){ScreenY=TextDotY;VSTART2=0;}
 
 	//printf("TOTAL %d:%d ScrenXY %d:%d TdotXY %d:%d StartXY %d:%d\n",HLINE_TOTAL,VLINE_TOTAL2,ScreenX,ScreenY,
-	//	TextDotX,TextDotY,CRTC_HSTART*8, VSTART2);
+	//	TextDotX,TextDotY,HSTART2, VSTART2);
 
 	/*=== Do Change X68000 Screen Size ===*/
 	WinDraw_InitWindowSize(ScreenX, ScreenY, HSTART2, VSTART2);
@@ -171,8 +176,8 @@ int32_t WinDraw_ChangeSizeGO(void)
 void
 WinDraw_InitWindowSize(uint32_t ScreenX, uint32_t ScreenY, uint32_t StartX, uint32_t StartY)
 {
-
-	
+	SDL_SetRenderDrawColor(sdl_render, 0, 0, 0, 0);	/* select color (black) */
+	SDL_RenderClear(sdl_render);/*screen buffer clear*/
 
 	switch(ScreenX){
 	  case 513 ... 900: //====768x512/256   640x480/400/240/200====
@@ -242,23 +247,24 @@ WinDraw_InitWindowSize(uint32_t ScreenX, uint32_t ScreenY, uint32_t StartX, uint
 /*プライマリ・Diplayの大きさをGET*/
 void WinGetRootSize(void)
 {
-    int32_t display_index;
-	static	SDL_Rect **sdl_mode;
+	/*==マルチ・ディスプレイ　プライマリ(0)の現在の解像度を調査==*/
+	int num_modes = 0;
+	const SDL_DisplayMode **modes;
+	const SDL_DisplayMode *mode;
+	SDL_DisplayID display = SDL_GetPrimaryDisplay();
 
-	/*==マルチ・ディスプレイ プライマリ(0)の現在の解像度を調査==*/
-	display_index = 0;
-
-	sdl_mode = SDL_ListModes(NULL, 0);
-
-	if        (sdl_mode == (SDL_Rect**) 0) {	/* 全モード不可 */
-	    root_width = 0;
-	    root_height = 0;
-	} else if (sdl_mode == (SDL_Rect**)-1) {	/* 全モード可 */
-	    root_width  = 10000;
-	    root_height = 10000;
-	} else {					/* モードをチェック */
-	    root_width = sdl_mode[0]->w;					/* 最初が   */
-	    root_height = sdl_mode[0]->h;					/*   最大値 */
+	modes = SDL_GetFullscreenDisplayModes(display, &num_modes);
+	if (modes) {
+		mode = modes[0];// No:0(Pri. Display)
+		root_width   = mode->w;/*PrimaryDisplayの最大解像度*/
+		root_height  = mode->h;
+		//sdl_byte_per_pixel = mode->pixel_density; /*bit深度*/
+		SDL_free(modes);
+		printf("メイン画面の最大解像度:%d x %d \n",root_width,root_height);
+	}
+	else{
+		root_width   = 1820;/*ダミー解像度*/
+		root_height  = 800;
 	}
 
 return;
@@ -268,10 +274,18 @@ return;
 //static int dispflag = 0;
 void WinDraw_StartupScreen(void)
 {
+	/*clear screen:一度全画面描画更新しておく*/
+	ScreenClearFlg=1;
+	return;
 }
 
 void WinDraw_CleanupScreen(void)
 {
+	SDL_DestroySurface(sdl_x68screen);
+	SDL_DestroySurface(menu_surface);
+	SDL_DestroyTexture(sdl_texture);
+	SDL_DestroyRenderer(sdl_render);
+	SDL_DestroyWindow(sdl_window);
 }
 
 /* Window Size set 
@@ -279,28 +293,25 @@ void WinDraw_CleanupScreen(void)
   1: full-screen  */
 void WinDraw_ChangeMode(int32_t flg)
 {
-	uint32_t w_flags;
+	uint32_t w_flags = 0;
 
-	if(flg == 0){
-		w_flags = SDL_SWSURFACE;
+	/* clear renderer */
+	SDL_SetRenderDrawColor(sdl_render, 0, 0, 0, 0);	/* select color (black) */
+	SDL_RenderClear(sdl_render);
+
+	if (flg == 1) {
+	  SDL_SetWindowFullscreen(sdl_window,SDL_TRUE);
+	  SDL_HideCursor();
 	}
 	else{
-		w_flags = SDL_SWSURFACE | SDL_FULLSCREEN;
+	  SDL_SetWindowFullscreen(sdl_window,SDL_FALSE);
+	  SDL_ShowCursor();
 	}
 
-	if(Config.WinStrech == 1)
-		w_flags |= SDL_RESIZABLE;
+	//if (Config.WinStrech == 1){w_flags |= SDL_WINDOW_RESIZABLE;}
 
-	//SDL Video 初期化
-	SDL_QuitSubSystem(SDL_INIT_VIDEO);
-	SDL_InitSubSystem(SDL_INIT_VIDEO);
-
-	//描画エリア再定義
-	SDL_SetVideoMode(FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, 32, w_flags);
-	sdl_surface = SDL_GetVideoSurface();
-
-	// menu描画用エリア再定義
-	WinDraw_MenuInit();
+	/* clear screen */
+	ScreenClearFlg=1;
 
  return ;
 }
@@ -315,28 +326,29 @@ void WinDraw_HideSplash(void)
 
 static void draw_kbd_to_tex(void);
 
-int32_t WinDraw_Init(uint32_t err_msg_no)
+int32_t WinDraw_Init(void)
 {
 	int32_t i, j, k;
 
 	WindowX = 768;
 	WindowY = 512;
 
-	/* SDL1 create Surface */
-	sdl_surface = SDL_GetVideoSurface();
-	if (sdl_surface == NULL) {
-		fprintf(stderr, "can't create surface.\n");
+	/* SDL2 create Texture */
+	sdl_texture = SDL_CreateTexture(sdl_render,SDL_PIXELFORMAT_RGBA8888,
+		SDL_TEXTUREACCESS_STREAMING, 800, 600);
+	if (sdl_texture == NULL) {
+		fprintf(stderr, "can't create texture.\n");
 		return FALSE;
 	}
 
-	// SDL1 32bit color depth
+	// SDL1/2 Color Table
 	WinDraw_Pal32R = 0xff000000;
 	WinDraw_Pal32G = 0x00ff0000;
 	WinDraw_Pal32B = 0x0000ff00;
 	//printf("R: %x, G: %x, B: %x\n", WinDraw_Pal32R, WinDraw_Pal32G, WinDraw_Pal32B);
 
 
-#if defined(USE_OGLES11)
+#if defined(USE_OGLES20)
 	ScrBuf = malloc(1024*1024*2+2000); // OpenGL ES 1.1 needs 2^x pixels
 	if (ScrBuf == NULL) {
 		return FALSE;
@@ -401,38 +413,36 @@ int32_t WinDraw_Init(uint32_t err_msg_no)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1024, 1024, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, kbd_buffer);
 
-#else // OPEN_GL ES end
+#else // OpenGL ES end
 
-	/* X68000 32bit Display Area for SDL1*/
-	sdl_x68screen = SDL_CreateRGBSurface(0, 800, 600, 32, WinDraw_Pal32R, WinDraw_Pal32G, WinDraw_Pal32B, 0);
+	/* X68000 Drawing Area for SDL3 */
+	sdl_x68screen = SDL_CreateSurface(800, 600,
+					SDL_GetPixelFormatEnumForMasks(32, WinDraw_Pal32R, WinDraw_Pal32G, WinDraw_Pal32B, 0));
+
 	if (sdl_x68screen == NULL) return FALSE;
-
-	// X68000 32bit Drawing Area
-	ScrBuf = malloc(800 * 600 * 4);
+	ScrBuf = sdl_x68screen->pixels;
 
 #endif
 
-// --- Draw Init Err Message ---
-#include "msg_tif.h"
-	uint32_t *p;
-	uint8_t dt;
-	if(err_msg_no != 0){
-	  for(j=0; j<14; j++){
-	   for(i=0; i<38; i++){ // 304/8=38byte
-	    p=ScrBuf + 800*(280+j)+230+(i*8);
-	    dt = no_rom_msg[j*38+i];
-		for(k=0; k<8; k++){
-	    if((dt & 0x80)!=0){*p = 0xffffff00;} //color depth = 32bit
-		dt = dt << 1;
-		p++;
-		}
-	   }
-	  }
-	  TextDotX=800; TextDotY=600;
-	  WinDraw_Draw();
-	}
-
 	return TRUE;
+}
+
+void
+WinDraw_Message(uint32_t Err_Mess_No)
+{
+  static const char *err_message[] = {
+	"Boot up X68000 system.",
+	"Low Memorry. (not enought RAM)",
+	"No found iplrom.dat/cgrom.dat in .keropi folder.",
+	"SDL window initialize Error.",
+	"There is No-Sound Mode."
+  };
+
+  if(Err_Mess_No<=3){
+   SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"WARNING!",err_message[Err_Mess_No],NULL);
+  }
+
+ return;
 }
 
 void
@@ -443,11 +453,10 @@ WinDraw_Cleanup(void)
 void
 WinDraw_Redraw(void)
 {
-
 	TVRAM_SetAllDirty();
 }
 
-#ifdef USE_OGLES11
+#ifdef USE_OGLES20
 #define SET_GLFLOATS(dst, a, b, c, d, e, f, g, h)		\
 {								\
 	dst[0] = (a); dst[1] = (b); dst[2] = (c); dst[3] = (d);	\
@@ -492,60 +501,44 @@ void draw_all_buttons(GLfloat *tex, GLfloat *ver, GLfloat scale, int32_t is_menu
 }
 #endif // USE_OGLES11
 
-/*==SDL1 Update Screen===*/
+/*==SDL3 Update Screen===*/
 void
 Update_Screen(uint32_t menu)
 {
-	int32_t x,y;
-	uint32_t *p;
-	uint16_t *dst16;
-	uint32_t *dst32;
-	int32_t xk;
-	int32_t yk;
-	int32_t Bpp= sdl_surface->format->BytesPerPixel;
+	SDL_FRect x68rect, CRTrect;
 
-	if(menu){ /* ==Menu Drawing==*/
-	 SDL_BlitSurface(menu_surface,NULL,sdl_surface,NULL);
+	/*surface(Main mem.) → texture(Frame buff.) */
+	if(menu){
+	  SDL_UpdateTexture(sdl_texture, NULL, menu_surface->pixels, 800*4);//32bit depth
+	  x68rect.x = CRTrect.x = 0;
+	  x68rect.y = CRTrect.y = 0;
+	  x68rect.w = CRTrect.w = 800;
+	  x68rect.h = CRTrect.h = 600;
 	}
-	else{     /* ==X68000 Drawing==*/
+	else{
+	  SDL_UpdateTexture(sdl_texture, NULL, ScrBuf, 800*4);//32bit depth
+	  /*texture → renderer copy rect */
+	  x68rect.x = 0;
+	  x68rect.y = 0;
+	  x68rect.w = TextDotX;
+	  x68rect.h = TextDotY;
+	  CRTrect.x = (800*drawW/surfaceW);
+	  CRTrect.y = (600*drawH/surfaceH);
+	  CRTrect.w = (800*TextDotX/surfaceW);
+	  CRTrect.h = (600*TextDotY/surfaceH);
+	}
 
-	if(ScreenClearFlg != 0){ 			/*change screen*/
+	// Render Clear every time
+	  SDL_SetRenderDrawColor(sdl_render, 0, 0, 0, 0);	/* select color (black) */
+	  SDL_RenderClear(sdl_render);		/*renderer buffer clear*/
+
+	if(ScreenClearFlg != 0){ 			/*change screen(after clear screen)*/
 	  WinDraw_ChangeSizeGO();
-	  if(ScreenClearFlg++>2){ ScreenClearFlg=0; }
 	  ScreenClearFlg=0;
 	}
 
-	// ===通常表示===拡大する
-	for (y = 0; y < 600; y++) {
-		yk=(surfaceH*y)/600;
-		p = ScrBuf + (800 * (yk-drawH))-drawW;
-		dst16 = sdl_x68screen->pixels + (sdl_x68screen->w * Bpp * y);
-		dst32 = sdl_x68screen->pixels + (sdl_x68screen->w * Bpp * y);
-		for (x = 0; x < 800; x++) {
-			xk=(surfaceW*x)/800;
-			if  (Bpp == 4) {
-				if(yk>=drawH && yk<(TextDotY+drawH) && xk>=(drawW) && xk<(TextDotX+(drawW))){
-				*dst32++ = (uint32_t)*(p+xk);
-				}
-				else{*dst32++ = 0; }
-			} else if (Bpp == 2) {
-				if(yk>=drawH && yk<(TextDotY+drawH) && xk>=(drawW) && xk<(TextDotX+(drawW))){
-				*dst16++ = *(p+xk);
-				}
-				else{*dst16++ = 0; }
-			} else {
-				// xxx not suported
-			}
-		}
-	}
-
-	// X68000 to Display buffer
-	SDL_BlitSurface(sdl_x68screen,NULL,sdl_surface,NULL);
-	}
-
-
-	/*SDL1_Window画面表示*/
-	SDL_UpdateRect(sdl_surface, 0, 0, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT);
+	SDL_RenderTexture(sdl_render, sdl_texture, &x68rect, &CRTrect);/*texture → renderer*/
+	SDL_RenderPresent(sdl_render);								/* update screen */
 
  return;
 }
@@ -556,7 +549,10 @@ void FASTCALL
 WinDraw_Draw(void)
 {
 
-#if defined(USE_OGLES11)
+	int32_t x,y;
+
+
+#if defined(USE_OGLES20)
 	GLfloat texture_coordinates[8];
 	GLfloat vertices[8];
 	GLfloat w;
@@ -635,11 +631,11 @@ WinDraw_Draw(void)
 
 	SDL_GL_SwapWindow(sdl_window);
 
-#else // OpenGL ES end.
+#else // end of OpenGLES
 
-	Update_Screen(0);// SDL1 Drawing Screen
+	Update_Screen(0); /* Draw Screen for X68000 (SDL2) */
 
-#endif	// OpenGL ES END
+#endif	// OpenGLES END
 
 	FrameCount++;
 	if (!Draw_DrawFlag/* && is_installed_idle_process()*/)
@@ -749,8 +745,8 @@ INLINE void WinDraw_DrawTextLineTR(int32_t opaq)
 		if (Text_TrFlag[i] & 1){		   \
 			v = BG_LineBuf32[i];	   \
 		}else{				   \
-			v = 0;			   \
-		}					\
+			v = 0;		   \
+		}	   \
 	}					   \
 	ScrBuf##SUFFIX[adr] = (uint32_t)v;		   \
 }
@@ -899,6 +895,7 @@ void WinDraw_DrawLine(void)
 	int32_t opaq, ton=0, gon=0, bgon=0, tron=0, pron=0, tdrawed=0;
 
 	if((VLINE < 0) || (VLINE >= 1024)){ return; } /* Area check */
+
 	if (!TextDirtyLine[VLINE]) return;
 	TextDirtyLine[VLINE] = 0;
 	Draw_DrawFlag = 1;
@@ -1095,10 +1092,8 @@ void WinDraw_DrawLine(void)
 				int_fast32_t i;
 				for (i = 16; i < TextDotX + 16; ++i)
 					BG_LineBuf32[i] = TextPal32[0];
-			}
-			else		// 20010120 （琥珀色）
-			{
-				memset(&BG_LineBuf32[16], 0 , TextDotX * 4);
+			} else {		// 20010120 （琥珀色）
+				memset(&BG_LineBuf32[16], 0, TextDotX * 4);// 32bit depth
 			}
 			memset(Text_TrFlag, 0, TextDotX+16);
 			bgon = 1;
@@ -1336,7 +1331,7 @@ static uint16_t sjis2jis(uint16_t w)
 {
 	uint8_t wh, wl;
 
-	wh = w / 256,
+	wh = w / 256;
 	wl = w % 256;
 
 	wh <<= 1;
@@ -1566,9 +1561,9 @@ static void draw_str(char *cp, uint32_t flg)
 			p6m.ml_x -= 3;
 		}
 		/*Locate X dot check*/
-		if((p6m.ml_x) > 740) break;
+		if((p6m.ml_x) > 790) break;
 		/*Locate Y dot check*/
-		if((p6m.ml_y) > 580) break;
+		if((p6m.ml_y) > 590) break;
 	}
 
  return;
@@ -1576,7 +1571,7 @@ static void draw_str(char *cp, uint32_t flg)
 
 int32_t WinDraw_MenuInit(void)
 {
-#if defined(USE_OGLES11)
+#if defined(USE_OGLES20)
 	//
 	menu_buffer = malloc(1024 * 1024 * 2 + 2000);
 	if (menu_buffer == NULL) {
@@ -1586,16 +1581,18 @@ int32_t WinDraw_MenuInit(void)
 	set_mfs(24);
 #else
 
-	/*SDL1 menu-surface */
-	//menu_surface = SDL_GetVideoSurface();
-	menu_surface = SDL_CreateRGBSurface(0, 800, 600, 32, WinDraw_Pal32R, WinDraw_Pal32G, WinDraw_Pal32B, 0);
-	if (menu_surface == NULL) return FALSE;
+	/*SDL3 menu-surface */
+	menu_surface = SDL_CreateSurface( 800, 600,
+				SDL_GetPixelFormatEnumForMasks(32, WinDraw_Pal32R, WinDraw_Pal32G, WinDraw_Pal32B, 0));
 
+
+	if (!menu_surface)
+		return FALSE;
 	set_sbp((uint32_t *)(menu_surface->pixels));
 	set_mfs(24);
 #endif
 
-	set_mcolor(0xffffff00);
+	set_mcolor(0xffffff00);// white
 	set_mbcolor(0);
 
 	return TRUE;
@@ -1603,7 +1600,7 @@ int32_t WinDraw_MenuInit(void)
 
 #include "menu_str_utf8.txt"
 
-#ifdef USE_OGLES11
+#ifdef USE_OGLES20
 static void ogles11_draw_menu(void)
 {
 	GLfloat texture_coordinates[8];
@@ -1642,14 +1639,19 @@ static void ogles11_draw_menu(void)
 }
 #endif
 
+#include "softkey.c"
+
 /*==Menu描画==*/
 void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int32_t *mval_y)
 {
 	int32_t i, drv;
 	char tmp[256];
 
+	SDL_SetRenderDrawColor(sdl_render, 0, 0, 0, 0);	/* select color (black) */
+	SDL_RenderClear(sdl_render);/*screen buffer clear*/
+
 // ソフトウェアキーボード描画時にset_sbp(kbd_buffer)されているので戻す
-#if defined(USE_OGLES11)
+#if defined(USE_OGLES20)
 	set_sbp(menu_buffer);
 #endif
 // ソフトウェアキーボード描画時にset_mfs(16)されているので戻す
@@ -1672,13 +1674,13 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 		sprintf(tmp, "%s%s", title_str, PX68KVERSTR);
 		draw_str(tmp,1);
 	} else {
-		set_mcolor(0xffffff00);
+		set_mcolor(0xffffff00); // cyan
 		set_mlocateC(0, 0);
 		sprintf(tmp, "%s%s", pc98_title1_str[Config.MenuLanguage], PX68KVERSTR);
 		draw_str(tmp,1);
-		set_mlocateC(0, 2);
+		set_mlocateC(0, 3);
 		draw_str(pc98_title3_str[Config.MenuLanguage],1);
-		set_mcolor(0x00ffff00);
+		set_mcolor(0xffffff00); // cyan
 		set_mlocateC(0, 1);
 		draw_str(pc98_title2_str,1);
 	}
@@ -1709,7 +1711,7 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 		set_mlocateC(3, 5 + i);
 		if (menu_state == ms_key && i == (mkey_y - mkey_pos)) {
 			set_mcolor(0x00000000);
-			set_mbcolor(0xffff0000); // yellow);
+			set_mbcolor(0xffff0000); // yellow;
 		} else {
 			set_mcolor(0xffffff00);
 			set_mbcolor(0x00000000);
@@ -1768,52 +1770,6 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 			}
 		} else {
 			draw_str(menu_items[i + mkey_pos][mval_y[i + mkey_pos]],1);
-			/* Show change HwJoy Setting */
-			if((i + mkey_pos)==13) 
-			{
-				switch(mval_y[i + mkey_pos])/*Axis0,1,Hat,Button0,1*/
-				{
-				case 0:/*Axis0 set*/
-					if(JoyDirection == 0){
-						sprintf(tmp," Right-Set:%d →",Config.HwJoyAxis[0]);
-					}
-					else{
-						sprintf(tmp," Left -Set:%d ←",Config.HwJoyAxis[0]);
-					}
-					draw_str(tmp,1);
-					break;
-				case 1:/*Axis1 set*/
-					if(JoyDirection == 0){
-						sprintf(tmp," Down-Set:%d ↓",Config.HwJoyAxis[1]);
-					}
-					else{
-						sprintf(tmp," Up  -Set:%d ↑",Config.HwJoyAxis[1]);
-					}
-					draw_str(tmp,1);
-					break;
-				case 2:/*Axis2 set*/
-					if(JoyDirection == 0){
-						sprintf(tmp," Down-Set:%d ↓",Config.HwJoyAxis[2]);
-					}
-					else{
-						sprintf(tmp," Up  -Set:%d ↑",Config.HwJoyAxis[2]);
-					}
-					draw_str(tmp,1);
-					break;
-				case 3:/*TRG-A*/
-				case 4:/*TRG-B*/
-				case 5://C
-				case 6://D
-				case 7://Th-Up
-				case 8://Th-Down
-				case 9://E1
-				case 10://E2
-					sprintf(tmp," Set :%d",Config.HwJoyBtn[mval_y[i + mkey_pos]-3]);
-					draw_str(tmp,1);
-					break;
-				default: break;
-				}
-			}
 		}
 	}
 
@@ -1843,12 +1799,11 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 	  if(Config.MenuLanguage == 0){draw_str(item_cap2_JPN[mkey_y],1);}
 	  else						{draw_str(item_cap2_US[mkey_y],1);}
 	}
-
-#if defined(USE_OGLES11)
+#if defined(USE_OGLES20)
 	ogles11_draw_menu();
 #else
 
-	Update_Screen(1);// SDL1 Drawing Screen
+	Update_Screen(1); /* Draw Screen for Menu (SDL2) */
 
 #endif
 }
@@ -1862,7 +1817,7 @@ void WinDraw_DrawMenufile(struct menu_flist *mfl)
 	//set_mcolor(0xf800); // red
 	//set_mcolor(0xf81f); // magenta
 	set_mcolor(0xffffff00);
-	set_mbcolor(0x0000000f); // 0x0だと透過モード
+	set_mbcolor(0x00000001); // 0x0だと透過モード
 	set_mlocateC(1, 1);
 	draw_str(swaku_str,1);
 	for (i = 2; i < 16; i++) {
@@ -1881,7 +1836,7 @@ void WinDraw_DrawMenufile(struct menu_flist *mfl)
 			set_mbcolor(0xffffff00);
 		} else {
 			set_mcolor(0xffffff00);
-			set_mbcolor(0x00000001);
+			set_mbcolor(0x0000000f);
 		}
 		// ディレクトリだったらファイル名を[]で囲う
 		set_mlocateC(3, i + 2);
@@ -1890,30 +1845,30 @@ void WinDraw_DrawMenufile(struct menu_flist *mfl)
 		if (mfl->type[i + mfl->ptr]) draw_str("]",1);
 	}
 
-	set_mbcolor(0x0); // 透過モードに戻しておく
+	set_mbcolor(0x00000000); // 透過モードに戻しておく
 
-#if defined(USE_OGLES11)
+#if defined(USE_OGLES20)
 	ogles11_draw_menu();
 #else
 
-	Update_Screen(1);// SDL1 Drawing Screen
+	Update_Screen(1); /* Draw Screen for Menu (SDL2) */
 
 #endif
 }
 
-void WinDraw_ClearMenuBuffer(void)
+void WinDraw_ClearMenuBuffer(uint32_t color)
 {
-#if defined(USE_OGLES11)
-	memset(menu_buffer, 0, 800*600*4);// 32bit depth
+#if defined(USE_OGLES20)
+	memset(menu_buffer, color, 800*600*4);// 32bit depth
 #else
-	SDL_FillRect(menu_surface, NULL, 0);
+	SDL_FillSurfaceRect(menu_surface, NULL, color);
 #endif
 
 }
 
 /********** ソフトウェアキーボード描画 **********/
 
-#if defined(USE_OGLES11)
+#if defined(USE_OGLES20)
 // display width 800, buffer width 1024 だけれど 800 にしないとだめ
 #define KBDBUF_WIDTH 800
 

@@ -29,10 +29,10 @@
 
 #include <sys/stat.h>
 #include "common.h"
-#ifndef SDL1
-#include "SDL2/SDL.h"
+#ifndef SDL2
+#include "SDL3/SDL.h"
 #else
-#include "SDL/SDL.h"
+#include "SDL2/SDL.h"
 #endif
 #include "winx68k.h"
 #include "keyboard.h"
