@@ -18,7 +18,7 @@ endif
 endif
 endif
 
-# for SDL1
+# for SDL2/3
 ifndef SDL3
 CDEBUGFLAGS = -DSDL2
 endif

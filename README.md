@@ -30,6 +30,7 @@
 * SDL2 (or test drive SDL3)(https://www.libsdl.org/)
 * `iplrom.dat` `cgrom.dat` and SCSI-IPL `scsiexrom.dat` into .keropi folder
 * `gamecontrollerdb.txt` into .keropi folder  (https://github.com/gabomdq/SDL_GameControllerDB)
+* cmake and pkg-config build system (if needed)(https://cmake.org)
 * Munt/MT-32 emu (if needed)(https://sourceforge.net/projects/munt/)
 * fluidsynth and SoundFont2 (if needed)(https://www.fluidsynth.org/)
 
