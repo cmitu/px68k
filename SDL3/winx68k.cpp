@@ -971,11 +971,13 @@ int32_t main(int32_t argc, char *argv[])
 				}
 				break;
 			case SDL_EVENT_MOUSE_WHEEL:
-				if(menu_mode != menu_out){//menu mode
-				if(ev.wheel.y > 0) menu_key_down = 0x40000052; // Up   Wheel
-				if(ev.wheel.y < 0) menu_key_down = 0x40000051; // Down Wheel
-				if(ev.wheel.x > 0) menu_key_down = 0x4000004f; // Right Wheel
-				if(ev.wheel.x < 0) menu_key_down = 0x40000050; // Left Wheel
+				if(ev.window.windowID == SDL_GetWindowID(sdl_window)){//Main window
+				 if(menu_mode != menu_out){//menu mode
+				  if(ev.wheel.y > 0) menu_key_down = 0x40000052; // Up   Wheel
+				  if(ev.wheel.y < 0) menu_key_down = 0x40000051; // Down Wheel
+				  if(ev.wheel.x > 0) menu_key_down = 0x4000004f; // Right Wheel
+				  if(ev.wheel.x < 0) menu_key_down = 0x40000050; // Left Wheel
+				 }
 				}
 				break;
 #if defined(ANDROID) || TARGET_OS_IPHONE
@@ -1233,6 +1235,7 @@ end_loop:
 	WinDraw_CleanupScreen();
 
 	SaveConfig();
+	SDL_Quit();
 
 #if defined(ANDROID) || TARGET_OS_IPHONE
 	exit(0);

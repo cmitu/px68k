@@ -231,7 +231,7 @@ void GameController_Init(void)
 	static const char gamepaddb_filename[] = "gamecontrollerdb.txt";
 	const char *gamepad_db;
 
-	SDL_Init(SDL_INIT_GAMEPAD);//初期化
+	SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_GAMEPAD);//初期化
 
 	//GamePad 定義File読み込み
 	gamepad_db = File_Getcd((char *)gamepaddb_filename);

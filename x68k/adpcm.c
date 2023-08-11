@@ -114,7 +114,7 @@ void FASTCALL ADPCM_PreUpdate(int32_t clock)
 // -----------------------------------------------------------------------
 //   DSoundが指定してくる分だけバッファにデータを書き出す
 // -----------------------------------------------------------------------
-void FASTCALL ADPCM_Update(int16_t *buffer, int32_t length, int32_t rate, uint8_t *pbsp, uint8_t *pbep)
+void FASTCALL ADPCM_Update(int16_t *buffer, int32_t length, int32_t rate, int16_t *pbsp, int16_t *pbep)
 {
 	int32_t outs;
 	int32_t outl, outr;
@@ -122,8 +122,8 @@ void FASTCALL ADPCM_Update(int16_t *buffer, int32_t length, int32_t rate, uint8_
 	if ( length<=0 ) return;
 
 	while ( length ) {
-		if (buffer >= (int16_t *)pbep) {
-			buffer = (int16_t *)pbsp;
+		if (buffer >= pbep) {
+			buffer = pbsp;
 		}
 		int32_t tmpl, tmpr;
 

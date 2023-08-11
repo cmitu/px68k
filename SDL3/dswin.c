@@ -33,15 +33,15 @@
 
 uint16_t	playing = FALSE;
 
-#define PCMBUF_SIZE 2*2*48000
-uint8_t pcmbuffer[PCMBUF_SIZE];
-uint8_t *pcmbufp = pcmbuffer;
-uint8_t *pbsp = pcmbuffer;
-uint8_t *pbrp = pcmbuffer, *pbwp = pcmbuffer;
-uint8_t *pbep = &pcmbuffer[PCMBUF_SIZE];
-uint32_t ratebase = 22050;
+#define PCMBUF_SIZE 48000*2
+int16_t pcmbuffer[PCMBUF_SIZE];
+int16_t *pcmbufp = pcmbuffer;
+int16_t *pbsp = pcmbuffer;
+int16_t *pbrp = pcmbuffer, *pbwp = pcmbuffer;
+int16_t *pbep = &pcmbuffer[PCMBUF_SIZE];
+uint32_t ratebase = 44100;
 int32_t DSound_PreCounter = 0;
-uint8_t sdlsndbuf[PCMBUF_SIZE];
+int16_t sdlsndbuf[PCMBUF_SIZE];
 
 int32_t audio_fd = -1;
 
@@ -58,10 +58,8 @@ static void sdlaudio_callback(void *userdata, uint8_t *stream, int32_t len);
 #endif
 
 //for SDL2/3
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 SDL_AudioDeviceID audio_dev;
 SDL_AudioFormat deviceFormat;
-#endif
 
 static uint8_t sound_silence = 0;
 
@@ -152,7 +150,6 @@ DSound_Cleanup(void)
 
 	if (audio_fd >= 0) {
 		SDL_CloseAudioDevice(audio_dev);//SDL2/3
-		SDL_Quit();
 		audio_fd = -1;
 	}
 	return TRUE;
@@ -171,7 +168,7 @@ static void sound_send(int32_t length)
 	//Mcry_Update((int16_t *)pcmbufp, length);
 #endif
 
-	pbwp += length * sizeof(uint16_t) * 2;
+	pbwp += length * 2;// 2ch
 	if (pbwp >= pbep) {
 		pbwp = pbsp + (pbwp - pbep);
 	}
@@ -215,7 +212,7 @@ static void
 sdlaudio_callback(void *userdata, uint8_t *stream, int32_t len)
 {
 	int32_t lena, lenb, datalen, rate;
-	uint8_t *buf;
+	int16_t *buf;
 
 	// 実行時間測定用(デバック)
 	//static uint32_t bef;
@@ -223,7 +220,7 @@ sdlaudio_callback(void *userdata, uint8_t *stream, int32_t len)
 	//p6logd("tdiff %4d : len %d ", now - bef, len);
 
 	/* clear stream buffer for SDL2.(and SDL1) */
-	SDL_memset(stream, sound_silence, len);
+	SDL_memset(stream, sound_silence, len);// len はByte数
 
 cb_start:
 	if (pbrp <= pbwp) {
@@ -237,14 +234,14 @@ cb_start:
 
 		datalen = pbwp - pbrp;
 		if(datalen == 0){return;}
-		if (datalen < len) {
+		if (datalen < (len / 2)) {
 			// needs more data
 			//DSound_Send((len - datalen) / 4);
 			sound_send((len - datalen) / 4);
 		}
 #if 0
 		datalen = pbwp - pbrp;
-		if (datalen < len) {
+		if (datalen < (len / 2)) {
 			printf("xxxxx not enough sound data xxxxx\n");
 		}
 #endif
@@ -254,7 +251,7 @@ cb_start:
 		}
 
 		buf = pbrp;
-		pbrp += len;
+		pbrp += (len / 2);
 		//printf("TYPEA: ");
 
 	} else {
@@ -268,30 +265,30 @@ cb_start:
 		// pbsp     pbwp          pbrp       pbep
 
 		lena = pbep - pbrp;
-		if (lena >= len) {
+		if (lena >= (len / 2)) {
 			buf = pbrp;
-			pbrp += len;
+			pbrp += (len / 2);
 			//printf("TYPEC: ");
 		} else {
-			lenb = len - lena;
+			lenb = (len / 2) - lena;
 			if ((pbwp - pbsp) < lenb) {
 				//DSound_Send((lenb - (pbwp - pbsp)) / 4);
-				sound_send((lenb - (pbwp - pbsp)) / 4);
+				sound_send((lenb - (pbwp - pbsp)) / 2);
 			}
 #if 0
 			if ((pbwp - pbsp) < lenb) {
 				printf("xxxxx not enough sound data xxxxx\n");
 			}
 #endif
-			if(lena != 0){ SDL_memcpy(sdlsndbuf, pbrp, lena); }
-			if(lenb != 0){ SDL_memcpy(&sdlsndbuf[lena], pbsp, lenb); }
+			if(lena != 0){ SDL_memcpy(sdlsndbuf, pbrp, lena * 2); }
+			if(lenb != 0){ SDL_memcpy(&sdlsndbuf[lena], pbsp, lenb * 2); }
 			buf = sdlsndbuf;
 			pbrp = pbsp + lenb;
 			//printf("TYPED: ");
 		}
 	}
 
-	SDL_MixAudioFormat(stream, buf, deviceFormat, len, SDL_MIX_MAXVOLUME);
+	SDL_MixAudioFormat(stream, (uint8_t *)buf, deviceFormat, len, SDL_MIX_MAXVOLUME);
 
 	//bef = now; //デバック用
 }
