@@ -149,7 +149,6 @@ set(SDL3_sources
   SDL3/status.c
   SDL3/mouse.c
   SDL3/juliet.c
-  SDL3/dswin.c
   SDL3/common.c
 
 )
@@ -159,12 +158,14 @@ if(SDL2)
   SDL3/SDL2/winx68k.cpp
   SDL3/SDL2/windraw.c
   SDL3/SDL2/GameController.c
+  SDL3/SDL2/dswin.c
   )
 else()
   list(APPEND SDL3_sources
   SDL3/winx68k.cpp
   SDL3/windraw.c
   SDL3/GamePad.c
+  SDL3/dswin.c
   )
 endif ()
 

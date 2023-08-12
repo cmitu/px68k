@@ -45,21 +45,28 @@ int16_t sdlsndbuf[PCMBUF_SIZE];
 
 int32_t audio_fd = -1;
 
+static void sdlaudio_callback(void *userdata, uint8_t *stream, int32_t len);
+
 #ifndef NOSOUND
 
-#include	"SDL3/SDL.h"
-#include	"SDL3/SDL_audio.h"
+#include	"SDL2/SDL.h"
+#include	"SDL2/SDL_audio.h"
 
-//for SDL3
+//for SDL2
 SDL_AudioDeviceID audio_dev;
-SDL_AudioSpec fmt; //要求format
-SDL_AudioStream *stream;
+SDL_AudioFormat deviceFormat;
 
-static void sdlaudio_callback(SDL_AudioStream *stream, int len, void *userdata);
+static uint8_t sound_silence = 0;
 
 int32_t
 DSound_Init(uint32_t rate, uint32_t buflen)
 {
+	SDL_AudioSpec fmt; //要求format
+	SDL_AudioSpec actfmt; // SDL返答format
+
+	// Linuxは2倍(SDL1.2)、Android(SDL2.0)は4倍のlenでcallbackされた。
+	// この値を小さくした方が音の遅延は少なくなるが負荷があがる
+	uint32_t samples = 2048;
 
 	if (playing) {
 		return FALSE;
@@ -70,27 +77,29 @@ DSound_Init(uint32_t rate, uint32_t buflen)
 		return TRUE;
 	}
 
-	if(rate != 0) ratebase = rate;
+	ratebase = rate;
 
 	memset(&fmt, 0, sizeof(fmt));
 
 	fmt.freq = rate;
 	fmt.channels = 2;
-	fmt.format = SDL_AUDIO_S16SYS;
-	audio_dev = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_OUTPUT, &fmt);
+	fmt.samples = samples;
+	fmt.callback = sdlaudio_callback;
+	fmt.userdata = NULL;
+	fmt.format = AUDIO_S16SYS;
+	audio_dev = SDL_OpenAudioDevice(NULL, 0, &fmt, &actfmt, 0);//SDL2側で合わせてね
 	if (audio_dev == 0) {
-	    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_OpenAudioDevice() failed: %s\n", SDL_GetError());
-	    return FALSE;
+	  p6logd("SDL Audio open device error.\n");
+	  return FALSE;
 	}
-
-	stream = SDL_CreateAndBindAudioStream(audio_dev, &fmt);
-	if (stream == NULL) {
-	    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_CreateAndBindAudioStream() failed: %s\n", SDL_GetError());
-	    SDL_CloseAudioDevice(audio_dev);
-	    return FALSE;
+	if(actfmt.size == 0){ //自動計算しない場合用(普通はありえない)
+	 p6logd("SDL Audio open size error.\n");
+	 return FALSE;
 	}
+	deviceFormat  = actfmt.format; //保存
+	sound_silence = actfmt.silence;
 
-	SDL_SetAudioStreamGetCallback(stream, sdlaudio_callback, NULL);
+	SDL_PauseAudioDevice(audio_dev, 0); //Start! SDL2
 
 	audio_fd = 1; //flag
 	playing = TRUE;
@@ -102,7 +111,7 @@ void
 DSound_Play(void)
 {
 	if (audio_fd >= 0){
-		//SDL_PlayAudioDevice(audio_dev);
+		SDL_PauseAudioDevice(audio_dev,0);
 	}
 }
 
@@ -110,7 +119,7 @@ void
 DSound_Stop(void)
 {
 	if (audio_fd >= 0){
-		//SDL_PauseAudioDevice(audio_dev);
+		SDL_PauseAudioDevice(audio_dev,1);
 	}
 }
 
@@ -121,7 +130,6 @@ DSound_Cleanup(void)
 
 	if (audio_fd >= 0) {
 		SDL_CloseAudioDevice(audio_dev);//SDL2/3
-		SDL_DestroyAudioStream(stream);//SDL3
 		audio_fd = -1;
 	}
 	return TRUE;
@@ -129,10 +137,12 @@ DSound_Cleanup(void)
 
 static void sound_send(int32_t length)
 {
-	//int32_t rate=0;
+	int32_t rate=0;
 
-	ADPCM_Update((int16_t *)pbwp, length, fmt.freq, pbsp, pbep);
-	OPM_Update((int16_t *)pbwp, length, fmt.freq, pbsp, pbep);
+	SDL_LockAudioDevice(audio_dev);
+
+	ADPCM_Update((int16_t *)pbwp, length, rate, pbsp, pbep);
+	OPM_Update((int16_t *)pbwp, length, rate, pbsp, pbep);
 
 #ifndef	NO_MERCURY
 	//Mcry_Update((int16_t *)pcmbufp, length);
@@ -142,6 +152,8 @@ static void sound_send(int32_t length)
 	if (pbwp >= pbep) {
 		pbwp = pbsp + (pbwp - pbep);
 	}
+
+	SDL_UnlockAudioDevice(audio_dev);
 
  return;
 }
@@ -177,7 +189,7 @@ static void FASTCALL DSound_Send(int32_t length)
 }
 
 static void
-sdlaudio_callback(SDL_AudioStream *stream, int len, void *userdata)
+sdlaudio_callback(void *userdata, uint8_t *stream, int32_t len)
 {
 	int32_t lena, lenb, datalen, rate;
 	int16_t *buf;
@@ -188,7 +200,7 @@ sdlaudio_callback(SDL_AudioStream *stream, int len, void *userdata)
 	//p6logd("tdiff %4d : len %d ", now - bef, len);
 
 	/* clear stream buffer for SDL2.(and SDL1) */
-	//SDL_memset(stream, sound_silence, len);// len はByte数
+	SDL_memset(stream, sound_silence, len);// len はByte数
 
 cb_start:
 	if (pbrp <= pbwp) {
@@ -205,7 +217,7 @@ cb_start:
 		if (datalen < (len / 2)) {
 			// needs more data
 			//DSound_Send((len - datalen) / 4);
-			sound_send((len - datalen) / 2);
+			sound_send((len - datalen) / 4);
 		}
 #if 0
 		datalen = pbwp - pbrp;
@@ -256,7 +268,7 @@ cb_start:
 		}
 	}
 
-	SDL_PutAudioStreamData(stream, buf, len);
+	SDL_MixAudioFormat(stream, (uint8_t *)buf, deviceFormat, len, SDL_MIX_MAXVOLUME);
 
 	//bef = now; //デバック用
 }

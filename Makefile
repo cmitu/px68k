@@ -197,13 +197,13 @@ X68KOBJS= x68k/adpcm.o x68k/bg.o x68k/crtc.o x68k/dmac.o x68k/fdc.o x68k/fdd.o x
 
 FMGENOBJS= fmgen/fmgen.o fmgen/fmg_wrap.o fmgen/file.o fmgen/fmtimer.o fmgen/opm.o fmgen/opna.o fmgen/psg.o
 
-SDL3OBJS= SDL3/juliet.o SDL3/mouse.o SDL3/status.o SDL3/timer.o SDL3/about.o SDL3/common.o SDL3/prop.o SDL3/winui.o SDL3/dswin.o SDL3/keyboard.o
+SDL3OBJS= SDL3/juliet.o SDL3/mouse.o SDL3/status.o SDL3/timer.o SDL3/about.o SDL3/common.o SDL3/prop.o SDL3/winui.o SDL3/keyboard.o
 
 ifdef SDL3
-SDLOBJS= SDL3/windraw.o SDL3/GamePad.o
+SDLOBJS= SDL3/windraw.o SDL3/GamePad.o SDL3/dswin.o
 SDLCXXOBJS= SDL3/winx68k.o
 else
-SDLOBJS= SDL3/SDL2/windraw.o SDL3/SDL2/GameController.o
+SDLOBJS= SDL3/SDL2/windraw.o SDL3/SDL2/GameController.o SDL3/SDL2/dswin.o
 SDLCXXOBJS= SDL3/SDL2/winx68k.o
 endif
 
