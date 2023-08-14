@@ -182,6 +182,8 @@ void FASTCALL OPM_Timer(uint32_t step)
 
 void OPM_SetVolume(uint8_t vol)
 {
+	if ( vol>16 ) vol=16;
+
 	int32_t v = (vol)?((16-vol)*4):192;		// このくらいかなぁ
 	if ( opm ) opm->SetVolume(-v);
 }

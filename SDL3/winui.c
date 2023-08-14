@@ -601,15 +601,6 @@ static void menu_joymode_setting(int32_t v)
 static void menu_hwjoy_setting(int32_t v)
 {
 	GameController_Change(v);
- return;
-#if SDL_VERSION_ATLEAST(3, 0, 0)
-		SDL_CloseGamepad(sdl_gamepad); // 旧GameController破棄
-		sdl_gamepad = SDL_OpenGamepad(v); // 新GameController 選択
-#else
-		SDL_GameControllerClose(sdl_gamepad); // 旧GameController破棄(SDL2)
-		sdl_gamepad = SDL_GameControllerOpen(v); // 新GameController 選択(SDL2)
-#endif
-
 }
 
 static void menu_nowait(int32_t v)
@@ -711,6 +702,38 @@ int32_t WinUI_Menu(int32_t first)
 	joy = get_joy_downstate();
 	reset_joy_downstate();
 
+	//HOMEボタンでMenuEnd
+	if (!(joy & JOY_HOME)) {
+			return WUM_MENU_END;
+	}
+
+	//OPM Volume setting
+	char *s = menu_item_key[mkey_y];
+	if ((menu_state == ms_key)&&(!strncmp("Sound", s, 5))) {
+	  if(joy & JOY_RIGHT){
+		if((Config.OPM_VOL>0)&&(Config.PCM_VOL>0)/*&&(Config.MCR_VOL>0)*/){
+		Config.OPM_VOL --;
+		OPM_SetVolume((uint8_t)Config.OPM_VOL);
+		Config.PCM_VOL --;
+		ADPCM_SetVolume((uint8_t)Config.PCM_VOL);
+		Config.MCR_VOL --;
+		Mcry_SetVolume((uint8_t)Config.MCR_VOL);
+		menu_redraw = 1;
+		}
+	  }
+	  if(joy & JOY_LEFT) {
+		if((Config.OPM_VOL<16)&&(Config.PCM_VOL<16)/*&&(Config.MCR_VOL<16)*/){
+		Config.OPM_VOL ++;
+		OPM_SetVolume((uint8_t)Config.OPM_VOL);
+		Config.PCM_VOL ++;
+		ADPCM_SetVolume((uint8_t)Config.PCM_VOL);
+		Config.MCR_VOL ++;
+		Mcry_SetVolume((uint8_t)Config.MCR_VOL);
+		menu_redraw = 1;
+		}
+	  }
+	}
+
 	/* JoyPad setting 
 	if (menu_state == ms_hwjoy_set && sdl_joy) {
 		int32_t y;
@@ -743,10 +766,6 @@ int32_t WinUI_Menu(int32_t first)
 			}
 		}
 	}*/
-
-	if (!(joy & JOY_HOME)) {
-			return WUM_MENU_END;//HOMEボタンでMenuEnd
-	}
 
 	if (!(joy & JOY_UP)) {
 		switch (menu_state) {

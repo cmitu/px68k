@@ -1770,6 +1770,18 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 			}
 		} else {
 			draw_str(menu_items[i + mkey_pos][mval_y[i + mkey_pos]],1);
+			char *s = menu_item_key[i + mkey_pos];
+			if (!strncmp("Sound", s, 5)) {// show Volume slider
+			  set_mlocateC(37, 5 + i);
+			  draw_str("Vol:",1);
+			  for(int j=1;j<16;j++){
+			   if(Config.OPM_VOL>j){
+			     draw_str("+",1);
+			   }else{
+			     draw_str("-",1);
+			   }
+			  }
+			}
 		}
 	}
 
