@@ -438,7 +438,7 @@ WinDraw_Message(uint32_t Err_Mess_No)
 	"There is No-Sound Mode."
   };
 
-  if(Err_Mess_No<=3){
+  if(Err_Mess_No<=4){
    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"WARNING!",err_message[Err_Mess_No],NULL);
   }
 

@@ -253,7 +253,7 @@ void LoadConfig(void)
 	Config.OPM_VOL = GetPrivateProfileInt((const char*)ini_title, "OPM_Volume", 12, winx68k_ini);
 	Config.PCM_VOL = GetPrivateProfileInt((const char*)ini_title, "PCM_Volume", 15, winx68k_ini);
 	Config.MCR_VOL = GetPrivateProfileInt((const char*)ini_title, "MCR_Volume", 13, winx68k_ini);
-	Config.SampleRate = GetPrivateProfileInt((const char*)ini_title, "SampleRate", 22050, winx68k_ini);
+	Config.SampleRate = GetPrivateProfileInt((const char*)ini_title, "SampleRate", 44100, winx68k_ini);
 	Config.BufferSize = GetPrivateProfileInt((const char*)ini_title, "BufferSize", 50, winx68k_ini);
 
 	Config.MouseSpeed = GetPrivateProfileInt((const char*)ini_title, "MouseSpeed", 10, winx68k_ini);

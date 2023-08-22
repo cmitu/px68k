@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-int32_t DSound_Init(uint32_t rate, uint32_t length);
+int32_t DSound_Init(uint32_t rate);
 int32_t DSound_Cleanup(void);
 
 void DSound_Play(void);

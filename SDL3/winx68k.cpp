@@ -817,7 +817,7 @@ int32_t main(int32_t argc, char *argv[])
 	MIDI_SetMimpiMap((char *)Config.ToneMapFile);	// 音色設定ファイル使用反映
 	MIDI_EnableMimpiDef(Config.ToneMap);
 
-	if (sdlaudio == 0 && !DSound_Init(Config.SampleRate, Config.BufferSize)) {
+	if (sdlaudio == 0 && !DSound_Init(Config.SampleRate)) {
 		if (Config.DSAlert)
 			fprintf(stderr, "Can't init sound.\n");
 	}

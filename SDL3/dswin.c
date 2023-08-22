@@ -52,13 +52,14 @@ int32_t audio_fd = -1;
 
 //for SDL3
 SDL_AudioDeviceID audio_dev;
-SDL_AudioSpec fmt; //要求format
+SDL_AudioSpec fmt_pc; //PC出力
+SDL_AudioSpec fmt_x68; //X68出力
 SDL_AudioStream *stream;
 
 static void sdlaudio_callback(SDL_AudioStream *stream, int len, void *userdata);
 
 int32_t
-DSound_Init(uint32_t rate, uint32_t buflen)
+DSound_Init(uint32_t rate)
 {
 
 	if (playing) {
@@ -70,20 +71,25 @@ DSound_Init(uint32_t rate, uint32_t buflen)
 		return TRUE;
 	}
 
-	if(rate != 0) ratebase = rate;
+	ratebase = rate;
 
-	memset(&fmt, 0, sizeof(fmt));
+	memset(&fmt_pc, 0, sizeof(fmt_pc));
 
-	fmt.freq = rate;
-	fmt.channels = 2;
-	fmt.format = SDL_AUDIO_S16SYS;
-	audio_dev = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_OUTPUT, &fmt);
+	fmt_pc.freq = rate;
+	fmt_pc.channels = 2;
+	fmt_pc.format = SDL_AUDIO_S16SYS;
+	audio_dev = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_OUTPUT, &fmt_pc);
 	if (audio_dev == 0) {
 	    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_OpenAudioDevice() failed: %s\n", SDL_GetError());
 	    return FALSE;
 	}
 
-	stream = SDL_CreateAndBindAudioStream(audio_dev, &fmt);
+	memset(&fmt_x68, 0, sizeof(fmt_x68));
+
+	fmt_x68.freq = rate;
+	fmt_x68.channels = 2;
+	fmt_x68.format = SDL_AUDIO_S16LSB;
+	stream = SDL_CreateAndBindAudioStream(audio_dev, &fmt_x68);
 	if (stream == NULL) {
 	    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_CreateAndBindAudioStream() failed: %s\n", SDL_GetError());
 	    SDL_CloseAudioDevice(audio_dev);
@@ -129,10 +135,9 @@ DSound_Cleanup(void)
 
 static void sound_send(int32_t length)
 {
-	//int32_t rate=0;
 
-	ADPCM_Update((int16_t *)pbwp, length, fmt.freq, pbsp, pbep);
-	OPM_Update((int16_t *)pbwp, length, fmt.freq, pbsp, pbep);
+	ADPCM_Update((int16_t *)pbwp, length, pbsp, pbep);
+	OPM_Update  ((int16_t *)pbwp, length, pbsp, pbep);
 
 #ifndef	NO_MERCURY
 	//Mcry_Update((int16_t *)pcmbufp, length);
@@ -202,14 +207,14 @@ cb_start:
 
 		datalen = pbwp - pbrp;
 		if(datalen == 0){return;}
-		if (datalen < (len / 2)) {
+		if (datalen < (len / 2)) {// 2ch
 			// needs more data
 			//DSound_Send((len - datalen) / 4);
-			sound_send((len - datalen) / 2);
+			sound_send((len - datalen) / 2);// 2ch
 		}
 #if 0
 		datalen = pbwp - pbrp;
-		if (datalen < (len / 2)) {
+		if (datalen < (len / 2)) {// 2ch
 			printf("xxxxx not enough sound data xxxxx\n");
 		}
 #endif
@@ -219,7 +224,7 @@ cb_start:
 		}
 
 		buf = pbrp;
-		pbrp += (len / 2);
+		pbrp += (len / 2);// 2ch
 		//printf("TYPEA: ");
 
 	} else {
@@ -233,15 +238,15 @@ cb_start:
 		// pbsp     pbwp          pbrp       pbep
 
 		lena = pbep - pbrp;
-		if (lena >= (len / 2)) {
+		if (lena >= (len / 2)) {// 2ch
 			buf = pbrp;
-			pbrp += (len / 2);
+			pbrp += (len / 2);// 2ch
 			//printf("TYPEC: ");
 		} else {
-			lenb = (len / 2) - lena;
+			lenb = (len / 2) - lena;// 2ch
 			if ((pbwp - pbsp) < lenb) {
 				//DSound_Send((lenb - (pbwp - pbsp)) / 4);
-				sound_send((lenb - (pbwp - pbsp)) / 2);
+				sound_send((lenb - (pbwp - pbsp)) / 2);// 2ch
 			}
 #if 0
 			if ((pbwp - pbsp) < lenb) {

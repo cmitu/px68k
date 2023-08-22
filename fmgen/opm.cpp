@@ -457,15 +457,13 @@ inline void OPM::MixSubL(int32_t activech, ISample** idest)
 // ---------------------------------------------------------------------------
 //	合成 (stereo)
 //
-void OPM::Mix(Sample* buffer, int32_t nsamples, int32_t rate, int16_t* pbsp, int16_t* pbep)
+void OPM::Mix(Sample* buffer, int32_t nsamples, int16_t* pbsp, int16_t* pbep)
 {
 #define IStoSample(s)	((Limit(s, 0xffff, -0x10000) * fmvolume) >> 14)
 //#define IStoSample(s)	((s * fmvolume) >> 14)
 
 #define CHECK_BUF_END() if ((int16_t *)dest >= pbep) {dest = (Sample *)pbsp;}
 
-	Sample* dest;
-	Sample dval0, dval1;
 	int32_t i;
 	
 	// odd bits - active, even bits - lfo
@@ -491,7 +489,8 @@ void OPM::Mix(Sample* buffer, int32_t nsamples, int32_t rate, int16_t* pbsp, int
 		idest[6] = &ibuf[pan[6]];
 		idest[7] = &ibuf[pan[7]];
 		
-		for (i = 0, dest = buffer; i < nsamples; i++) {
+		Sample* dest = buffer;
+		for (i = 0; i < nsamples; i++) {
 			CHECK_BUF_END();
 			ibuf[1] = ibuf[2] = ibuf[3] = 0;
 			if (activech & 0xaaaa)
@@ -501,29 +500,8 @@ void OPM::Mix(Sample* buffer, int32_t nsamples, int32_t rate, int16_t* pbsp, int
 
 			StoreSample(dest[0], IStoSample(ibuf[1] + ibuf[3]));
 			StoreSample(dest[1], IStoSample(ibuf[2] + ibuf[3]));
-			// PSP以外はrateは0
-			dval0 = dest[0];
-			dval1 = dest[1];
-			switch (rate) {
-			case 11025:
-				dest += 2;
-				CHECK_BUF_END();
-				dest[0] = dval0;
-				dest[1] = dval1;
-				dest += 2;
-				CHECK_BUF_END();
-				dest[0] = dval0;
-				dest[1] = dval1;
-				// no break...
-			case 22050:
-				dest += 2;
-				CHECK_BUF_END();
-				dest[0] = dval0;
-				dest[1] = dval1;
-			case 44100:
-			case 0:
-				dest += 2;
-			}
+
+			dest += 2;
 		}
 	}
 #undef IStoSample
