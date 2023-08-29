@@ -56,7 +56,7 @@ SDL_AudioSpec fmt_pc; //PC出力
 SDL_AudioSpec fmt_x68; //X68出力
 SDL_AudioStream *stream;
 
-static void sdlaudio_callback(SDL_AudioStream *stream, int len, void *userdata);
+static void sdlaudio_callback(void *userdata, SDL_AudioStream *stream, int len );
 
 int32_t
 DSound_Init(uint32_t rate)
@@ -89,12 +89,13 @@ DSound_Init(uint32_t rate)
 	fmt_x68.freq = rate;
 	fmt_x68.channels = 2;
 	fmt_x68.format = SDL_AUDIO_S16LSB;
-	stream = SDL_CreateAndBindAudioStream(audio_dev, &fmt_x68);
+	stream = SDL_CreateAudioStream(&fmt_x68, &fmt_pc);
 	if (stream == NULL) {
-	    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_CreateAndBindAudioStream() failed: %s\n", SDL_GetError());
+	    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_CreateAudioStream() failed: %s\n", SDL_GetError());
 	    SDL_CloseAudioDevice(audio_dev);
 	    return FALSE;
 	}
+	SDL_BindAudioStream(audio_dev,stream);
 
 	SDL_SetAudioStreamGetCallback(stream, sdlaudio_callback, NULL);
 
@@ -182,7 +183,7 @@ static void FASTCALL DSound_Send(int32_t length)
 }
 
 static void
-sdlaudio_callback(SDL_AudioStream *stream, int len, void *userdata)
+sdlaudio_callback(void *userdata, SDL_AudioStream *stream, int len )
 {
 	int32_t lena, lenb, datalen, rate;
 	int16_t *buf;
@@ -262,6 +263,7 @@ cb_start:
 	}
 
 	SDL_PutAudioStreamData(stream, buf, len);
+	SDL_FlushAudioStream(stream);//必要？
 
 	//bef = now; //デバック用
 }
