@@ -28,9 +28,9 @@ void FASTCALL SysPort_Write(uint32_t adr, uint8_t data)
 	switch(adr & 0xe8e00f)
 	{
 	case 0xe8e001:
-		if (SysPort[1]!=(data&15))
+		if (SysPort[1]!=(data & 0x0f))
 		{
-			SysPort[1] = data & 15;
+			SysPort[1] = data & 0x0f;
 			//Pal_ChangeContrast(SysPort[1]);  即設定ではなく追従させる。
 		}
 		break;
@@ -47,7 +47,7 @@ void FASTCALL SysPort_Write(uint32_t adr, uint8_t data)
 		SysPort[5] = data;
 		break;
 	case 0xe8e00f:
-		SysPort[6] = data & 15;
+		SysPort[6] = data & 0x0f;
 		break;
 	}
 }
@@ -58,21 +58,25 @@ void FASTCALL SysPort_Write(uint32_t adr, uint8_t data)
 // -----------------------------------------------------------------------
 uint8_t FASTCALL SysPort_Read(uint32_t adr)
 {
-	uint8_t ret=0xff;
+	uint8_t ret=0xff;// 初期値
 
 	switch(adr & 0xe8e00f)
 	{
 	case 0xe8e001:
-		ret = SysPort[1];
+		ret &= 0xf0;
+		ret |= SysPort[1];
 		break;
 	case 0xe8e003:
-		ret = SysPort[2];
+		ret &= 0xf4;
+		ret |= SysPort[2];
 		break;
 	case 0xe8e005:
-		ret = SysPort[3];
+		ret &= 0xe0;
+		ret |= SysPort[3];
 		break;
 	case 0xe8e007:
-		ret = SysPort[4];
+		ret &= 0xf1;
+		ret |= SysPort[4];
 		break;
 	case 0xe8e00b:		// 10MHz:0xff、16MHz:0xfe、030(25MHz):0xdcをそれぞれ返すらしい
 		switch(Config.XVIMode)
@@ -93,7 +97,8 @@ uint8_t FASTCALL SysPort_Read(uint32_t adr)
 		ret = SysPort[5];
 		break;
 	case 0xe8e00f:
-		ret = SysPort[6];
+		ret &= 0xf0;
+		ret |= SysPort[6];
 		break;
 	}
 

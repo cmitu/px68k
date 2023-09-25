@@ -1,11 +1,6 @@
 // ---------------------------------------------------------------------------------------
 //  MFP.C - MFP (Multi-Function Periferal)
 // ---------------------------------------------------------------------------------------
-#ifndef SDL2
-#include	"SDL3/SDL.h"
-#else
-#include	"SDL2/SDL.h"
-#endif
 
 #include "mfp.h"
 #include "irqh.h"
@@ -15,7 +10,6 @@
 #include "winx68k.h"
 #include "keyboard.h"
 
-extern SDL_Window *sft_kbd_window;// softkeyboard
 extern uint8_t traceflag;
 uint8_t testflag=0;
 uint8_t LastKey = 0;
@@ -261,7 +255,7 @@ void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 			break;
 		case MFP_UDR://Send to keyboard
 			if(data & 0x80){
-			  if((sft_kbd_window != NULL) && (keyLED != data)){
+			  if(keyLED != data){
 			    draw_soft_kbd(0,0,data);
 			  }
 			  keyLED = data;
