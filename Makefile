@@ -229,7 +229,7 @@ SRCS=		$(CSRCS) $(CXXSRCS)
 .cpp.o:
 	$(CXX) -o $@ $(CXXFLAGS) -c $*.cpp
 
-px68kicon = ./macOS/Contents
+px68kicon = ./macOS
 
 all:: $(PROGRAM)
 
@@ -250,30 +250,28 @@ tags::
 	find . -name "*.h" -o -name "*.c" -o -name "*.cpp" | $(TAGS) -
 
 icon::
-	-rm -rf "$(px68kicon)/"
-	mkdir "$(px68kicon)/"
-	mkdir "$(px68kicon)/Resources/"
-	mkdir "$(px68kicon)/Resources/ja.lproj/"
-	mkdir "$(px68kicon)/Resources/px68k.iconset/"
-	-sips -s format png -z 16 16 ./macOS/x68k.png -s dpiHeight 72.0 -s dpiWidth 72.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_16.png"
-	-sips -s format png -z 32 32 ./macOS/x68k.png -s dpiHeight 144.0 -s dpiWidth 144.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_16@2x.png"
-	-sips -s format png -z 32 32 ./macOS/x68k.png -s dpiHeight 72.0 -s dpiWidth 72.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_32.png"
-	-sips -s format png -z 64 64 ./macOS/x68k.png -s dpiHeight 144.0 -s dpiWidth 144.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_32@2x.png"
-	-sips -s format png -z 128 128 ./macOS/x68k.png -s dpiHeight 72.0 -s dpiWidth 72.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_128.png"
-	-sips -s format png -z 256 256 ./macOS/x68k.png -s dpiHeight 144.0 -s dpiWidth 144.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_128@2x.png"
-	-sips -s format png -z 256 256 ./macOS/x68k.png -s dpiHeight 72.0 -s dpiWidth 72.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_256.png"
-	-sips -s format png -z 512 512 ./macOS/x68k.png -s dpiHeight 144.0 -s dpiWidth 144.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_256@2x.png"
-	-sips -s format png -z 512 512 ./macOS/x68k.png -s dpiHeight 72.0 -s dpiWidth 72.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_512.png"
-	-sips -s format png -z 1024 1024 ./macOS/x68k.png -s dpiHeight 144.0 -s dpiWidth 144.0 --out "$(px68kicon)/Resources/px68k.iconset/icon_512@2x.png"
-	-iconutil -c icns "$(px68kicon)/Resources/px68k.iconset"
-	-rm -rf "$(px68kicon)/Resources/px68k.iconset"
+	mkdir "$(px68kicon)/px68k.iconset/"
+	-sips -s format png -z 16 16 ./macOS/x68k.png -s dpiHeight 72.0 -s dpiWidth 72.0 --out "$(px68kicon)/px68k.iconset/icon_16.png"
+	-sips -s format png -z 32 32 ./macOS/x68k.png -s dpiHeight 144.0 -s dpiWidth 144.0 --out "$(px68kicon)/px68k.iconset/icon_16@2x.png"
+	-sips -s format png -z 32 32 ./macOS/x68k.png -s dpiHeight 72.0 -s dpiWidth 72.0 --out "$(px68kicon)/px68k.iconset/icon_32.png"
+	-sips -s format png -z 64 64 ./macOS/x68k.png -s dpiHeight 144.0 -s dpiWidth 144.0 --out "$(px68kicon)/px68k.iconset/icon_32@2x.png"
+	-sips -s format png -z 128 128 ./macOS/x68k.png -s dpiHeight 72.0 -s dpiWidth 72.0 --out "$(px68kicon)/px68k.iconset/icon_128.png"
+	-sips -s format png -z 256 256 ./macOS/x68k.png -s dpiHeight 144.0 -s dpiWidth 144.0 --out "$(px68kicon)/px68k.iconset/icon_128@2x.png"
+	-sips -s format png -z 256 256 ./macOS/x68k.png -s dpiHeight 72.0 -s dpiWidth 72.0 --out "$(px68kicon)/px68k.iconset/icon_256.png"
+	-sips -s format png -z 512 512 ./macOS/x68k.png -s dpiHeight 144.0 -s dpiWidth 144.0 --out "$(px68kicon)/px68k.iconset/icon_256@2x.png"
+	-sips -s format png -z 512 512 ./macOS/x68k.png -s dpiHeight 72.0 -s dpiWidth 72.0 --out "$(px68kicon)/px68k.iconset/icon_512.png"
+	-sips -s format png -z 1024 1024 ./macOS/x68k.png -s dpiHeight 144.0 -s dpiWidth 144.0 --out "$(px68kicon)/px68k.iconset/icon_512@2x.png"
+	-iconutil -c icns "$(px68kicon)/px68k.iconset"
+	-rm -rf "$(px68kicon)/px68k.iconset"
 
 mac:: $(PROGRAM) icon
 	-rm -rf "$(PROGRAM).app/"
 	mkdir "$(PROGRAM).app/"
 	mkdir "$(PROGRAM).app/Contents/"
 	mkdir "$(PROGRAM).app/Contents/MacOS"
-	cp -r "macOS/Contents/" "$(PROGRAM).app/Contents"
+	mkdir "$(PROGRAM).app/Contents/Resources"
+	mkdir "$(PROGRAM).app/Contents/Resources/ja.lproj"
+	cp -r "macOS/px68k.icns" "$(PROGRAM).app/Contents/Resources/px68k.icns"
 	cp -r "macOS/Info.plist" "$(PROGRAM).app/Contents/Info.plist"
 	cp $(PROGRAM) "$(PROGRAM).app/Contents/MacOS/px68k"
 
