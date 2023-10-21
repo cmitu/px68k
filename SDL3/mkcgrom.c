@@ -128,8 +128,11 @@ getfont(uint8_t *addr, uint32_t size_x, uint32_t size_y,int32_t fullw) {
 	   else{
 	    strcat(prt,"●");
 	    if((size_x == 8)&&(size_y == 12)){Font_dotset(addr,size_x,size_y,ch*16+ch1,x*6/surface->w,y*size_y/surface->h);}//6x12
-	    if((size_x == 8)&&(size_y == 16)){Font_dotset(addr,size_x,size_y,ch*16+ch1,x*size_x/surface->w,y*size_y/surface->h);}//8x16
-	    if((size_x ==16)&&(size_y == 16)){//16x16
+	    if((size_x == 8)&&(size_y == 16)){//8x16
+		   if(surface->w<size_x){ Font_dotset(addr,size_x,size_y,ch*16+ch1,x+(size_x-surface->w)/2,y*size_y/surface->h); }
+		   else{ Font_dotset(addr,size_x,size_y,ch*16+ch1,x*size_x/surface->w,y*size_y/surface->h); }
+		}
+		if((size_x ==16)&&(size_y == 16)){//16x16
 		   if(surface->w<size_x){ Font_dotset(addr,size_x,size_y,ch*16+ch1,x+(size_x-surface->w)/2,y); }
 		   else{ Font_dotset(addr,size_x,size_y,ch*16+ch1,x*8/surface->w,y); }
 	    }
@@ -149,6 +152,14 @@ getfont(uint8_t *addr, uint32_t size_x, uint32_t size_y,int32_t fullw) {
   }
 
 return TRUE;
+}
+
+/*---- 1byte領域8x8転送 ----*/
+int32_t
+getfont8(uint8_t *addr, uint32_t size_x, uint32_t size_y,int32_t fullw)
+{
+ memcpy(addr, x68_chr8, 8*0xff);
+ return TRUE;
 }
 
 /*---- JIS非漢字/第１水準/第２水準 描画 ----*/
@@ -317,7 +328,11 @@ make_cgromdat(uint8_t *buf, char *FONT1, char *FONT2, uint32_t x68030)
 	memset(buf+0x3a800+(0x82*16)+7, 0, 2);//「｜」の真ん中に切れ目を入れる
 
 	// 8x8 (8x16からスケーリング)
-	cpy2fnt8(buf + 0x3a800, buf + 0x3a000,8,8);
+	//cpy2fnt8(buf + 0x3a800, buf + 0x3a000,8,8);  //(8x16からスケーリング)
+	getfont8(buf + 0x3a000,8,8,0); // (internal FONT)
+
+	// 8x16を8x8から生成
+	//cpy2fnt16(buf + 0x3a000, buf + 0x3a800,8,16); //8x8->8x16にスケーリングで生成
 
 	// 16(12)x12
 	size_x = 16;

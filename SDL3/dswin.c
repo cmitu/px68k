@@ -56,7 +56,7 @@ SDL_AudioSpec fmt_pc; //PC出力
 SDL_AudioSpec fmt_x68; //X68出力
 SDL_AudioStream *stream;
 
-static void sdlaudio_callback(void *userdata, SDL_AudioStream *stream, int len );
+static void sdlaudio_callback(void *userdata, SDL_AudioStream *stream, int len , int total);
 
 int32_t
 DSound_Init(uint32_t rate)
@@ -183,7 +183,7 @@ static void FASTCALL DSound_Send(int32_t length)
 }
 
 static void
-sdlaudio_callback(void *userdata, SDL_AudioStream *stream, int len )
+sdlaudio_callback(void *userdata, SDL_AudioStream *stream, int len , int total)
 {
 	int32_t lena, lenb, datalen, rate;
 	int16_t *buf;
