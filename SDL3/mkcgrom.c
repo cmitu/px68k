@@ -38,24 +38,21 @@ by kameya 2022/11/02
 #include "dosio.h"
 #include "mkcgrom.h"
 
+#define FONT_PATH16 "./KH-Dot-Kagurazaka-16.ttf"//16x16 第一候補
+#define FONT_PATH24 "./KH-Dot-Hibiya-24.ttf"//24x24 第２候補
+#define FONT_PATHB  "./msmincho.ttc"// 第３候補
+
 #ifdef __MACH__
-#define FONT_PATH16 "./KH-Dot-Kagurazaka-16.ttf"//16x16
-#define FONT_PATH24 "./KH-Dot-Hibiya-24.ttf"//24x24
 #define FONT_PATH   "/System/Library/Fonts/ヒラギノ角ゴシック W0.ttc"//default
 #endif
 
 #ifdef __linux__
-#define FONT_PATH16 "~/.fonts/KH-Dot-Kagurazaka-16.ttf"//16x16
-#define FONT_PATH24 "~/.fonts/KH-Dot-Hibiya-24.ttf"//24x24
 #define FONT_PATH   "/usr/share/fonts/truetype/fonts-japanese-mincho.ttf"//default
 #endif
 
 #ifdef _WIN32
-#define FONT_PATH16 "c://Windows/Fonts/msgothic.ttc"//16x16
-#define FONT_PATH24 "c://Windows/Fonts/msmincho.ttc"//24x24
 #define FONT_PATH   "c://Windows/Fonts/msmincho.ttc"//default
 #endif
-
 
   // SDL2 TrueType drawing
   SDL_Surface *surface;
@@ -152,14 +149,6 @@ getfont(uint8_t *addr, uint32_t size_x, uint32_t size_y,int32_t fullw) {
   }
 
 return TRUE;
-}
-
-/*---- 1byte領域8x8転送 ----*/
-int32_t
-getfont8(uint8_t *addr, uint32_t size_x, uint32_t size_y,int32_t fullw)
-{
- memcpy(addr, x68_chr8, 8*0xff);
- return TRUE;
 }
 
 /*---- JIS非漢字/第１水準/第２水準 描画 ----*/
@@ -272,25 +261,39 @@ static void cpy2fnt24(uint8_t *src, uint8_t *dst, uint32_t size_x, uint32_t size
 int32_t
 set_font(char *TTfont, uint32_t size)
 {
-  font = TTF_OpenFont(TTfont, size);
-  if (!font){
+  int32_t flg = TRUE;
 
+  font = TTF_OpenFont(TTfont, size);
+  if (font){
+   return TRUE;//指定font OK
+  }
+  else{
   switch(size){//デフォルト定義でやってみそ
    case 12:
     font = TTF_OpenFont(FONT_PATH16, size);
+    flg = 2;
     break;
    case 16:
     font = TTF_OpenFont(FONT_PATH16, size);
+    flg = 2;
     break;
    case 24:
     font = TTF_OpenFont(FONT_PATH24, size);
+    flg = 2;
     break;
    default:
-   font = TTF_OpenFont(FONT_PATH, size);
+   font = TTF_OpenFont(FONT_PATH16, size);
+   flg = 2;
+  }
+
+  if (!font){
+    font = TTF_OpenFont(FONT_PATHB, size);
+    flg = 2;// 第３候補
   }
 
   if (!font){
     font = TTF_OpenFont(FONT_PATH, size);
+    flg = 3;// System FONT
   }
 
   }
@@ -299,7 +302,7 @@ set_font(char *TTfont, uint32_t size)
 	printf("TrueTypeフォント%s(%dポイント)を開けませんでした。\n",TTfont,size);
 	return FALSE;
   }
-  return TRUE;
+  return flg;
 }
 
 /*==== 全フォント生成 ====*/
@@ -320,16 +323,23 @@ make_cgromdat(uint8_t *buf, char *FONT1, char *FONT2, uint32_t x68030)
 	// 8x16
 	size_x = 8;
 	size_y = 16;
-	if (set_font(FONT1, 16) == 0){ return FALSE; }
+	i = set_font(FONT1, 16);
+	if (i == FALSE){ return FALSE; }
 	getfont(buf + 0x3a800,size_x,size_y,1);//全フォントを16x16->8/16にスケーリングで生成
 	memset(buf+0x3a800+(0x20*16), 0, (94*16));
 	getfont(buf + 0x3a800,size_x,size_y,0); //部分的に8/16で置き換え
 	TTF_CloseFont(font);
 	memset(buf+0x3a800+(0x82*16)+7, 0, 2);//「｜」の真ん中に切れ目を入れる
 
+	if(i == 3){// System Font
+	 memcpy(buf + 0x3a800 + 32*16, x68_chr816, 16*32);// (internal 8x16 FONT ! 0~9)
+	 memcpy(buf + 0x3a800 + 64*16, x68_chr816A, 16*32);// (internal 8x16 FONT @ A~Z)
+	 memcpy(buf + 0x3a800 + 97*16, x68_chr816a, 16*34);// (internal 8x16 FONT a~z{|}- )
+	}
+
 	// 8x8 (8x16からスケーリング)
 	//cpy2fnt8(buf + 0x3a800, buf + 0x3a000,8,8);  //(8x16からスケーリング)
-	getfont8(buf + 0x3a000,8,8,0); // (internal FONT)
+	 memcpy(buf + 0x3a000, x68_chr8, 8*0xff); // (internal 8x8 FONT)
 
 	// 8x16を8x8から生成
 	//cpy2fnt16(buf + 0x3a000, buf + 0x3a800,8,16); //8x8->8x16にスケーリングで生成
