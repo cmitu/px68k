@@ -449,21 +449,21 @@ void FASTCALL GameControllerButton_Update(int32_t which, uint8_t button, uint8_t
 	case SDL_GAMEPAD_BUTTON_DPAD_UP ... SDL_GAMEPAD_BUTTON_DPAD_RIGHT://+ Up/Down/R/L
 	  ret0 = 0x01 << (button- SDL_GAMEPAD_BUTTON_DPAD_UP);
 	  break;
-	case SDL_GAMEPAD_BUTTON_A:
+	case SDL_GAMEPAD_BUTTON_SOUTH:
 	  ret0 = JOY_TRGA;
 	  CyberST0  = 0x08;//A
 	  CyberST10 = 0x08;
 	  break;
-	case SDL_GAMEPAD_BUTTON_B:
+	case SDL_GAMEPAD_BUTTON_EAST:
 	  ret0 = JOY_TRGB;
 	  CyberST0  = 0x04;//B
 	  CyberST10 = 0x04;
 	  break;
-	case SDL_GAMEPAD_BUTTON_X:
+	case SDL_GAMEPAD_BUTTON_WEST:
 	  ret1 = JOY_TRGC;
 	  CyberST0 = 0x02;//C
 	  break;
-	case SDL_GAMEPAD_BUTTON_Y:
+	case SDL_GAMEPAD_BUTTON_NORTH:
 	  ret1 = JOY_TRGD;
 	  CyberST0 = 0x01;//D
 	  break;

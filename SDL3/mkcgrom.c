@@ -40,7 +40,9 @@ by kameya 2022/11/02
 
 #define FONT_PATH16 "./KH-Dot-Kagurazaka-16.ttf"//16x16 第一候補
 #define FONT_PATH24 "./KH-Dot-Hibiya-24.ttf"//24x24 第２候補
-#define FONT_PATHB  "./msmincho.ttc"// 第３候補
+#define FONT_PATH12  "./msmincho.ttc"// 12x12第３候補
+
+#define FONT_PATHB  "./msmincho.ttc"// おススめ
 
 #ifdef __MACH__
 #define FONT_PATH   "/System/Library/Fonts/ヒラギノ角ゴシック W0.ttc"//default
@@ -270,20 +272,19 @@ set_font(char *TTfont, uint32_t size)
   else{
   switch(size){//デフォルト定義でやってみそ
    case 12:
-    font = TTF_OpenFont(FONT_PATH16, size);
+    font = TTF_OpenFont(FONT_PATH12, size);//12x12はmsmincho推し
     flg = 2;
     break;
    case 16:
-    font = TTF_OpenFont(FONT_PATH16, size);
+    font = TTF_OpenFont(FONT_PATH16, size);//16x16はKH推し
     flg = 2;
     break;
    case 24:
-    font = TTF_OpenFont(FONT_PATH24, size);
+    font = TTF_OpenFont(FONT_PATH24, size);//24x24はKH推し
     flg = 2;
     break;
    default:
-   font = TTF_OpenFont(FONT_PATH16, size);
-   flg = 2;
+    break;
   }
 
   if (!font){
