@@ -717,9 +717,20 @@ int32_t main(int32_t argc, char *argv[])
 	strcat(window_title," SDL3");
 	uint32_t flags = 0;
 	if (Config.WinStrech == 1){flags |= SDL_WINDOW_RESIZABLE;} /*Windowサイズ変更可能？*/
-	sdl_window = SDL_CreateWindowWithPosition(window_title, winx, winy,FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT, flags);
+
+	SDL_PropertiesID props = SDL_CreateProperties();
+	SDL_SetStringProperty(props, "title", window_title);
+	SDL_SetNumberProperty(props, "x", winx);
+	SDL_SetNumberProperty(props, "w", winy);
+	SDL_SetNumberProperty(props, "width", FULLSCREEN_WIDTH);
+	SDL_SetNumberProperty(props, "height", FULLSCREEN_HEIGHT);
+	SDL_SetNumberProperty(props, "flags", flags);
+	sdl_window = SDL_CreateWindowWithProperties(props);
+	SDL_DestroyProperties(props);
+
 	sdl_render = SDL_CreateRenderer( sdl_window ,NULL, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-	SDL_SetRenderLogicalPresentation( sdl_render ,FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT,SDL_LOGICAL_PRESENTATION_LETTERBOX,SDL_SCALEMODE_LINEAR);
+	SDL_SetRenderLogicalPresentation( sdl_render ,FULLSCREEN_WIDTH,
+								FULLSCREEN_HEIGHT,SDL_LOGICAL_PRESENTATION_LETTERBOX,SDL_SCALEMODE_LINEAR);
 	SDL_SetRenderDrawColor(sdl_render, 64, 64, 64, 0);	/* select color (black) */
 	SDL_RenderClear(sdl_render);
 #endif

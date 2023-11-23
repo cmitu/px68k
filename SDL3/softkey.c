@@ -21,8 +21,16 @@ static uint32_t sleep_counter;
 /*非表示で初期化*/
 void Soft_kbd_CreateScreen(void)
 {
-	sft_kbd_window  = SDL_CreateWindowWithPosition("X68000 keyboard", winx+16, winy+380,
-					softkey_width, softkey_hight, SDL_WINDOW_HIDDEN);
+	SDL_PropertiesID props = SDL_CreateProperties();
+	SDL_SetStringProperty(props, "title", "X68000 keyboard");
+	SDL_SetNumberProperty(props, "x", winx+16);
+	SDL_SetNumberProperty(props, "w", winy+380);
+	SDL_SetNumberProperty(props, "width", softkey_width);
+	SDL_SetNumberProperty(props, "height", softkey_hight);
+	SDL_SetNumberProperty(props, "flags", SDL_WINDOW_HIDDEN);//非表示
+	sft_kbd_window  = SDL_CreateWindowWithProperties(props);
+	SDL_DestroyProperties(props);
+
 	if (sft_kbd_window == NULL) {
 		p6logd("Can't create Soft_Keyboard Window: %s\n", SDL_GetError());
 		return;
