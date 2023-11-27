@@ -102,7 +102,7 @@ mid_outDevList(LPHMIDIOUT phmo)
 	 for(uint32_t i = 0; i<core_mid_num; i++){
 		mid_endpoint = MIDIGetDestination(i);
 		if((mid_endpoint) && (i<8)){// MAX item check(８個までLISTに制限)
-			MIDIObjectGetStringProperty(mid_endpoint, kMIDIPropertyDisplayName, &strRef);
+			MIDIObjectGetStringProperty(mid_endpoint, kMIDIPropertyName, &strRef);
 			//kCFStringEncodingUTF8：UTF8でポートの名前(string)を取り出す
 			CFStringGetCString(strRef, menu_items[8][Device_num], sizeof(menu_items[8][Device_num]), kCFStringEncodingUTF8);
 			p6logd("Find MIDI out:%s\n",menu_items[8][Device_num]);
@@ -159,7 +159,7 @@ mid_inDevList(LPHMIDIOUT phmo)
 	 for(uint32_t i = 0; i<core_mid_num; i++){
 	  mid_source = MIDIGetSource(i);
 	  if((mid_source) && (i<8)){// MAX item check(８個までLISTに制限)
-	   MIDIObjectGetStringProperty(mid_source, kMIDIPropertyDisplayName, &strRef);
+	   MIDIObjectGetStringProperty(mid_source, kMIDIPropertyName, &strRef);
 	   //kCFStringEncodingUTF8：UTF8でポートの名前(string)を取り出す
 	   CFStringGetCString(strRef, menu_items[9][Device_num], sizeof(menu_items[9][Device_num]),kCFStringEncodingUTF8);
 	   p6logd("Find MIDI in :%s\n",menu_items[9][Device_num]);
