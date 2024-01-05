@@ -181,7 +181,7 @@ endif
 endif
 endif
 
-EXTRA_INCLUDES= -I./SDL3 -I./x68k -I./fmgen -I./win32api $(SDL_INCLUDE) $(FLUID_INCLUDE) $(SDL_TTF_INC)
+EXTRA_INCLUDES= -I./SDL -I./x68k -I./fmgen -I./win32api $(SDL_INCLUDE) $(FLUID_INCLUDE) $(SDL_TTF_INC)
 
 CXXDEBUGFLAGS= $(CDEBUGFLAGS)
 
@@ -197,21 +197,23 @@ X68KOBJS= x68k/adpcm.o x68k/bg.o x68k/crtc.o x68k/dmac.o x68k/fdc.o x68k/fdd.o x
 
 FMGENOBJS= fmgen/fmgen.o fmgen/fmg_wrap.o fmgen/file.o fmgen/fmtimer.o fmgen/opm.o fmgen/opna.o fmgen/psg.o
 
-SDL3OBJS= SDL3/juliet.o SDL3/mouse.o SDL3/status.o SDL3/timer.o SDL3/about.o SDL3/common.o SDL3/prop.o SDL3/winui.o SDL3/keyboard.o
+SDLOBJS= SDL/juliet.o SDL/mouse.o SDL/status.o SDL/timer.o SDL/about.o SDL/common.o SDL/prop.o SDL/winui.o SDL/keyboard.o
 
 ifdef SDL3
-SDLOBJS= SDL3/windraw.o SDL3/GamePad.o SDL3/dswin.o
-SDLCXXOBJS= SDL3/winx68k.o
+SDLOBJS += SDL/SDL3/windraw.o SDL/SDL3/GamePad.o SDL/SDL3/dswin.o
+SDLCXXOBJS += SDL/SDL3/winx68k.o
+EXTRA_INCLUDES += -I./SDL/SDL3
 else
-SDLOBJS= SDL3/SDL2/windraw.o SDL3/SDL2/GameController.o SDL3/SDL2/dswin.o
-SDLCXXOBJS= SDL3/SDL2/winx68k.o
+SDLOBJS += SDL/SDL2/windraw.o SDL/SDL2/GameController.o SDL/SDL2/dswin.o
+SDLCXXOBJS += SDL/SDL2/winx68k.o
+EXTRA_INCLUDES += -I./SDL/SDL2
 endif
 
 
 WIN32APIOBJS= win32api/dosio.o win32api/fake.o win32api/peace.o
-CGROMOBJS=	SDL3/mkcgrom.o SDL3/tool/create_cgrom.o
+CGROMOBJS=	SDL/mkcgrom.o SDL/tool/create_cgrom.o
 
-COBJS=		$(X68KOBJS) $(SDL3OBJS) $(SDLOBJS) $(WIN32APIOBJS) $(CPUOBJS) $(C68KOBJS) $(MIDIOBJS)
+COBJS=		$(X68KOBJS) $(SDLOBJS) $(WIN32APIOBJS) $(CPUOBJS) $(C68KOBJS) $(MIDIOBJS)
 CXXOBJS=	$(FMGENOBJS) $(SDLCXXOBJS)
 OBJS=		$(COBJS) $(CXXOBJS)
 
@@ -284,5 +286,5 @@ c68k::
 	cmake --build ./m68000/c68k
 
 cgrom:: $(MKCGROMOBJS)
-	$(RM) SDL3/tool/mkcgrom
-	$(CXXLINK) -o SDL3/tool/mkcgrom $(MKCGROMOBJS) $(SDL_LIB) $(SDL_TTF_LIB)
+	$(RM) SDL/tool/mkcgrom
+	$(CXXLINK) -o SDL/tool/mkcgrom $(MKCGROMOBJS) $(SDL_LIB) $(SDL_TTF_LIB)

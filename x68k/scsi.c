@@ -8,13 +8,14 @@
 // ---------------------------------------------------------------------
 
 #include	"common.h"
-#include	"dosio.h"
-#include	"winx68k.h"
-#include	"../m68000/m68000.h"
-#include	"../SDL3/prop.h"
-#include	"../m68000/c68k/c68k.h"
 #include	"x68kmemory.h"
+#include	"dosio.h"
+#include	"prop.h"
+#include	"winx68k.h"
 #include	"scsi.h"
+#include	"../m68000/m68000.h"
+#include	"../m68000/c68k/c68k.h"
+
 #include 	<sys/stat.h>
 
 // ----------------------

@@ -41,7 +41,7 @@ void Update_Screen(uint32_t menu);
 extern struct menu_flist mfl;
 
 void WinDraw_DrawMenufile(struct menu_flist *mfl);
-void WinDraw_ClearMenuBuffer(void);
+void WinDraw_ClearMenuBuffer(uint32_t color);
 void WinDraw_reverse_key(int32_t x, int32_t y);
 
 extern void Soft_kbd_CreateScreen(void);

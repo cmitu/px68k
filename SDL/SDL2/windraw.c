@@ -1866,12 +1866,12 @@ void WinDraw_DrawMenufile(struct menu_flist *mfl)
 #endif
 }
 
-void WinDraw_ClearMenuBuffer(void)
+void WinDraw_ClearMenuBuffer(uint32_t color)
 {
 #if defined(USE_OGLES11)
-	memset(menu_buffer, 0, 800*600*4);// 32bit depth
+	memset(menu_buffer, color, 800*600*4);// 32bit depth
 #else
-	SDL_FillRect(menu_surface, NULL, 0);
+	SDL_FillRect(menu_surface, NULL, color);
 #endif
 
 }

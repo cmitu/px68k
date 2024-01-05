@@ -140,32 +140,37 @@ set(fmgen_sources
   fmgen/psg.cpp
 )
 
-set(SDL3_sources
-#  SDL3/mkcgrom.c
-  SDL3/winui.c
-  SDL3/keyboard.c
-  SDL3/timer.c
-  SDL3/prop.c
-  SDL3/status.c
-  SDL3/mouse.c
-  SDL3/juliet.c
-  SDL3/common.c
-
+set(SDL_sources
+#  SDL/mkcgrom.c
+  SDL/winui.c
+  SDL/keyboard.c
+  SDL/timer.c
+  SDL/prop.c
+  SDL/status.c
+  SDL/mouse.c
+  SDL/juliet.c
+  SDL/common.c
 )
 
 if(SDL2)
-  list(APPEND SDL3_sources
-  SDL3/SDL2/winx68k.cpp
-  SDL3/SDL2/windraw.c
-  SDL3/SDL2/GameController.c
-  SDL3/SDL2/dswin.c
+  list(APPEND SDL_sources
+  SDL/SDL2/winx68k.cpp
+  SDL/SDL2/windraw.c
+  SDL/SDL2/GameController.c
+  SDL/SDL2/dswin.c
+  )
+  list(APPEND SDL_INCLUDE_DIR
+  SDL/SDL2
   )
 else()
-  list(APPEND SDL3_sources
-  SDL3/winx68k.cpp
-  SDL3/windraw.c
-  SDL3/GamePad.c
-  SDL3/dswin.c
+  list(APPEND SDL_sources
+  SDL/SDL3/winx68k.cpp
+  SDL/SDL3/windraw.c
+  SDL/SDL3/GamePad.c
+  SDL/SDL3/dswin.c
+  )
+  list(APPEND SDL_INCLUDE_DIR
+  SDL/SDL3
   )
 endif ()
 
@@ -222,22 +227,22 @@ include_directories(
     x68k
     win32api
     fmgen
-    SDL3
-    SDL3/SDL2
-    SDL3/tool
+    SDL
+    ${SDL_INCLUDE_DIR}
+    SDL/tool
 )
 
 # == add execute ==
 set(BIN_TARGET "px68k")
 
 if(UNIX AND NOT APPLE)
- add_executable(${BIN_TARGET} ${x68k_sources} ${fmgen_sources} ${m68k_sources} ${SDL3_sources} ${MIDI_SRC})
+ add_executable(${BIN_TARGET} ${x68k_sources} ${fmgen_sources} ${m68k_sources} ${SDL_sources} ${MIDI_SRC})
 endif()
 if(APPLE)
- add_executable(${BIN_TARGET} MACOSX_BUNDLE ${x68k_sources} ${fmgen_sources} ${m68k_sources} ${SDL3_sources} ${MIDI_SRC} macOS/px68k.icns)
+ add_executable(${BIN_TARGET} MACOSX_BUNDLE ${x68k_sources} ${fmgen_sources} ${m68k_sources} ${SDL_sources} ${MIDI_SRC} macOS/px68k.icns)
 endif()
 if(WIN32)
- add_executable(${BIN_TARGET} WIN32 ${x68k_sources} ${fmgen_sources} ${m68k_sources} ${SDL3_sources} ${MIDI_SRC})
+ add_executable(${BIN_TARGET} WIN32 ${x68k_sources} ${fmgen_sources} ${m68k_sources} ${SDL_sources} ${MIDI_SRC})
 endif()
 
 if(CMAKE_STRIP)
@@ -285,7 +290,8 @@ set(CPACK On)
                         ${SDL2_LIBRARIES}
                         ${SDL2_TTF_LIBRARIES}
                         ${SDL3_LIBRARIES}
-                        ${SDL3_TTF_LIBRARY})
+                        ${SDL3_TTF_LIBRARY}
+  )
 
 # == Excute Packaging ==
 if(CPACK)

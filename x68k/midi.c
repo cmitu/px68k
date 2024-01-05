@@ -71,6 +71,7 @@ uint32_t	MIDI_Buffered = 0;
 int32_t		MIDI_BufTimer = 3333;
 uint8_t		MIDI_R05 = 0;
 uint8_t		MIDI_R35 = 0;
+uint8_t		MIDI_R55 = 0;
 uint32_t	MIDI_GTimerMax = 0;
 uint32_t	MIDI_MTimerMax = 0;
 int32_t		MIDI_GTimerVal = 0;
@@ -490,14 +491,15 @@ uint8_t FASTCALL MIDI_Read(uint32_t adr)
 			break;
 		case 4:
 			break;
-		case 5:
-			if (MIDI_Buffered>=MIDIFIFOSIZE)
-			{
-				ret = 0x01;	// Tx full/not ready
+		case 5://R54
+			ret = (MIDI_R55 & 0x01);//Tx Enable?
+			if (MIDI_Buffered==0){
+				ret |= 0xc0;// FIFO empty & ready
 			}
-			else
-			{
-				ret = 0xc0;	// Tx empty/ready
+			else{
+				if (MIDI_Buffered<=MIDIFIFOSIZE){
+					ret |= 0x40;// FIFO に空きがある
+				}
 			}
 			break;
 		case 6:
@@ -711,6 +713,7 @@ void FASTCALL MIDI_Write(uint32_t adr, uint8_t data)
 		case 4:
 			break;
 		case 5://R55 Tx FIFO制御
+			MIDI_R55 = data;
 			break;
 		case 6:
 			break;
