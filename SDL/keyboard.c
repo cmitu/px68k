@@ -28,7 +28,7 @@
 #include "GamePad.h"
 #else
 #include "SDL2/SDL.h"
-#include "SDL2/GameController.h"
+#include "GameController.h"
 #endif
 
 #include "keymap.h"

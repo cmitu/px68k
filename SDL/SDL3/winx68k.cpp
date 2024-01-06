@@ -353,7 +353,7 @@ WinX68k_Reset(void)
 	SCC_Init();
 	Keyboard_Init();
 	PIA_Init();
-	GameController_Init();
+	GamePad_Init();
 	RTC_Init();
 	TVRAM_Init();
 	GVRAM_Init();
@@ -821,7 +821,7 @@ int32_t main(int32_t argc, char *argv[])
 	SysPort_Init();
 	Mouse_Init();
 	WinX68k_Reset();
-	GameController_Open(); // Mapping XBOX like Game Controller
+	GamePad_Open(); // Mapping XBOX like Game Controller
 	Timer_Init();
 
 	//MIDI_Init();
@@ -1122,10 +1122,10 @@ int32_t main(int32_t argc, char *argv[])
 				sdl_gamepad = SDL_OpenGamepad(0);//defaultに戻す
 				break;
 			case SDL_EVENT_GAMEPAD_AXIS_MOTION:
-				GameControllerAxis_Update(ev.gaxis.which, ev.gaxis.axis, ev.gaxis.value);
+				GamePadAxis_Update(ev.gaxis.which, ev.gaxis.axis, ev.gaxis.value);
 				break;
 			case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
-				GameControllerButton_Update(ev.gbutton.which, ev.gbutton.button, 1);
+				GamePadButton_Update(ev.gbutton.which, ev.gbutton.button, 1);
 				if((menu_mode == menu_out) && (get_joy_downstate() == (JOY_HOME ^ 0xff)) ){// HOME(Menu in)
 				  menu_mode = menu_enter;
 				  reset_joy_downstate();
@@ -1133,7 +1133,7 @@ int32_t main(int32_t argc, char *argv[])
 				}
 				break;
 			case SDL_EVENT_GAMEPAD_BUTTON_UP:
-				GameControllerButton_Update(ev.gbutton.which, ev.gbutton.button, 0);
+				GamePadButton_Update(ev.gbutton.which, ev.gbutton.button, 0);
 				break;
 			case SDL_EVENT_GAMEPAD_REMAPPED:
 				p6logd("Game Controller Re-mapped.\n");
@@ -1176,7 +1176,7 @@ int32_t main(int32_t argc, char *argv[])
 		if (menu_mode != menu_out) {
 			int32_t ret; 
 
-			Menu_GameController_Update(menu_key_down); // XBOX like GamePad and KeyPad
+			Menu_GamePad_Update(menu_key_down); // XBOX like GamePad and KeyPad
 
 			if(ScreenClearFlg == 1){/*Resizable Window support in MENU*/
 			 Update_Screen(1);
@@ -1234,7 +1234,7 @@ end_loop:
 	Config.DisplayNo=SDL_GetDisplayForWindow(sdl_window);
 	SDL_GetWindowPosition(sdl_window,&Config.WinPosX,&Config.WinPosY);
 
-	GameController_Cleanup();
+	GamePad_Cleanup();
 	SRAM_Cleanup();
 	FDD_Cleanup();
 	//CDROM_Cleanup();

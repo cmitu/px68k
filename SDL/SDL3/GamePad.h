@@ -45,13 +45,13 @@ void FASTCALL Joystick_Write(uint8_t num, uint8_t data);
 extern SDL_Gamepad *sdl_gamepad;
 //#endif
 
-void GameController_Init(void);
-void GameController_Open(void);
-void GameController_Change(uint32_t Pad_No);
-void GameController_Cleanup(void);
-void FASTCALL GameControllerAxis_Update(int32_t which, uint8_t axis, int32_t value);
-void FASTCALL GameControllerButton_Update(int32_t which, uint8_t button, uint8_t on );
-void Menu_GameController_Update( SDL_Keycode key );
+void GamePad_Init(void);
+void GamePad_Open(void);
+void GamePad_Change(uint32_t Pad_No);
+void GamePad_Cleanup(void);
+void FASTCALL GamePadAxis_Update(int32_t which, uint8_t axis, int32_t value);
+void FASTCALL GamePadButton_Update(int32_t which, uint8_t button, uint8_t on );
+void Menu_GamePad_Update( SDL_Keycode key );
 
 uint8_t get_joy_downstate(void);
 void reset_joy_downstate(void);

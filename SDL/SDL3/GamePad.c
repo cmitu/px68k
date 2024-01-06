@@ -1,4 +1,4 @@
-/* GameController.c - XBOX like GamePad Support.
+/* GamePad.c - XBOX like GamePad Support.
    as CyberStick Analog/Digital mode
 
 CyberStick (Digital) PC4-L/H
@@ -183,7 +183,7 @@ SDL_Gamepad *sdl_gamepad;
 SDL_Joystick *sdl_joy; //DUMMY
 static uint32_t	cyber_tick = 0;//時間計測用
 
-void GameController_Open(void)
+void GamePad_Open(void)
 {
 	const char *name;
 	int i,nr_joys;
@@ -202,20 +202,20 @@ void GameController_Open(void)
 			name = SDL_GetGamepadInstanceName(i);
 			strcpy(menu_items[13][i],name);
 			//p6logd("Game Controller %d: %s\n", i, name ? name : "Unknown Controller");
-			p6logd("GameController No.%d %s connected.\n", i,name);
+			p6logd("GamePad No.%d %s connected.\n", i,name);
 		}
 		else{
-		  strcpy(menu_items[13][i],"Not compatible GameController");
-		  p6logd("No.%d Not compatible GameController interface.\n", i);
+		  strcpy(menu_items[13][i],"Not Compatible GamePad");
+		  p6logd("No.%d Not compatible GamePad interface.\n", i);
 		}
     }
 	strcpy(menu_items[13][i],"\0"); // Menu END
-	GameController_Change(0);//default
+	GamePad_Change(0);//default
 
  return;
 }
 
-void GameController_Change(uint32_t Pad_No)
+void GamePad_Change(uint32_t Pad_No)
 {
 	SDL_CloseGamepad(sdl_gamepad);
 	sdl_gamepad = SDL_OpenGamepad(Pad_No);// Re-Open
@@ -226,9 +226,9 @@ void GameController_Change(uint32_t Pad_No)
 }
 
 // 変数初期化
-void GameController_Init(void)
+void GamePad_Init(void)
 {
-	static const char gamepaddb_filename[] = "gamecontrollerdb.txt";
+	static const char gamepaddb_filename[] = "gamepaddb.txt";
 	const char *gamepad_db;
 
 	SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_GAMEPAD);//初期化
@@ -274,8 +274,8 @@ void GameController_Init(void)
   return;
 }
 
-// GameController close
-void GameController_Cleanup(void)
+// GamePad close
+void GamePad_Cleanup(void)
 {
 	if(sdl_gamepad){
 		SDL_CloseGamepad(sdl_gamepad);
@@ -393,7 +393,7 @@ void FASTCALL Joystick_Write(uint8_t num, uint8_t data)
 }
 
 // GamePad Analog input for X68000 (like CyberKtick)
-void FASTCALL GameControllerAxis_Update(int32_t which, uint8_t axis, int32_t value)
+void FASTCALL GamePadAxis_Update(int32_t which, uint8_t axis, int32_t value)
 {
 
 	// XBOX like GamePad update Analog value
@@ -434,7 +434,7 @@ void FASTCALL GameControllerAxis_Update(int32_t which, uint8_t axis, int32_t val
 }
 
 // GamePad Button for X68000 
-void FASTCALL GameControllerButton_Update(int32_t which, uint8_t button, uint8_t on )
+void FASTCALL GamePadButton_Update(int32_t which, uint8_t button, uint8_t on )
 {
 	// Atari U D R L,A B (C D ThU ThD E1 E2)
 	uint8_t ret0 = 0, ret1 = 0;
@@ -515,7 +515,7 @@ return;
 }
 
 // Keyinput and GamePad for Menu Mode 
-void FASTCALL Menu_GameController_Update(SDL_Keycode key)
+void FASTCALL Menu_GamePad_Update(SDL_Keycode key)
 {
 	uint8_t ret0 = 0xff;
 	static uint8_t pre_ret0 = 0xff;
@@ -524,7 +524,7 @@ void FASTCALL Menu_GameController_Update(SDL_Keycode key)
 	static uint8_t pre_mret0 = 0xff;
 
 	// Atari Digital +
-	ret0 = JoyState0[0];// from GameController (U/D/L/R/A/B)
+	ret0 = JoyState0[0];// from GamePad (U/D/L/R/A/B)
 
 	// scan keycode for menu UI
 	if (key != SDLK_UNKNOWN) {

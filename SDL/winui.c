@@ -33,7 +33,7 @@
 #ifndef SDL2
 #include "GamePad.h"
 #else
-#include "SDL2/GameController.h"
+#include "GameController.h"
 #endif
 
 #include "common.h"
@@ -600,7 +600,11 @@ static void menu_joymode_setting(int32_t v)
 
 static void menu_hwjoy_setting(int32_t v)
 {
+#ifndef SDL2
+	GamePad_Change(v);
+#else
 	GameController_Change(v);
+#endif
 }
 
 static void menu_nowait(int32_t v)
