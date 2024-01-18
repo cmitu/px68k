@@ -49,6 +49,10 @@ void GamePad_Init(void);
 void GamePad_Open(void);
 void GamePad_Change(uint32_t Pad_No);
 void GamePad_Cleanup(void);
+void GamePad_Add(SDL_JoystickID padid);
+void GamePad_Removed(SDL_JoystickID padid);
+void GamePad_Remapped(SDL_JoystickID padid);
+
 void FASTCALL GamePadAxis_Update(int32_t which, uint8_t axis, int32_t value);
 void FASTCALL GamePadButton_Update(int32_t which, uint8_t button, uint8_t on );
 void Menu_GamePad_Update( SDL_Keycode key );

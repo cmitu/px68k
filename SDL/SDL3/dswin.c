@@ -109,7 +109,11 @@ void
 DSound_Play(void)
 {
 	if (audio_fd >= 0){
-		//SDL_PlayAudioDevice(audio_dev);
+		ADPCM_SetVolume((uint8_t)Config.PCM_VOL);
+		OPM_SetVolume((uint8_t)Config.OPM_VOL);
+#ifndef	NO_MERCURY
+		Mcry_SetVolume((uint8_t)Config.MCR_VOL);
+#endif
 	}
 }
 
@@ -117,7 +121,11 @@ void
 DSound_Stop(void)
 {
 	if (audio_fd >= 0){
-		//SDL_PauseAudioDevice(audio_dev);
+		ADPCM_SetVolume(0);
+		OPM_SetVolume(0);
+#ifndef	NO_MERCURY
+		Mcry_SetVolume(0);
+#endif
 	}
 }
 
@@ -208,14 +216,14 @@ cb_start:
 
 		datalen = pbwp - pbrp;
 		if(datalen == 0){return;}
-		if (datalen < (len / 2)) {// 2ch
+		if (datalen < (len / 2)) {
 			// needs more data
 			//DSound_Send((len - datalen) / 4);
-			sound_send((len - datalen) / 2);// 2ch
+			sound_send((len - datalen) / 4);
 		}
 #if 0
 		datalen = pbwp - pbrp;
-		if (datalen < (len / 2)) {// 2ch
+		if (datalen < (len / 2)) {
 			printf("xxxxx not enough sound data xxxxx\n");
 		}
 #endif
@@ -225,7 +233,7 @@ cb_start:
 		}
 
 		buf = pbrp;
-		pbrp += (len / 2);// 2ch
+		pbrp += (len / 2);
 		//printf("TYPEA: ");
 
 	} else {
@@ -239,15 +247,15 @@ cb_start:
 		// pbsp     pbwp          pbrp       pbep
 
 		lena = pbep - pbrp;
-		if (lena >= (len / 2)) {// 2ch
+		if (lena >= (len / 2)) {
 			buf = pbrp;
-			pbrp += (len / 2);// 2ch
+			pbrp += (len / 2);
 			//printf("TYPEC: ");
 		} else {
-			lenb = (len / 2) - lena;// 2ch
+			lenb = (len / 2) - lena;
 			if ((pbwp - pbsp) < lenb) {
 				//DSound_Send((lenb - (pbwp - pbsp)) / 4);
-				sound_send((lenb - (pbwp - pbsp)) / 2);// 2ch
+				sound_send((lenb - (pbwp - pbsp)) / 4);
 			}
 #if 0
 			if ((pbwp - pbsp) < lenb) {

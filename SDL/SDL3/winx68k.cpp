@@ -821,7 +821,7 @@ int32_t main(int32_t argc, char *argv[])
 	SysPort_Init();
 	Mouse_Init();
 	WinX68k_Reset();
-	GamePad_Open(); // Mapping XBOX like Game Controller
+	//GamePad_Open(); // Mapping XBOX like Game Controller
 	Timer_Init();
 
 	//MIDI_Init();
@@ -1089,38 +1089,6 @@ int32_t main(int32_t argc, char *argv[])
 				//p6logd("keyup: 0x%x 0x%x\n", ev.key.keysym.sym,ev.key.keysym.scancode);
 				Keyboard_KeyUp(ev.key.keysym.sym,ev.key.keysym.scancode);//phisical code + α
 				break;
-			//case SDL_JOYDEVICEADDED:
-			case SDL_EVENT_GAMEPAD_ADDED:
-				strcpy(menu_items[13][ev.gdevice.which],SDL_GetGamepadInstanceName(ev.gdevice.which));
-				strcpy(menu_items[13][ev.gdevice.which +1],"\0"); // Menu item END
-				if ( ev.gdevice.which == 0 ){// No Device +1 ?
-				 sdl_gamepad = SDL_OpenGamepad( ev.gdevice.which );
-				}
-				p6logd("GamePad %s Connected.\n",SDL_GetGamepadInstanceName(ev.gdevice.which));
-				break;
-			case SDL_EVENT_GAMEPAD_REMOVED:
-				  SDL_CloseGamepad( sdl_gamepad );//閉じる
-				  p6logd("GamePad Disconnected.\n");
-
-				int nr_joys;
-				SDL_GetJoysticks(&nr_joys);
-				if (nr_joys == 0){
-				 strcpy(menu_items[13][0],"No device found");
-				 strcpy(menu_items[13][1],"\0"); // Menu item END
-				 break;
-				}
-				uint32_t i;
-				for (i = 0; i < nr_joys; i++) {
-				  if ( SDL_IsGamepad(i) ){
-				    strcpy(menu_items[13][i],SDL_GetGamepadInstanceName(i));
-				  }
-				  else{
-				    strcpy(menu_items[13][i],"Not compatible GamePad");
-				  }
-				}
-				strcpy(menu_items[13][i],"\0"); // Menu item END
-				sdl_gamepad = SDL_OpenGamepad(0);//defaultに戻す
-				break;
 			case SDL_EVENT_GAMEPAD_AXIS_MOTION:
 				GamePadAxis_Update(ev.gaxis.which, ev.gaxis.axis, ev.gaxis.value);
 				break;
@@ -1135,8 +1103,14 @@ int32_t main(int32_t argc, char *argv[])
 			case SDL_EVENT_GAMEPAD_BUTTON_UP:
 				GamePadButton_Update(ev.gbutton.which, ev.gbutton.button, 0);
 				break;
+			case SDL_EVENT_GAMEPAD_ADDED:
+				GamePad_Add(ev.gdevice.which);
+				break;
+			case SDL_EVENT_GAMEPAD_REMOVED:
+				GamePad_Removed(ev.gdevice.which);
+				break;
 			case SDL_EVENT_GAMEPAD_REMAPPED:
-				p6logd("Game Controller Re-mapped.\n");
+				GamePad_Remapped(ev.gdevice.which);
 				break;
 			default:
 				break;

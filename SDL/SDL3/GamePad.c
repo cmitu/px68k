@@ -180,7 +180,7 @@ uint8_t Joystick_get_vbtn_state(uint16_t n)
 #endif
 
 SDL_Gamepad *sdl_gamepad;
-SDL_Joystick *sdl_joy; //DUMMY
+static const char No_GamePad[] = "No device found";
 static uint32_t	cyber_tick = 0;//時間計測用
 
 void GamePad_Open(void)
@@ -238,10 +238,13 @@ void GamePad_Init(void)
 	int num = SDL_AddGamepadMappingsFromFile((char *)gamepad_db);
 	if(num > 0) p6logd("%d Game Controller mapped.\n",num);
 
-	sdl_gamepad = NULL;
+	strcpy(menu_items[13][0],No_GamePad);
+	strcpy(menu_items[13][1],"\0"); // Menu END
 
 	// GamePad をイベントで駆動する
 	SDL_SetGamepadEventsEnabled(SDL_TRUE);
+
+	sdl_gamepad = NULL;
 
 	joy[0] = 1;  // active only one
 	joy[1] = 0;
@@ -280,6 +283,51 @@ void GamePad_Cleanup(void)
 	if(sdl_gamepad){
 		SDL_CloseGamepad(sdl_gamepad);
 	}
+}
+
+static SDL_JoystickID GamePadID[10];
+void GamePad_Add(SDL_JoystickID padid)
+{
+  int id;
+
+	if(strncmp(menu_items[13][0],No_GamePad,sizeof(No_GamePad))==0){
+	  id = 0;
+	}
+	else{
+	 for(id=0; id<10; id++){
+	  if(strncmp(menu_items[13][id],"\0",sizeof("\0"))==0) break;
+	 }
+	}
+	GamePadID[id] = padid;
+	strcpy(menu_items[13][id],SDL_GetGamepadInstanceName(padid));
+	strcpy(menu_items[13][id+1],"\0"); // Menu item END
+
+	sdl_gamepad = SDL_OpenGamepad( padid );
+	p6logd("Open %s as %d.\n",SDL_GetGamepadInstanceName(padid),padid);
+
+	return;
+}
+
+void GamePad_Removed(SDL_JoystickID padid)
+{
+  int id;
+
+	 for(id=0; id<10; id++){
+	  if(GamePadID[id] == padid){
+		strcpy(menu_items[13][id],No_GamePad);
+		strcpy(menu_items[13][id+1],"\0"); // Menu item END
+	  }
+	 }
+
+	p6logd("Removed GamePad as %d.\n",padid);
+
+	return;
+}
+
+void GamePad_Remapped(SDL_JoystickID padid)
+{
+	p6logd("GamePad Re-mapped.\n");
+	return;
 }
 
 // Read from X68000
