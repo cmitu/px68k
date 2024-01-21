@@ -49,7 +49,7 @@ Framework版のSDL2をメインに、Mac(mid2009/HighSierra)で開発してい�
 ・ソフトキーボードサポート復活(Menu上で右クリック)
 ・File選択時のリスト表示をutf8対応に(X68搭載Fontの範囲で)
 ・グラフィックモードの再現性向上(横スクロール、部分表示)
-・XBOXコンパチのGamwControllerをサポート
+・XBOXコンパチのGameControllerをサポート
 ・サイバースティックのアナログ入力にも対応
 ・LinuxやMinGW(win)でもコンパイル可能
 ・Macの単独アプリとしての生成リソースを追加
