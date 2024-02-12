@@ -82,6 +82,12 @@ const	char	PrgTitle[] = APPNAME;
 char	winx68k_dir[MAX_PATH];
 char	winx68k_ini[MAX_PATH];
 
+// *.HDS、*.HDFはHDD、他はFDD MOSはMO
+char fdimg[] = "D8888DHDMDUP2HDDIMXDFIMG";
+char saimg[] = "HDF";
+char scimg[] = "HDS";
+char moimg[] = "MOS";
+
 int32_t		HLINE_TOTAL = 1026;
 int32_t		VLINE_TOTAL = 567;
 int32_t		VLINE = 0;
@@ -579,15 +585,9 @@ void WinX68k_Exec(void)
 void
 get_cmd_line(int32_t argc, char *argv[])
 {
-	// *.HDS、*.HDFはHDD、他はFDD MOSはMO
-	char fdimg[] = "D8888DHDMDUP2HDDIMXDFIMG";
-	char saimg[] = "HDF";
-	char scimg[] = "HDS";
-	char moimg[] = "MOS";
-
-	char strwork[20];
-	char *p;
-	uint32_t i,len,f1=0,h1=0,s1=0;
+ char strwork[20];
+ char *p;
+ uint32_t i,len,f1=0,h1=0,s1=0;
 
 	for(i=1; i<argc; i++){
 	  if(argv[i][0]=='-' && argv[i][1]=='h'){
@@ -596,15 +596,11 @@ get_cmd_line(int32_t argc, char *argv[])
 	  else{
 	    len = strlen(argv[i]);
 	    strcpy(strwork, argv[i] + len - 3);//拡張子GET
-		if (strwork[0] >= 'a' && strwork[0] <= 'z') {//大文字に変換
-			strwork[0] = 'A' + strwork[0] - 'a';
-		}
-		if (strwork[1] >= 'a' && strwork[1] <= 'z') {
-			strwork[1] = 'A' + strwork[1] - 'a';
-		}
-		if (strwork[2] >= 'a' && strwork[2] <= 'z') {
-			strwork[2] = 'A' + strwork[2] - 'a';
-		}
+	    for(len=0; len<3; len++){
+	     if (strwork[len] >= 'a' && strwork[len] <= 'z') {//大文字に変換
+	      strwork[len] = 'A' + strwork[len] - 'a';
+	     }
+	    }
 	    p = strstr(fdimg, strwork);
 	    if(p != NULL){
 	      strcpy((char *)Config.FDDImage[f1], argv[i]);
@@ -632,6 +628,50 @@ get_cmd_line(int32_t argc, char *argv[])
 
  return;
 }
+
+/* Drag & Drop file */
+void
+drop_file(char* dropped_fileurl)
+{
+  char strwork[20];
+  char *p;
+  uint32_t len;
+
+	len = strlen(dropped_fileurl);
+	strcpy(strwork, dropped_fileurl + len - 3);//拡張子GET
+	for(len=0; len<3; len++){
+	  if (strwork[len] >= 'a' && strwork[len] <= 'z') {//大文字に変換
+	    strwork[len] = 'A' + strwork[len] - 'a';
+	  }
+	}
+	int drv = 0;//A Drive
+	p = strstr(fdimg, strwork);// FDD image check
+	if(p != NULL){
+	   //if A not empty? then B ?
+	   if(strcmp((char *)Config.FDDImage[0],"\0") != 0 ) drv = 1;//B Drive
+	   if(strcmp((char *)Config.FDDImage[drv],dropped_fileurl) != 0 ){//一応一致チェック
+	    strcpy((char *)Config.FDDImage[drv], dropped_fileurl);
+	    FDD_SetFD(drv, Config.FDDImage[drv], 0);
+	   }
+	}
+	p = strstr(saimg, strwork);// SASI image check
+	if(p != NULL){
+	   strcpy((char *)Config.HDImage[0], dropped_fileurl);
+	}
+	p = strstr(scimg, strwork);// SCSI image check
+	if(p != NULL){
+	   strcpy((char *)Config.SCSIEXHDImage[0], dropped_fileurl);
+	}
+	p = strstr(moimg, strwork);// MO image check(SCSI-ID=5)
+	if(p != NULL){
+	   strcpy((char *)Config.SCSIEXHDImage[5], dropped_fileurl);
+	}
+
+	p6logd("DropFile:%s set %d\n",dropped_fileurl,drv);
+
+  return;
+}
+
 
 //
 // main
@@ -1117,6 +1157,13 @@ int32_t main(int32_t argc, char *argv[])
 				break;
 			case SDL_CONTROLLERDEVICEREMAPPED:
 				p6logd("Game Controller Re-mapped.\n");
+				break;
+			case SDL_DROPTEXT:
+				break;
+			case SDL_DROPFILE:
+				drop_file(ev.drop.file);
+				break;
+			default:
 				break;
 			}
 		}

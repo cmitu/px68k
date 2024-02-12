@@ -52,7 +52,7 @@ extern SDL_GameController *sdl_gamepad;
 
 void GameController_Init(void);
 void GameController_Open(void);
-void GameController_Change(uint32_t Pad_No);
+void GamePad_Change(uint32_t Pad_No);
 void GameController_Cleanup(void);
 void FASTCALL GameControllerAxis_Update(int32_t which, uint8_t axis, int32_t value);
 void FASTCALL GameControllerButton_Update(int32_t which, uint8_t button, uint8_t on );

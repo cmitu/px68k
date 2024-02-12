@@ -216,7 +216,7 @@ void GameController_Open(void)
  return;
 }
 
-void GameController_Change(uint32_t Pad_No)
+void GamePad_Change(uint32_t Pad_No)
 {
 	SDL_GameControllerClose(sdl_gamepad);
 	sdl_gamepad = SDL_GameControllerOpen(Pad_No);// Re-Open
