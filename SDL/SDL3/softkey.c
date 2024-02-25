@@ -85,7 +85,7 @@ void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y, uint8_t keyboardLED)
 
 	if (sft_kbd_window == NULL) return;
 
-	Bpp = keydraw_buffer->format->BytesPerPixel;
+	Bpp = keydraw_buffer->format->bytes_per_pixel;
 
 	//sleep判定
 	if((keyboardLED == 0xff) && (LED_X68 == 0x80)){

@@ -6,9 +6,6 @@ extern "C" {
 #include <errno.h>
 
 #include "SDL3/SDL.h"
-#ifdef USE_OGLES20
-#include "SDL3/SDL3_opengles.h"
-#endif
 #include "common.h"
 #include "dosio.h"
 #include "timer.h"
@@ -53,6 +50,10 @@ extern "C" {
 
 #include "dswin.h"
 #include "fmg_wrap.h"
+
+#ifdef USE_OGLES20
+SDL_DisplayMode sdl_dispmode;
+#endif
 
 #ifdef RFMDRV
 int32_t rfd_sock;
@@ -732,14 +733,13 @@ int32_t main(int32_t argc, char *argv[])
 	strcat(window_title,APPNAME);
 
 #ifdef USE_OGLES20
-	SDL_DisplayMode sdl_dispmode;
 	SDL_GetCurrentDisplayMode(0, &sdl_dispmode);
 	p6logd("width: %d height: %d", sdl_dispmode.w, sdl_dispmode.h);
 	// ナビゲーションバーを除くアプリが触れる画面
 	realdisp_w = sdl_dispmode.w, realdisp_h = sdl_dispmode.h;
 
-	SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 1 );
-	SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 1 );
+	SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 2 );
+	SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 0 );
 
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 ); 
 
@@ -780,25 +780,6 @@ int32_t main(int32_t argc, char *argv[])
 	}
 
 	Soft_kbd_CreateScreen();// Soft Keyboard Window init.
-
-#ifdef USE_OGLES20
-	SDL_GLContext glcontext = SDL_GL_CreateContext(sdl_window);
-
-        glClearColor( 0, 0, 0, 0 );
-
-	glEnable(GL_TEXTURE_2D);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	//glViewport(0, 0, 800, 600); //ここを増やさないとOpenGLの画面はせまい
-	glViewport(0, 0, sdl_dispmode.w, sdl_dispmode.h);
-	// スマホやタブの実画面に関係なくOpenGLの描画領域を800x600とする。
-	// 800x600にした意味は特にない。
-	glOrthof(0, 800, 600, 0, -1, 1);
-	//  glOrthof(0, 1024, 0, 1024, -1, 1);
-	glMatrixMode(GL_MODELVIEW);
-#endif
 
 	if (!WinDraw_MenuInit()) {
 		WinX68k_Cleanup();

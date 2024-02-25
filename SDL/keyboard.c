@@ -345,7 +345,7 @@ Keyboard_Int(void)
 
 /********** ソフトウェアキーボード **********/
 
-#if defined(USE_OGLES11)
+#if defined(USE_OGLES20)
 
 // 選択しているキーの座標 (初期値'Q')
 int32_t  kbd_kx = 1, kbd_ky = 2;
@@ -571,11 +571,11 @@ void Keyboard_ToggleSkbd(void)
 	skbd_mode = (skbd_mode == TRUE)? FALSE : TRUE;
 }
 
-#endif //(USE_OGLES11)
+#endif //(USE_OGLES20)
 
 int32_t Keyboard_IsSwKeyboard(void)
 {
-#if defined(USE_OGLES11)
+#if defined(USE_OGLES20)
 	if (kbd_x < 700) {
 		return TRUE;
 	} else {

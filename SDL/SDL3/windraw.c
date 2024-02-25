@@ -81,6 +81,10 @@ uint32_t WindowY = 0;
 
 #ifdef USE_OGLES20
 static GLuint texid[11];
+
+GLint attr_pos, attr_uv, texture;
+GLuint shader_prog, v_shader, f_shader;
+extern SDL_DisplayMode sdl_dispmode;
 #endif
 
 /* Drawing SDL2 buffer */
@@ -349,6 +353,92 @@ int32_t WinDraw_Init(void)
 
 
 #if defined(USE_OGLES20)
+
+	SDL_GLContext glcontext = SDL_GL_CreateContext(sdl_window);
+
+	// shader initialize
+	//GLint attr_pos, attr_uv, texture;
+	GLint gl_ret;
+
+	const GLchar *v_shader_src =
+		"attribute mediump vec4 attr_pos;"
+		"attribute mediump vec2 attr_uv;"
+		"varying mediump vec2 vary_uv;"
+		"void main() {"
+		"  gl_Position = attr_pos;"
+		"  vary_uv = attr_uv;"
+		"}";
+
+	v_shader = glCreateShader(GL_VERTEX_SHADER);
+	if (v_shader == 0) {
+		p6logd("can't create vertex shader\n");
+		return 1;
+	}
+
+	glShaderSource(v_shader, 1, &v_shader_src, NULL);
+
+	glCompileShader(v_shader);
+
+	gl_ret = 0;
+	glGetShaderiv(v_shader, GL_COMPILE_STATUS, &gl_ret);
+	if (gl_ret == GL_FALSE) {
+		p6logd("vertex shader compile failed\n");
+		return 1;
+	}
+
+	const GLchar *f_shader_src =
+		"uniform sampler2D texture;"
+		"varying mediump vec2 vary_uv;"
+		"void main() {"
+		"  gl_FragColor = texture2D(texture, vary_uv);"
+		"}";
+
+	f_shader = glCreateShader(GL_FRAGMENT_SHADER);
+	if (f_shader == 0) {
+		p6logd("can't create vertex shader\n");
+		return 1;
+	}
+
+	glShaderSource(f_shader, 1, &f_shader_src, NULL);
+
+	glCompileShader(f_shader);
+
+	gl_ret = 0;
+	glGetShaderiv(f_shader, GL_COMPILE_STATUS, &gl_ret);
+	if (gl_ret == GL_FALSE) {
+		p6logd("fragment shader compile failed\n");
+		return 1;
+	}
+
+	shader_prog = glCreateProgram();
+	if (shader_prog == 0) {
+		p6logd("glCreateProgram failed\n");
+	}
+
+
+	glAttachShader(shader_prog, v_shader);
+	glAttachShader(shader_prog, f_shader);
+
+	glLinkProgram(shader_prog);
+
+	gl_ret = 0;
+	glGetProgramiv(shader_prog, GL_LINK_STATUS, &gl_ret);
+	if (gl_ret == GL_FALSE) {
+		p6logd("fragment shader compile failed\n");
+		return 1;
+	}
+
+	attr_pos = glGetAttribLocation(shader_prog, "attr_pos");
+	attr_uv = glGetAttribLocation(shader_prog, "attr_uv");
+	texture = glGetUniformLocation(shader_prog, "texture");
+
+	glUseProgram(shader_prog);
+
+
+	glClearColor( 0, 0, 0, 0 );
+
+	glViewport(0, 0, sdl_dispmode.w, sdl_dispmode.h);
+
 	ScrBuf = malloc(1024*1024*2+2000); // OpenGL ES 1.1 needs 2^x pixels
 	if (ScrBuf == NULL) {
 		return FALSE;
@@ -363,6 +453,8 @@ int32_t WinDraw_Init(void)
 
 	memset(texid, 0, sizeof(texid));
 	glGenTextures(11, &texid[0]);
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
 	// texid[0] for the main screen
 	glBindTexture(GL_TEXTURE_2D, texid[0]);
@@ -448,6 +540,12 @@ WinDraw_Message(uint32_t Err_Mess_No)
 void
 WinDraw_Cleanup(void)
 {
+#ifdef USE_OGLES20
+	glUseProgram(0);
+	glDeleteProgram(shader_prog);
+	glDeleteShader(f_shader);
+	glDeleteShader(v_shader);
+#endif
 }
 
 void
@@ -463,15 +561,13 @@ WinDraw_Redraw(void)
 	dst[4] = (e); dst[5] = (f); dst[6] = (g); dst[7] = (h);	\
 }
 
-static void draw_texture(GLfloat *coor, GLfloat *vert)
-{
-	glTexCoordPointer(2, GL_FLOAT, 0, coor);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glVertexPointer(2, GL_FLOAT, 0, vert);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+#define CHG_GLFLOATS_800_600(dst)				\
+{								\
+	int i;							\
+	for (i = 0; i < 8; i += 2) {				\
+		dst[i] = (dst[i] - 400.0f) / 400.0f;		\
+		dst[i + 1] = -(dst[i + 1] - 300.0f) / 300.0f;	\
+	}							\
 }
 
 void draw_button(GLuint texid, GLfloat x, GLfloat y, GLfloat s, GLfloat *tex, GLfloat *ver)
@@ -482,6 +578,8 @@ void draw_button(GLuint texid, GLfloat x, GLfloat y, GLfloat s, GLfloat *tex, GL
 	// s倍にして貼り付ける
 	SET_GLFLOATS(ver, x, y + 32.0f * s, x, y, x + 32.0f * s, y + 32.0f * s, x + 32.0f * s, y + 0.0f);
 	draw_texture(tex, ver);
+	CHG_GLFLOATS_800_600(ver);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 void draw_all_buttons(GLfloat *tex, GLfloat *ver, GLfloat scale, int32_t is_menu)
@@ -499,7 +597,7 @@ void draw_all_buttons(GLfloat *tex, GLfloat *ver, GLfloat scale, int32_t is_menu
 		p++;
 	}
 }
-#endif // USE_OGLES11
+#endif // USE_OGLES20
 
 /*==SDL3 Update Screen===*/
 void
@@ -555,7 +653,7 @@ WinDraw_Draw(void)
 #if defined(USE_OGLES20)
 	GLfloat texture_coordinates[8];
 	GLfloat vertices[8];
-	GLfloat w;
+	GLfloat w, h;
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -564,33 +662,42 @@ WinDraw_Draw(void)
 	// アルファブレンドしない(上のテクスチャが下のテクスチャを隠す)
 	glBlendFunc(GL_ONE, GL_ZERO);
 
+	//glDisable(GL_BLEND);
+
 	glBindTexture(GL_TEXTURE_2D, texid[0]);
 	//ScrBufから800x600の領域を切り出してテクスチャに転送
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 800, 600, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, ScrBuf);
 
-	// magic numberがやたら多いが、テクスチャのサイズが1024x1024
-	// OpenGLでの描画領域がglOrthof()で定義した800x600
-
 	// X68K 画面描画
+
+	glEnableVertexAttribArray(attr_pos);
+	glEnableVertexAttribArray(attr_uv);
+	glUniform1i(texture, 0);
+
+	if (realdisp_w >= realdisp_h * 1.33333) {
+		w = (realdisp_h * 1.33333f) / realdisp_w;
+		h = 1.0f;
+	} else {
+		w = 1.0f;
+		h = realdisp_w / 1.333333f / realdisp_h;
+	}
+	SET_GLFLOATS(vertices,
+		     -w, h,
+		     -w, -h,
+		     w, h,
+		     w, -h);
 
 	// Texture から必要な部分を抜き出す
 	// Texutre座標は0.0fから1.0fの間
 	SET_GLFLOATS(texture_coordinates,
-		     0.0f, (GLfloat)TextDotY/1024,
-		     0.0f, 0.0f,
-		     (GLfloat)TextDotX/1024, (GLfloat)TextDotY/1024,
-		     (GLfloat)TextDotX/1024, 0.0f);
+		     0, 0,
+		     0, TextDotY/1024.0f,
+		     TextDotX/1024.0f, 0, 
+		     TextDotX/1024.0f, TextDotY/1024.0f);
 
-	// 実機の解像度(realdisp_w x realdisp_h)に関係なく、
-	// 座標は800x600
-	w = (realdisp_h * 1.33333) / realdisp_w * 800;
-	SET_GLFLOATS(vertices,
-		     (800.0f - w)/2, (GLfloat)600,
-		     (800.0f - w)/2, 0.0f,
-		     (800.0f - w)/2 + w, (GLfloat)600,
-		     (800.0f - w)/2 + w, 0.0f);
-
-	draw_texture(texture_coordinates, vertices);
+	glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)vertices);
+	glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)texture_coordinates);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	// ソフトウェアキーボード描画
 
@@ -617,7 +724,8 @@ WinDraw_Draw(void)
 			     (GLfloat)(kbd_w * kbd_scale + kbd_x), (GLfloat)(kbd_h * kbd_scale + kbd_y),
 			     (GLfloat)(kbd_w * kbd_scale + kbd_x), (GLfloat)kbd_y);
 
-		draw_texture(texture_coordinates, vertices);
+		CHG_GLFLOATS_800_600(vertices);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	}
 
 	// 仮想パッド/ボタン描画
@@ -626,8 +734,6 @@ WinDraw_Draw(void)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
 	draw_all_buttons(texture_coordinates, vertices, (GLfloat)WinUI_get_vkscale(), 0);
-
-	//	glDeleteTextures(1, &texid);
 
 	SDL_GL_SwapWindow(sdl_window);
 
@@ -1631,7 +1737,10 @@ static void ogles11_draw_menu(void)
 		     (GLfloat)800, (GLfloat)600,
 		     (GLfloat)800, 0.0f);
 
-	draw_texture(texture_coordinates, vertices);
+	CHG_GLFLOATS_800_600(vertices);
+	glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)vertices);
+	glVertexAttribPointer(attr_uv, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)texture_coordinates);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	draw_all_buttons(texture_coordinates, vertices, (GLfloat)WinUI_get_vkscale(), 1);
 

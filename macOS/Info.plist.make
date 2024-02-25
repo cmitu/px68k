@@ -5,21 +5,21 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>${MACOSX_BUNDLE_BUNDLE_NAME}</string>
+	<string>px68k</string>
 	<key>CFBundleGetInfoString</key>
-	<string>${MACOSX_BUNDLE_GUI_IDENTIFIER}</string>
+	<string>TurtleBazooka/px68k(0.15.2)</string>
 	<key>CFBundleIconFile</key>
-	<string>${MACOSX_BUNDLE_ICON_FILE}</string>
+	<string>AppIcon</string>
 	<key>CFBundleIconName</key>
-	<string>${MACOSX_BUNDLE_ICON_FILE}</string>
+	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
-	<string>${MACOSX_BUNDLE_GUI_IDENTIFIER}</string>
+	<string>TurtleBazooka/px68k(0.15.2)</string>
 	<key>CFBundleName</key>
-	<string>${MACOSX_BUNDLE_BUNDLE_NAME}</string>
+	<string>px68k</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>${MACOSX_BUNDLE_SHORT_VERSION_STRING}</string>
+	<string>0.15.2</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleSupportedPlatforms</key>
@@ -27,7 +27,7 @@
 		<string>MacOSX</string>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>${MACOSX_BUNDLE_BUNDLE_VERSION}</string>
+	<string>2024Q1</string>
 	<key>DTCompiler</key>
 	<string>com.apple.compilers.llvm.clang.1_0</string>
 	<key>DTPlatformName</key>

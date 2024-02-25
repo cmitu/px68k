@@ -273,6 +273,7 @@ midiOutShortMsg(HMIDIOUT hmo, uint32_t msg)
 	/* length of msg */
 	uint32_t len = 3;//note on/off/key press/cont.chg/pitch wheel chg
 	if(((messg[0]&0xf0)==0xc0) || ((messg[0]&0xf0)==0xd0)){ len = 2; }//prog. chg / chnnel press ?
+	if((messg[0]&0xf0)==0xf0){ len = 1; }
 
 	/*(CoreMIDI) 電文とタイムスタンプ入れてPacketList更新 */
 	MIDIPacketListAdd(packetList, (ByteCount)sizeof(packetBuf), mid_Packet,

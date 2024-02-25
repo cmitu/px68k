@@ -80,7 +80,6 @@ or
  * macのMIDIはCoreMIDIデバイスリストから選択可
  * LinuxのMIDIは現状fluidsynthのみ
  * MIDI-INは暫定対応(WinMM,and CoreMIDI)
- * MIDIの音の割り付け順の変更はMIMPIトーンマップでも変更可
  * CyberStickのアナログモードは確認継続中(認識不完全アリ)
  * SDL1のサポートは削除しました。
  * SDL3はまだ準備／テスト段階です。(SDL2推奨)
@@ -93,9 +92,9 @@ or
 
 ```sh
   $ make cgrom
-  $ ./SDL3/tool/mkcgrom
+  $ ./SDL/tool/mkcgrom
   or
-  $ ./SDL3/tool/mkcgrom ./pri.ttf ./sec.ttf
+  $ ./SDL/tool/mkcgrom ./pri.ttf ./sec.ttf
 ```
 
 ## How to make SCSI Disk image (*.HDS)

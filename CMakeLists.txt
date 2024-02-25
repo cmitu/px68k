@@ -18,6 +18,9 @@ set(PROJECT_VERSION
 # == Project Name ==
 project(px68k VERSION ${PROJECT_VERSION})
 
+# == Get TimeStamp ==
+string(TIMESTAMP TIMESTAMP "%Y%m%d")
+
 # == Option definition ==
 add_definitions(
 #	-DNO_SOUND
@@ -180,6 +183,11 @@ set(m68k_sources
   m68000/c68k/c68kexec.c
 )
 
+# == Set Windows icon==
+if (WIN32)
+  list(APPEND m68k_sources icons/icon.rc)
+endif()
+
 # == WinMM(windows) ==
 if(px68k_midi_winmm)
   list(APPEND LINKLIBS winmm)
@@ -233,13 +241,17 @@ include_directories(
 )
 
 # == add execute ==
-set(BIN_TARGET "px68k")
+if(SDL2)
+  set(BIN_TARGET "px68k.sdl2")
+else()
+  set(BIN_TARGET "px68k.sdl3")
+endif()
 
 if(UNIX AND NOT APPLE)
  add_executable(${BIN_TARGET} ${x68k_sources} ${fmgen_sources} ${m68k_sources} ${SDL_sources} ${MIDI_SRC})
 endif()
 if(APPLE)
- add_executable(${BIN_TARGET} MACOSX_BUNDLE ${x68k_sources} ${fmgen_sources} ${m68k_sources} ${SDL_sources} ${MIDI_SRC} macOS/px68k.icns)
+ add_executable(${BIN_TARGET} MACOSX_BUNDLE ${x68k_sources} ${fmgen_sources} ${m68k_sources} ${SDL_sources} ${MIDI_SRC} macOS/AppIcon.icns)
 endif()
 if(WIN32)
  add_executable(${BIN_TARGET} WIN32 ${x68k_sources} ${fmgen_sources} ${m68k_sources} ${SDL_sources} ${MIDI_SRC})
@@ -255,17 +267,15 @@ if(CMAKE_STRIP)
 endif()
 
 if(APPLE)
-  set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/macOS/px68k.icns" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+  set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/macOS/AppIcon.icns" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
   set_target_properties(${BIN_TARGET} PROPERTIES
-      MACOSX_BUNDLE_GUI_IDENTIFIER "com.kameya.px68k"
-      MACOSX_BUNDLE_COPYRIGHT "Copyright (C) kameya."
-      MACOSX_BUNDLE_BUNDLE_NAME "px68k"
-      MACOSX_BUNDLE_DISPLAY_NAME "px68k"
+      MACOSX_BUNDLE_GUI_IDENTIFIER "TurtleBazooka/px68k(${TIMESTAMP})"
+      MACOSX_BUNDLE_BUNDLE_NAME ${BIN_TARGET}
       MACOSX_BUNDLE_INFO_STRING ${PROJECT_VERSION}
-      MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+      MACOSX_BUNDLE_BUNDLE_VERSION ${TIMESTAMP}
       MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
-      MACOSX_BUNDLE_LONG_VERSION_STRING "Version ${PROJECT_VERSION}"
-      MACOSX_BUNDLE_ICON_FILE "px68k.icns"
+      MACOSX_BUNDLE_LONG_VERSION_STRING "Version ${PROJECT_VERSION}(${TIMESTAMP})"
+      MACOSX_BUNDLE_ICON_FILE "AppIcon"
       MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/macOS/Info.plist"
   )
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9.0")

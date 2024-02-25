@@ -165,7 +165,7 @@ void FASTCALL MIDI_Timer(int32_t clk)
 		if (MIDI_Buffered)
 		{
 			MIDI_Buffered--;
-			if ( (MIDI_Buffered<MIDIFIFOSIZE)&&(MIDI_IntEnable&0x40) )		// Tx FIFO Empty Interrupt（エトプリ）
+			if ( (MIDI_Buffered<MIDIFIFOSIZE)&&(MIDI_IntEnable&0x40) )	// Tx FIFO Empty Interrupt（エトプリ）
 			{
 				MIDI_IntFlag |= 0x40;
 				MIDI_IntVect = 0x0c;
@@ -484,21 +484,23 @@ uint8_t FASTCALL MIDI_Read(uint32_t adr)
 			break;
 		case 2:
 			break;
-		case 3:// R34 FIFO Rx Status
+		case 3:// R34 FIFO-Rx Status [Rdy OV FE PE BRK OL AHB Bsy]
 			if(RxW_point > RxR_point){
-			  ret = 0x80;
+			  ret = 0x80;// FIFOにデータあり(NoError)
 			}
 			break;
 		case 4:
 			break;
-		case 5://R54
-			ret = (MIDI_R55 & 0x01);//Tx Enable?
+		case 5:// R54 FIFO-Tx Status [emp Rdy - -  - Idl - Bsy]
 			if (MIDI_Buffered==0){
-				ret |= 0xc0;// FIFO empty & ready
+				  ret = 0xc0;// FIFO empty & Tx ready & Idl
 			}
 			else{
-				if (MIDI_Buffered<=MIDIFIFOSIZE){
-					ret |= 0x40;// FIFO に空きがある
+				if (MIDI_Buffered<MIDIFIFOSIZE){
+				  ret = 0x41;// FIFO に空きがある 送信中
+				}
+				else{
+				  ret = 0x01;// FIFO に空きがない 送信中
 				}
 			}
 			break;

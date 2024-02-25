@@ -7267,7 +7267,7 @@ uint32_t x68_kanji2[][4] = {
 
 
 
-/*SJIS文字列をUTF8に変換*/
+/*UTF8文字列をSJISに変換*/
 uint32_t conv_utf8tosjis(char *dst,char *src)
 {
 	uint8_t h;
@@ -7375,6 +7375,6 @@ uint32_t conv_utf8tosjis(char *dst,char *src)
 
 	*dst++ = '\0';
 
-return flg;/*UTF8に変換できた数*/
+return flg;/*変換できた数*/
 
 }
