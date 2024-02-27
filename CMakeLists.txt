@@ -185,7 +185,7 @@ set(m68k_sources
 
 # == Set Windows icon==
 if (WIN32)
-  list(APPEND m68k_sources icons/icon.rc)
+  list(APPEND m68k_sources macOS/icon.rc)
 endif()
 
 # == WinMM(windows) ==

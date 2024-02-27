@@ -10,8 +10,6 @@
 	<string>TurtleBazooka/px68k(0.15.2)</string>
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
-	<key>CFBundleIconName</key>
-	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>TurtleBazooka/px68k(0.15.2)</string>
 	<key>CFBundleName</key>
