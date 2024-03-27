@@ -298,15 +298,15 @@ void WinDraw_ChangeMode(int32_t flg)
 	uint32_t w_flags = 0;
 
 	if (flg == 1) {
-	  w_flags =  SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN_DESKTOP;
+	  w_flags =  SDL_WINDOW_FULLSCREEN_DESKTOP;
 	  SDL_ShowCursor(SDL_DISABLE);
 	}
 	else{
-	  w_flags =  SDL_WINDOW_SHOWN;
+	  w_flags =  0;
 	  SDL_ShowCursor(SDL_ENABLE);
 	}
 
-	if (Config.WinStrech == 1){w_flags |= SDL_WINDOW_RESIZABLE;}
+	//if (Config.WinStrech == 1){w_flags |= SDL_WINDOW_RESIZABLE;}
 
 	/* clear screen */
 	SDL_SetRenderDrawColor(sdl_render, 0, 0, 0, 0);	/* select color (black) */

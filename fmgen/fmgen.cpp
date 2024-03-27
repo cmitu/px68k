@@ -749,8 +749,11 @@ int32_t Channel4::Prepare()
 	op[3].Prepare();
 	
 	pms = pmtable[op[0].type_][op[0].ms_ & 7];
-	int32_t key = (op[0].IsOn() | op[1].IsOn() | op[2].IsOn() | op[3].IsOn()) ? 1 : 0;
-	int32_t lfo = op[0].ms_ & (op[0].amon_ | op[1].amon_ | op[2].amon_ | (op[3].amon_ ? 0x37 : 7)) ? 2 : 0;
+	int32_t key;
+		(op[0].IsOn() | op[1].IsOn() | op[2].IsOn() | op[3].IsOn()) ? key = 1 : key = 0;
+	int32_t lfo;
+		(op[0].amon_ | op[1].amon_ | op[2].amon_ | op[3].amon_ ) ? lfo = 0x37 : lfo = 7;
+		(op[0].ms_ & lfo) ? lfo = 2 : lfo = 0;
 	return key | lfo;
 }
 
