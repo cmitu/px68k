@@ -35,7 +35,7 @@ void Soft_kbd_CreateScreen(void)
 		p6logd("Can't create Soft_Keyboard Window: %s\n", SDL_GetError());
 		return;
 	}
-	sft_kbd_render  = SDL_CreateRenderer(sft_kbd_window, NULL, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	sft_kbd_render  = SDL_CreateRenderer(sft_kbd_window, NULL, SDL_RENDERER_PRESENTVSYNC);
 	sft_kbd_texture = SDL_CreateTexture(sft_kbd_render, SDL_PIXELFORMAT_RGBA8888,
 							SDL_TEXTUREACCESS_STREAMING, softkey_width, softkey_hight);
 	SDL_SetRenderTarget(sft_kbd_render, sft_kbd_texture);

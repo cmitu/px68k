@@ -40,8 +40,6 @@ int16_t *pbsp = pcmbuffer;
 int16_t *pbrp = pcmbuffer, *pbwp = pcmbuffer;
 int16_t *pbep = &pcmbuffer[PCMBUF_SIZE];
 uint32_t ratebase = 44100;
-int32_t DSound_PreCounter = 0;
-int16_t sdlsndbuf[PCMBUF_SIZE];
 
 int32_t audio_fd = -1;
 
@@ -142,138 +140,21 @@ DSound_Cleanup(void)
 	return TRUE;
 }
 
-static void sound_send(int32_t length)
-{
-
-	ADPCM_Update((int16_t *)pbwp, length, pbsp, pbep);
-	OPM_Update  ((int16_t *)pbwp, length, pbsp, pbep);
-
-#ifndef	NO_MERCURY
-	//Mcry_Update((int16_t *)pcmbufp, length);
-#endif
-
-	pbwp += length * 2;// 2ch
-	if (pbwp >= pbep) {
-		pbwp = pbsp + (pbwp - pbep);
-	}
-
- return;
-}
-
-void FASTCALL DSound_Send0(int32_t clock)
-{
-	int32_t length = 0;
-	int32_t rate;
-
-	if (audio_fd < 0) {
-		return;
-	}
-
-	DSound_PreCounter += (ratebase * clock);
-	while (DSound_PreCounter >= 10000000L) {
-		length++;
-		DSound_PreCounter -= 10000000L;
-	}
-	if (length == 0) {
-		return;
-	}
-	sound_send(length);
-}
-
-static void FASTCALL DSound_Send(int32_t length)
-{
-	int32_t rate;
-
-	if (audio_fd < 0) {
-		return;
-	}
-	sound_send(length);
-}
-
 static void
 sdlaudio_callback(void *userdata, SDL_AudioStream *stream, int len , int total)
 {
-	int32_t lena, lenb, datalen, rate;
-	int16_t *buf;
-
-	// 実行時間測定用(デバック)
-	//static uint32_t bef;
-	//uint32_t now = timeGetTime();
-	//p6logd("tdiff %4d : len %d ", now - bef, len);
-
-	/* clear stream buffer for SDL2.(and SDL1) */
-	//SDL_memset(stream, sound_silence, len);// len はByte数
-
-cb_start:
-	if (pbrp <= pbwp) {
-		// pcmbuffer
-		// +---------+-------------+----------+
-		// |         |/////////////|          |
-		// +---------+-------------+----------+
-		// A         A<--datalen-->A          A
-		// |         |             |          |
-		// pbsp     pbrp          pbwp       pbep
-
-		datalen = pbwp - pbrp;
-		if(datalen == 0){return;}
-		if (datalen < (len / 2)) {
-			// needs more data
-			//DSound_Send((len - datalen) / 4);
-			sound_send((len - datalen) / 4);
-		}
-#if 0
-		datalen = pbwp - pbrp;
-		if (datalen < (len / 2)) {
-			printf("xxxxx not enough sound data xxxxx\n");
-		}
+	//波形生成
+	ADPCM_Update((int16_t *)pbwp, len /4, pbsp, pbep);
+	OPM_Update  ((int16_t *)pbwp, len /4, pbsp, pbep);
+#ifndef	NO_MERCURY
+	//Mcry_Update((int16_t *)pcmbufp, len / 4);
 #endif
-		if (pbrp > pbwp) {
-			// chage to TYPEC or TYPED
-			goto cb_start;
-		}
 
-		buf = pbrp;
-		pbrp += (len / 2);
-		//printf("TYPEA: ");
+	//Streaming!
+	SDL_PutAudioStreamData(stream, pbwp, len );
+	SDL_FlushAudioStream(stream);
 
-	} else {
-		// pcmbuffer
-		// +---------+-------------+----------+
-		// |/////////|             |//////////|
-		// +------+--+-------------+----------+
-		// <-lenb->  A             <---lena--->
-		// A         |             A          A
-		// |         |             |          |
-		// pbsp     pbwp          pbrp       pbep
-
-		lena = pbep - pbrp;
-		if (lena >= (len / 2)) {
-			buf = pbrp;
-			pbrp += (len / 2);
-			//printf("TYPEC: ");
-		} else {
-			lenb = (len / 2) - lena;
-			if ((pbwp - pbsp) < lenb) {
-				//DSound_Send((lenb - (pbwp - pbsp)) / 4);
-				sound_send((lenb - (pbwp - pbsp)) / 4);
-			}
-#if 0
-			if ((pbwp - pbsp) < lenb) {
-				printf("xxxxx not enough sound data xxxxx\n");
-			}
-#endif
-			if(lena != 0){ SDL_memcpy(sdlsndbuf, pbrp, lena * 2); }
-			if(lenb != 0){ SDL_memcpy(&sdlsndbuf[lena], pbsp, lenb * 2); }
-			buf = sdlsndbuf;
-			pbrp = pbsp + lenb;
-			//printf("TYPED: ");
-		}
-	}
-
-	SDL_PutAudioStreamData(stream, buf, len);
-	SDL_FlushAudioStream(stream);//必要？
-
-	//bef = now; //デバック用
+ return;
 }
 
 #else	/* NOSOUND */
