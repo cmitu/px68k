@@ -170,12 +170,18 @@ void FASTCALL ADPCM_Update(int16_t *buffer, int32_t length, int16_t *pbsp, int16
 		OutsIpL[2] = OutsIpL[3];
 		OutsIpL[3] = outs;
 
-		tmpr = INTERPOLATE(OutsIpR, 0);
-		if ( tmpr>32767 ) tmpr = 32767; else if ( tmpr<(-32768) ) tmpr = -32768;
-		*(buffer++) = (int16_t)tmpr;
-		tmpl = INTERPOLATE(OutsIpL, 0);
-		if ( tmpl>32767 ) tmpl = 32767; else if ( tmpl<(-32768) ) tmpl = -32768;
-		*(buffer++) = (int16_t)tmpl;
+		if(ADPCM_Playing){
+		  tmpr = INTERPOLATE(OutsIpR, 0);
+		  if ( tmpr>32767 ) tmpr = 32767; else if ( tmpr<(-32768) ) tmpr = -32768;
+		  *(buffer++) = (int16_t)tmpr;
+		  tmpl = INTERPOLATE(OutsIpL, 0);
+		  if ( tmpl>32767 ) tmpl = 32767; else if ( tmpl<(-32768) ) tmpl = -32768;
+		  *(buffer++) = (int16_t)tmpl;
+		}
+		else{
+		  *(buffer++) = 0;
+		  *(buffer++) = 0;
+		}
 
 		length--;
 	}

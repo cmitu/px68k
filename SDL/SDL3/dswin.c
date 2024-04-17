@@ -31,17 +31,9 @@
 #include	"mercury.h"
 #include	"fmg_wrap.h"
 
-uint16_t	playing = FALSE;
-
-#define PCMBUF_SIZE 48000*2
-int16_t pcmbuffer[PCMBUF_SIZE];
-int16_t *pcmbufp = pcmbuffer;
-int16_t *pbsp = pcmbuffer;
-int16_t *pbrp = pcmbuffer, *pbwp = pcmbuffer;
-int16_t *pbep = &pcmbuffer[PCMBUF_SIZE];
-uint32_t ratebase = 44100;
-
-int32_t audio_fd = -1;
+uint32_t   ratebase = 44100;
+uint16_t   playing  = FALSE;
+int32_t    audio_fd = -1;
 
 #ifndef NOSOUND
 
@@ -143,15 +135,17 @@ DSound_Cleanup(void)
 static void
 sdlaudio_callback(void *userdata, SDL_AudioStream *stream, int len , int total)
 {
+	int16_t pcmbuffer[len + 2];
+
 	//波形生成
-	ADPCM_Update((int16_t *)pbwp, len /4, pbsp, pbep);
-	OPM_Update  ((int16_t *)pbwp, len /4, pbsp, pbep);
+	ADPCM_Update((int16_t *)pcmbuffer, len /4, pcmbuffer, &pcmbuffer[len]);
+	OPM_Update  ((int16_t *)pcmbuffer, len /4, pcmbuffer, &pcmbuffer[len]);
 #ifndef	NO_MERCURY
-	//Mcry_Update((int16_t *)pcmbufp, len / 4);
+	//Mcry_Update((int16_t *)pcmbuffer, len / 4);
 #endif
 
 	//Streaming!
-	SDL_PutAudioStreamData(stream, pbwp, len );
+	SDL_PutAudioStreamData(stream, pcmbuffer, len );
 	SDL_FlushAudioStream(stream);
 
  return;
