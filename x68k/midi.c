@@ -253,8 +253,6 @@ void MIDI_Waitlastexclusiveout(void) {
 // -----------------------------------------------------------------------
 void MIDI_Reset(void) {
 
-	uint32_t msg;
-
 	memset(DelayBuf, 0, sizeof(DelayBuf));
 	DBufPtrW = DBufPtrR = 0;
 
@@ -287,7 +285,7 @@ void MIDI_Reset(void) {
 				break;
 		}
 		MIDI_Waitlastexclusiveout();
-		for (msg=0x7bb0; msg<0x7bc0; msg++) {// all note off
+		for (uint32_t msg=0x7bb0; msg<0x7bc0; msg++) {// all note off
 			midiOutShortMsg(hOut, msg);
 		}
 	}
@@ -358,14 +356,18 @@ void MIDI_Init(void) {
 void MIDI_Cleanup(void) {
 
 	if (hOut) {
-		if (Config.MIDI_SW && Config.MIDI_Reset)  MIDI_Reset();// りせっと〜
-		MIDI_Waitlastexclusiveout();
-		midiOutReset(hOut);
-		midiOutClose(hOut);
-		hOut = 0;
+	  for (uint32_t msg=0x7bb0; msg<0x7bc0; msg++) {// all note off(消音)
+	     midiOutShortMsg(hOut, msg);
+	  }
+
+	  if (Config.MIDI_SW && Config.MIDI_Reset)  MIDI_Reset();// りせっと〜
+	  MIDI_Waitlastexclusiveout();
+	  midiOutReset(hOut);
+	  midiOutClose(hOut);
+	  hOut = 0;
 	}
 	if (hIn) {
-		hIn = 0;
+	  hIn = 0;
 	}
 }
 
