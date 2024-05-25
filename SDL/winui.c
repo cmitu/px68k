@@ -121,7 +121,7 @@ char menu_item_key[][18] = {"SYSTEM", "Joy/Mouse", "FDD0", "FDD1", "HDD0", "HDD1
 
 // Max # of characters is 30.
 // Max # of items including terminater `""' in each line is 15.
-char menu_items[][18][30] = {
+char menu_items[][18][100] = {
 	{"RESET", "NMI RESET", "QUIT", "Eject MO", "SRAM-Clear and RESET", ""},
 	{"Joystick", "Mouse", ""},
 	{"dummy", "EJECT", ""},

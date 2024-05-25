@@ -768,7 +768,7 @@ int32_t main(int32_t argc, char *argv[])
 	sdl_window = SDL_CreateWindowWithProperties(props);
 	SDL_DestroyProperties(props);
 
-	sdl_render = SDL_CreateRenderer( sdl_window ,NULL, SDL_RENDERER_PRESENTVSYNC);
+	sdl_render = SDL_CreateRenderer( sdl_window ,NULL );
 	SDL_SetRenderLogicalPresentation( sdl_render ,FULLSCREEN_WIDTH,
 								FULLSCREEN_HEIGHT,SDL_LOGICAL_PRESENTATION_LETTERBOX,SDL_SCALEMODE_LINEAR);
 	SDL_SetRenderDrawColor(sdl_render, 64, 64, 64, 0);	/* select color (black) */

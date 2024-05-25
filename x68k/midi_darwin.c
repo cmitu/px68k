@@ -21,6 +21,7 @@ uint32_t midiOutShortMsg(HMIDIOUT , uint32_t );
 	MIDIClientRef mid_client;
 	MIDIPortRef mid_out_port;
 	MIDIEndpointRef mid_endpoint;
+	MIDIDeviceRef mid_device;
 	MIDIPacket* mid_Packet = 0;
 
 	MIDIPortRef mid_in_port;
@@ -98,11 +99,20 @@ mid_outDevList(LPHMIDIOUT phmo)
 	}
 
 	/* Store MIDI out port LIST */
-	CFStringRef strRef;
+	CFStringRef strRef,epstrRef,devstrRef;
+	MIDIEntityRef mid_entity;
 	 for(uint32_t i = 0; i<core_mid_num; i++){
 		mid_endpoint = MIDIGetDestination(i);
+		MIDIEndpointGetEntity(mid_endpoint, &mid_entity);
+		MIDIEntityGetDevice(mid_entity, &mid_device);
 		if((mid_endpoint) && (i<8)){// MAX item check(８個までLISTに制限)
-			MIDIObjectGetStringProperty(mid_endpoint, kMIDIPropertyName, &strRef);
+			MIDIObjectGetStringProperty(mid_endpoint, kMIDIPropertyName, &epstrRef);
+			MIDIObjectGetStringProperty(mid_device, kMIDIPropertyName, &devstrRef);
+			if (devstrRef != NULL && CFStringCompare(epstrRef, devstrRef, 0) != kCFCompareEqualTo) {
+			 strRef = CFStringCreateWithFormat(NULL, NULL, CFSTR("%@:%@"), devstrRef, epstrRef);
+			} else {
+			 strRef = epstrRef;
+			}
 			//kCFStringEncodingUTF8：UTF8でポートの名前(string)を取り出す
 			CFStringGetCString(strRef, menu_items[8][Device_num], sizeof(menu_items[8][Device_num]), kCFStringEncodingUTF8);
 			p6logd("Find MIDI out:%s\n",menu_items[8][Device_num]);
@@ -155,11 +165,20 @@ mid_inDevList(LPHMIDIOUT phmo)
 
 	/* Store MIDI in port LIST */
 	mid_source = 0;
-	CFStringRef strRef;
+	CFStringRef strRef,epstrRef,devstrRef;
+	MIDIEntityRef mid_entity;
 	 for(uint32_t i = 0; i<core_mid_num; i++){
 	  mid_source = MIDIGetSource(i);
+	  MIDIEndpointGetEntity(mid_source, &mid_entity);
+	  MIDIEntityGetDevice(mid_entity, &mid_device);
 	  if((mid_source) && (i<8)){// MAX item check(８個までLISTに制限)
-	   MIDIObjectGetStringProperty(mid_source, kMIDIPropertyName, &strRef);
+	   MIDIObjectGetStringProperty(mid_source, kMIDIPropertyName, &epstrRef);
+	   MIDIObjectGetStringProperty(mid_device, kMIDIPropertyName, &devstrRef);
+	   if (devstrRef != NULL && CFStringCompare(epstrRef, devstrRef, 0) != kCFCompareEqualTo) {
+	    strRef = CFStringCreateWithFormat(NULL, NULL, CFSTR("%@:%@"), devstrRef, epstrRef);
+	   } else {
+	    strRef = epstrRef;
+	   }
 	   //kCFStringEncodingUTF8：UTF8でポートの名前(string)を取り出す
 	   CFStringGetCString(strRef, menu_items[9][Device_num], sizeof(menu_items[9][Device_num]),kCFStringEncodingUTF8);
 	   p6logd("Find MIDI in :%s\n",menu_items[9][Device_num]);
