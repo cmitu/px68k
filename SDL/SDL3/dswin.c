@@ -68,7 +68,7 @@ DSound_Init(uint32_t rate)
 	fmt_pc.freq = rate;
 	fmt_pc.channels = 2;
 	fmt_pc.format = SDL_AUDIO_S16LE;
-	audio_dev = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_OUTPUT, &fmt_pc);
+	audio_dev = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &fmt_pc);
 	if (audio_dev == 0) {
 	    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_OpenAudioDevice() failed: %s\n", SDL_GetError());
 	    return FALSE;
