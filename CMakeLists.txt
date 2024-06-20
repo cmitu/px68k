@@ -21,21 +21,11 @@ project(px68k VERSION ${PROJECT_VERSION})
 # == Get TimeStamp ==
 string(TIMESTAMP TIMESTAMP "%Y%m%d")
 
-# == Option definition ==
-add_definitions(
-#	-DNO_SOUND
-	-DNO_MERCURY
-	-DPX68K_VERSION=${PROJECT_VERSION}+K
-	-DHAVE_STDINT_H
-	)
-
+# == option ==
 option(SDL2 "Use SDL2" ON)
 option(NO_MIDI "No MIDI Play" OFF)
 option(FLUID "Use fluidsynth" OFF)
-
-if(SDL2)
-add_definitions( -DSDL2 )
-endif ()
+option(NO_MERCURY "No Mercury" OFF)
 
 # ==Set compile options ==
 add_compile_options(
@@ -44,6 +34,19 @@ add_compile_options(
 	-O0
     -fstrict-aliasing
   )
+
+# == Option definition ==
+add_definitions(
+#	-DNO_SOUND
+	-DPX68K_VERSION=${PROJECT_VERSION}+K
+	-DHAVE_STDINT_H
+	)
+
+if (NO_MERCURY)
+add_definitions(
+	-DNO_MERCURY
+	)
+endif()
 
 # == Find SDL2/3 library and add to linker flags ==
 if(SDL2)
