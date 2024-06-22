@@ -1262,12 +1262,13 @@ bool OPNA::SetRate(uint32_t c, uint32_t r, bool ipflag)
 //
 bool OPNA::LoadRhythmSample(const char* path)
 {
-	static const char* rhythmname[6] =
-	{
-		"BD", "SD", "TOP", "HH", "TOM", "RIM",
+	static const char* rhythmname[2][7] = {
+		{ "bd.wav", "sd.wav", "top.wav", "hh.wav", "tom.wav", "rim.wav", "rym.wav" },
+		{ "BD.WAV", "SD.WAV", "TOP.WAV", "HH.WAV", "TOM.WAV", "RIM.WAV", "RYM.WAV" }
 	};
 
-	int_fast16_t i;
+	int_fast16_t i,j;
+	int result;
 	for (i=0; i<6; i++)
 		rhythm[i].pos = ~0;
 
@@ -1276,23 +1277,30 @@ bool OPNA::LoadRhythmSample(const char* path)
 		FileIO file;
 		uint32_t fsize;
 		char buf[MAX_PATH] = "";
-		if (path)
-			strncpy(buf, path, MAX_PATH);
-		strncat(buf, "2608_", MAX_PATH - 1);
-		strncat(buf, rhythmname[i], MAX_PATH - 1);
-		strncat(buf, ".WAV", MAX_PATH - 1);
 
-		if (!file.Open(buf, FileIO::readonly))
+		for(j=0; j<2; j++)
 		{
-			if (i != 5)
-				break;
+		 if (path)
+			strncpy(buf, path, MAX_PATH);
+		 strncat(buf, "2608_", MAX_PATH);
+		 strncat(buf, rhythmname[j][i], MAX_PATH);
+		 result = file.Open(buf, FileIO::readonly);
+			if(result) break;
+		}
+		if(!result){
+			if( i!=5 )	break; // The END.
+			for(j=0; j<2; j++)
+			{
 			if (path)
 				strncpy(buf, path, MAX_PATH);
-			strncpy(buf, "2608_RYM.WAV", MAX_PATH);
-			if (!file.Open(buf, FileIO::readonly))
-				break;
+			strncat(buf, "2608_", MAX_PATH);
+			strncat(buf, rhythmname[j][6], MAX_PATH);
+			result = file.Open(buf, FileIO::readonly);
+			if(result) break;
+			}
+			if(!result) break;
 		}
-		
+
 		struct
 		{
 			uint32_t chunksize;
@@ -1968,12 +1976,12 @@ bool Y288::SetRate(uint32_t c, uint32_t r, bool ipflag)
 //
 bool Y288::LoadRhythmSample(const char* path)
 {
-	static const char* rhythmname[6] =
-	{
-		"BD", "SD", "TOP", "HH", "TOM", "RIM",
+	static const char* rhythmname[2][7] = {
+		{ "bd.wav", "sd.wav", "top.wav", "hh.wav", "tom.wav", "rim.wav", "rym.wav" },
+		{ "BD.WAV", "SD.WAV", "TOP.WAV", "HH.WAV", "TOM.WAV", "RIM.WAV", "RYM.wav" }
 	};
 
-	int_fast32_t i;
+	int_fast32_t i,j,result;
 	for (i=0; i<6; i++)
 		rhythm[i].pos = ~0;
 
@@ -1982,23 +1990,30 @@ bool Y288::LoadRhythmSample(const char* path)
 		FileIO file;
 		uint32_t fsize;
 		char buf[MAX_PATH + 1] = "";
-		if (path)
-			strncpy(buf, path, MAX_PATH);
-		strncat(buf, "2608_", MAX_PATH);
-		strncat(buf, rhythmname[i], MAX_PATH);
-		strncat(buf, ".WAV", MAX_PATH);
 
-		if (!file.Open(buf, FileIO::readonly))
+		for(j=0; j<2; j++)// CaseSensitive
 		{
-			if (i != 5)
-				break;
-			if (path)
-				strncpy(buf, path, MAX_PATH);
-			strncpy(buf, "2608_RYM.WAV", MAX_PATH);
-			if (!file.Open(buf, FileIO::readonly))
-				break;
+		 if (path)
+			strncpy(buf, path, MAX_PATH);
+		 strncat(buf, "2608_", MAX_PATH);
+		 strncat(buf, rhythmname[j][i], MAX_PATH);
+		 result = file.Open(buf, FileIO::readonly);
+			if(result) break;
 		}
-		
+		if(!result){
+			if( i!=5 )	break; // The END.
+			for(j=0; j<2; j++)// CaseSensitive for RYM
+			{
+			 if (path)
+				strncpy(buf, path, MAX_PATH);
+			 strncat(buf, "2608_", MAX_PATH);
+			 strncat(buf, rhythmname[j][6], MAX_PATH);
+			 result = file.Open(buf, FileIO::readonly);
+			 if(result) break;
+			}
+			if(!result) break;
+		}
+
 		struct
 		{
 			uint32_t chunksize;
