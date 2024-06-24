@@ -1280,10 +1280,7 @@ bool OPNA::LoadRhythmSample(const char* path)
 
 		for(j=0; j<2; j++)
 		{
-		 if (path)
-			strncpy(buf, path, MAX_PATH);
-		 strncat(buf, "2608_", MAX_PATH);
-		 strncat(buf, rhythmname[j][i], MAX_PATH);
+		 snprintf( buf, sizeof(buf), "%s2608_%s", path, rhythmname[j][i] );
 		 result = file.Open(buf, FileIO::readonly);
 			if(result) break;
 		}
@@ -1291,10 +1288,7 @@ bool OPNA::LoadRhythmSample(const char* path)
 			if( i!=5 )	break; // The END.
 			for(j=0; j<2; j++)
 			{
-			if (path)
-				strncpy(buf, path, MAX_PATH);
-			strncat(buf, "2608_", MAX_PATH);
-			strncat(buf, rhythmname[j][6], MAX_PATH);
+			snprintf( buf, sizeof(buf), "%s2608_%s", path, rhythmname[j][i] );
 			result = file.Open(buf, FileIO::readonly);
 			if(result) break;
 			}
