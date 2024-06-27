@@ -1475,10 +1475,11 @@ static uint16_t jis2idx(uint16_t jc)
 #define MENU_WIDTH 800
 #endif
 
-// fs : font size : 8 or 16/24
+// IN:sjis Shift-JIS fs : font size(8 or 16/24)
+// Out: TRUE/FALSE  addr:FONT-ROM address
 // 半角文字の場合は16bitの上位8bitにデータを入れておくこと
 // (半角or全角の判断ができるように)
-static uint32_t get_font_addr(uint16_t sjis, int32_t fs)
+static BOOL get_font_addr(uint16_t sjis, int32_t fs, uint32_t *addr)
 {
 
 	// 1Byte code
@@ -1486,12 +1487,16 @@ static uint32_t get_font_addr(uint16_t sjis, int32_t fs)
 	if (isHankaku(half_byte)) {
 		switch (fs) {
 		case 8:
-			return (0x3a000 + half_byte * (1 * 8));
+			*addr = (0x3a000 + half_byte * (1 * 8));
+			return TRUE;
 		case 16:
-			return (0x3a800 + half_byte * (1 * 16));
+			*addr = (0x3a800 + half_byte * (1 * 16));
+			return TRUE;
 		case 24:
-			return (0x3d000 + half_byte * (2 * 24));
+			*addr = (0x3d000 + half_byte * (2 * 24));
+			return TRUE;
 		default:
+			*addr = 0;
 			return FALSE;
 		}
 	}
@@ -1507,6 +1512,7 @@ static uint32_t get_font_addr(uint16_t sjis, int32_t fs)
 	} else if (fs == 24) {
 		fsb = 3 * 24;
 	} else {
+		*addr = 0;
 		return FALSE;
 	}
 
@@ -1518,13 +1524,16 @@ static uint32_t get_font_addr(uint16_t sjis, int32_t fs)
 
 	if (jhi >= 0x21 && jhi <= 0x28) {
 		// 非漢字
-		return  ((fs == 16)? 0x0 : 0x40000) + j_idx * fsb;
+		*addr = ((fs == 16)? 0x0 : 0x40000) + j_idx * fsb;
+		return TRUE;
 	} else if (jhi >= 0x30 && jhi <= 0x74) {
 		// 第一水準/第二水準
-		return  ((fs == 16)? 0x5e00 : 0x4d380) + j_idx * fsb;
+		*addr = ((fs == 16)? 0x5e00 : 0x4d380) + j_idx * fsb;
+		return TRUE;
 	}
 
 	// ここにくることはないはず
+	*addr = 0;
 	return FALSE;
 }
 
@@ -1576,7 +1585,7 @@ static void draw_char(uint16_t sjis)
 {
 	uint32_t f;
 	uint32_t *p;
-	int32_t i, j, k, wc, w;
+	int32_t i, j, k, wc, w, result;
 	uint8_t c;
 	uint32_t bc,ch;
 
@@ -1602,8 +1611,8 @@ static void draw_char(uint16_t sjis)
 	p = get_ml_ptr();
 
 	/*Font data address*/
-	f = get_font_addr(sjis, h);
-	if ((f == FALSE) || (f > 0x0c0000)){
+	result = get_font_addr(sjis, h, &f);
+	if ((result == FALSE) || (f > 0x0c0000)){
 		return;
 	}
 
