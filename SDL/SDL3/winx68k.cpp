@@ -632,7 +632,7 @@ get_cmd_line(int32_t argc, char *argv[])
 
 /* Drag & Drop file */
 void
-drop_file(char* dropped_fileurl)
+drop_file(const char* dropped_fileurl)
 {
   char strwork[20];
   char *p;
@@ -1072,13 +1072,13 @@ int32_t main(int32_t argc, char *argv[])
 					break;
 				}
 #endif
-				p6logd("keydown: 0x%x\n", ev.key.keysym.sym);
+				p6logd("keydown: 0x%x\n", ev.key.key);
 				// F12 だけじゃなくescでもmenu抜ける
-				if ((ev.key.keysym.sym == SDLK_ESCAPE) &&
+				if ((ev.key.key == SDLK_ESCAPE) &&
 					(menu_mode != menu_out) && (menu_state == ms_key)){
-						ev.key.keysym.sym = SDLK_F12;
+						ev.key.key = SDLK_F12;
 				}
-				if (ev.key.keysym.sym == SDLK_F12) {
+				if (ev.key.key == SDLK_F12) {
 					if (menu_mode == menu_out) {
 						menu_mode = menu_enter;
 						DSound_Stop();
@@ -1089,26 +1089,26 @@ int32_t main(int32_t argc, char *argv[])
 						break;
 					}
 				}
-				if (ev.key.keysym.sym == SDLK_F11) { /*toggle Full-Screen mode*/
+				if (ev.key.key == SDLK_F11) { /*toggle Full-Screen mode*/
 					if(FullScreenFlag == 0){ FullScreenFlag = 1; }
 					else{FullScreenFlag = 0;}
 					WinDraw_ChangeMode(FullScreenFlag);
 				}
 #ifdef WIN68DEBUG
-				if (ev.key.keysym.sym == SDLK_F10) {
+				if (ev.key.key == SDLK_F10) {
 					traceflag ^= 1;
 					p6logd("trace %s\n", (traceflag)?"on":"off");
 				}
 #endif
 				if (menu_mode != menu_out) {
-					menu_key_down = ev.key.keysym.sym;
+					menu_key_down = ev.key.key;
 				} else {
-					Keyboard_KeyDown(ev.key.keysym.sym,ev.key.keysym.scancode);//phisical code + α
+					Keyboard_KeyDown(ev.key.key,ev.key.scancode);//phisical code + α
 				}
 				break;
 			case SDL_EVENT_KEY_UP:
 				//p6logd("keyup: 0x%x 0x%x\n", ev.key.keysym.sym,ev.key.keysym.scancode);
-				Keyboard_KeyUp(ev.key.keysym.sym,ev.key.keysym.scancode);//phisical code + α
+				Keyboard_KeyUp(ev.key.key,ev.key.scancode);//phisical code + α
 				break;
 			case SDL_EVENT_GAMEPAD_AXIS_MOTION:
 				GamePadAxis_Update(ev.gaxis.which, ev.gaxis.axis, ev.gaxis.value);
