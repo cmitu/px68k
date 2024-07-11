@@ -12,4 +12,4 @@ Requires.private:
 Conflicts:
 Libs: -F${libdir} -framework SDL2
 Libs.private:  -lSDL2 -Wl,-framework,CoreVideo -Wl,-framework,Cocoa -Wl,-framework,IOKit -Wl,-framework,ForceFeedback -Wl,-framework,Carbon -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,AVFoundation -Wl,-framework,Foundation -Wl,-weak_framework,GameController -Wl,-weak_framework,Metal -Wl,-weak_framework,QuartzCore -Wl,-weak_framework,CoreHaptics  -lm -liconv
-Cflags: -F${libdir} -D_THREAD_SAFE
+Cflags: -F${libdir} -I${libdir}/SDL2.framework/Headers  -D_THREAD_SAFE
