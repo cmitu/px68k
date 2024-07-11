@@ -1288,7 +1288,7 @@ bool OPNA::LoadRhythmSample(const char* path)
 			if( i!=5 )	break; // The END.
 			for(j=0; j<2; j++)
 			{
-			snprintf( buf, sizeof(buf), "%s2608_%s", path, rhythmname[j][i] );
+			snprintf( buf, sizeof(buf), "%s2608_%s", path, rhythmname[j][6] );
 			result = file.Open(buf, FileIO::readonly);
 			if(result) break;
 			}

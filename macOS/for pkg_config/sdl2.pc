@@ -1,0 +1,15 @@
+# sdl pkg-config source file
+
+libdir=/Library/Frameworks
+prefix=${libdir}/SDL2.framework
+exec_prefix=${prefix}
+includedir=${prefix}/Headers
+
+Name: sdl2
+Description: Simple DirectMedia Layer is a cross-platform multimedia library designed to provide low level access to audio, keyboard, mouse, joystick, 3D hardware via OpenGL, and 2D video framebuffer.
+Version: 2.30.0
+Requires.private: 
+Conflicts:
+Libs: -F${libdir} -framework SDL2
+Libs.private:  -lSDL2 -Wl,-framework,CoreVideo -Wl,-framework,Cocoa -Wl,-framework,IOKit -Wl,-framework,ForceFeedback -Wl,-framework,Carbon -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,AVFoundation -Wl,-framework,Foundation -Wl,-weak_framework,GameController -Wl,-weak_framework,Metal -Wl,-weak_framework,QuartzCore -Wl,-weak_framework,CoreHaptics  -lm -liconv
+Cflags: -F${libdir} -D_THREAD_SAFE

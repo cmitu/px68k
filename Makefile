@@ -32,7 +32,7 @@ PROGRAM = px68k.sdl2
 filename = SDL2.framework
 filechk = $(shell ls /Library/Frameworks | grep ${filename})
 ifeq (${filechk}, ${filename})
-SDL_INCLUDE= -I/Library/Frameworks/SDL2.framework/Headers -I./macOS -D_THREAD_SAFE
+SDL_INCLUDE= -F/Library/Frameworks -D_THREAD_SAFE
 SDL_LIB= -F/Library/Frameworks -framework SDL2
 SDL_TTF_INC = -I/Library/Frameworks/SDL2_ttf.framework/Headers
 SDL_TTF_LIB = -F/Library/Frameworks -framework SDL2_ttf
@@ -42,7 +42,7 @@ PROGRAM = px68k.sdl3
 filename = SDL3.framework
 filechk = $(shell ls /Library/Frameworks | grep ${filename})
 ifeq (${filechk}, ${filename})
-SDL_INCLUDE= -I/Library/Frameworks/SDL3.framework/Headers -I./macOS -D_THREAD_SAFE
+SDL_INCLUDE= -F/Library/Frameworks -D_THREAD_SAFE
 SDL_LIB= -F/Library/Frameworks -framework SDL3
 endif
 endif
