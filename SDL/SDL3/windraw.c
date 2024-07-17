@@ -508,8 +508,7 @@ int32_t WinDraw_Init(void)
 #else // OpenGL ES end
 
 	/* X68000 Drawing Area for SDL3 */
-	sdl_x68screen = SDL_CreateSurface(800, 600,
-					SDL_GetPixelFormatEnumForMasks(32, WinDraw_Pal32R, WinDraw_Pal32G, WinDraw_Pal32B, 0));
+	sdl_x68screen = SDL_CreateSurface(800, 600,SDL_PIXELFORMAT_RGBA8888 );
 
 	if (sdl_x68screen == NULL) return FALSE;
 	ScrBuf = sdl_x68screen->pixels;
@@ -1697,8 +1696,7 @@ int32_t WinDraw_MenuInit(void)
 #else
 
 	/*SDL3 menu-surface */
-	menu_surface = SDL_CreateSurface( 800, 600,
-				SDL_GetPixelFormatEnumForMasks(32, WinDraw_Pal32R, WinDraw_Pal32G, WinDraw_Pal32B, 0));
+	menu_surface = SDL_CreateSurface( 800, 600,SDL_PIXELFORMAT_RGBA8888);
 
 
 	if (!menu_surface)

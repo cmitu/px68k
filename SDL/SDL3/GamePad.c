@@ -199,10 +199,12 @@ void GamePad_Open(void)
     for (i = 0; i < nr_joys; i++) {
 		if ( SDL_IsGamepad(i) )
 		{
-			name = SDL_GetGamepadInstanceName(i);
+			sdl_gamepad = SDL_OpenGamepad(i);
+			name = SDL_GetGamepadName(sdl_gamepad);
 			strcpy(menu_items[13][i],name);
 			//p6logd("Game Controller %d: %s\n", i, name ? name : "Unknown Controller");
 			p6logd("GamePad No.%d %s connected.\n", i,name);
+			SDL_CloseGamepad(sdl_gamepad);
 		}
 		else{
 		  strcpy(menu_items[13][i],"Not Compatible GamePad");
@@ -299,11 +301,11 @@ void GamePad_Add(SDL_JoystickID padid)
 	 }
 	}
 	GamePadID[id] = padid;
-	strcpy(menu_items[13][id],SDL_GetGamepadInstanceName(padid));
+	sdl_gamepad = SDL_OpenGamepad( padid );
+	strcpy(menu_items[13][id],SDL_GetGamepadName(sdl_gamepad));
 	strcpy(menu_items[13][id+1],"\0"); // Menu item END
 
-	sdl_gamepad = SDL_OpenGamepad( padid );
-	p6logd("Open %s as %d.\n",SDL_GetGamepadInstanceName(padid),padid);
+	p6logd("Open %s as %d.\n",menu_items[13][id],padid);
 
 	return;
 }
