@@ -36,11 +36,11 @@ void Soft_kbd_CreateScreen(void)
 		return;
 	}
 	sft_kbd_render  = SDL_CreateRenderer(sft_kbd_window, NULL );
-	sft_kbd_texture = SDL_CreateTexture(sft_kbd_render, SDL_PIXELFORMAT_RGBA8888,
+	sft_kbd_texture = SDL_CreateTexture(sft_kbd_render, SDL_PIXELFORMAT_RGBX8888,
 							SDL_TEXTUREACCESS_STREAMING, softkey_width, softkey_hight);
 	SDL_SetRenderTarget(sft_kbd_render, sft_kbd_texture);
 
-	keydraw_buffer = SDL_CreateSurface( 800, 220,SDL_PIXELFORMAT_RGBA8888);//描画用
+	keydraw_buffer = SDL_CreateSurface( 800, 220,SDL_PIXELFORMAT_RGBX8888);//描画用
 
  return;
 }
@@ -85,7 +85,7 @@ void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y, uint8_t keyboardLED)
 	if (sft_kbd_window == NULL) return;
 
 	//Bpp = keydraw_buffer->format->bytes_per_pixel;
-	Bpp = 4; //RGBA8888 = 4byte/Pixcel
+	Bpp = 4; //RGBX8888 = 4byte/Pixcel
 
 	//sleep判定
 	if((keyboardLED == 0xff) && (LED_X68 == 0x80)){
@@ -186,7 +186,7 @@ void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y, uint8_t keyboardLED)
 	}
 
 	// 描画結果を画面に表示(SDL2)
-	SDL_UpdateTexture(sft_kbd_texture, NULL,keydraw_buffer->pixels, 800*Bpp );
+	SDL_UpdateTexture(sft_kbd_texture, NULL,keydraw_buffer->pixels, keydraw_buffer->pitch );
 	SDL_RenderTexture(sft_kbd_render, sft_kbd_texture, NULL, NULL);
 	SDL_RenderPresent(sft_kbd_render);
 

@@ -51,13 +51,13 @@ endif
 # for SDL2/3 LINK (use pkg-config)
 ifeq (${SDL_INCLUDE}, "")
 ifndef SDL3
-SDL_INCLUDE = $(shell pkg-config sdl2 --cflags) -I./macOS
+SDL_INCLUDE = $(shell pkg-config sdl2 --cflags)
 SDL_LIB     = $(shell pkg-config sdl2 --libs)
 SDL_TTF_INC = $(shell pkg-config SDL2_ttf --cflags)
 SDL_TTF_LIB = $(shell pkg-config SDL2_ttf --libs)
 PROGRAM = px68k.sdl2
 else
-SDL_INCLUDE= $(shell pkg-config sdl3 --cflags) -I./macOS
+SDL_INCLUDE= $(shell pkg-config sdl3 --cflags)
 SDL_LIB= $(shell pkg-config sdl3 --libs)
 PROGRAM = px68k.sdl3
 endif

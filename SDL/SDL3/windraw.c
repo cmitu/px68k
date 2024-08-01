@@ -253,7 +253,7 @@ void WinGetRootSize(void)
 {
 	/*==マルチ・ディスプレイ　プライマリ(0)の現在の解像度を調査==*/
 	int num_modes = 0;
-	const SDL_DisplayMode **modes;
+	SDL_DisplayMode **modes;
 	const SDL_DisplayMode *mode;
 	SDL_DisplayID display = SDL_GetPrimaryDisplay();
 
@@ -263,7 +263,7 @@ void WinGetRootSize(void)
 		root_width   = mode->w;/*PrimaryDisplayの最大解像度*/
 		root_height  = mode->h;
 		//sdl_byte_per_pixel = mode->pixel_density; /*bit深度*/
-		SDL_free(modes);
+		//SDL_free(modes);
 		printf("メイン画面の最大解像度:%d x %d \n",root_width,root_height);
 	}
 	else{
@@ -337,8 +337,8 @@ int32_t WinDraw_Init(void)
 	WindowX = 768;
 	WindowY = 512;
 
-	/* SDL2 create Texture */
-	sdl_texture = SDL_CreateTexture(sdl_render,SDL_PIXELFORMAT_RGBA8888,
+	/* SDL3 create Texture */
+	sdl_texture = SDL_CreateTexture(sdl_render,SDL_PIXELFORMAT_RGBX8888,
 		SDL_TEXTUREACCESS_STREAMING, 800, 600);
 	if (sdl_texture == NULL) {
 		fprintf(stderr, "can't create texture.\n");
@@ -508,7 +508,7 @@ int32_t WinDraw_Init(void)
 #else // OpenGL ES end
 
 	/* X68000 Drawing Area for SDL3 */
-	sdl_x68screen = SDL_CreateSurface(800, 600,SDL_PIXELFORMAT_RGBA8888 );
+	sdl_x68screen = SDL_CreateSurface(800, 600,SDL_PIXELFORMAT_RGBX8888 );
 
 	if (sdl_x68screen == NULL) return FALSE;
 	ScrBuf = sdl_x68screen->pixels;
@@ -606,14 +606,14 @@ Update_Screen(uint32_t menu)
 
 	/*surface(Main mem.) → texture(Frame buff.) */
 	if(menu){
-	  SDL_UpdateTexture(sdl_texture, NULL, menu_surface->pixels, 800*4);//32bit depth
+	  SDL_UpdateTexture(sdl_texture, NULL, menu_surface->pixels, menu_surface->pitch);//32bit depth
 	  x68rect.x = CRTrect.x = 0;
 	  x68rect.y = CRTrect.y = 0;
 	  x68rect.w = CRTrect.w = 800;
 	  x68rect.h = CRTrect.h = 600;
 	}
 	else{
-	  SDL_UpdateTexture(sdl_texture, NULL, ScrBuf, 800*4);//32bit depth
+	  SDL_UpdateTexture(sdl_texture, NULL, sdl_x68screen->pixels, sdl_x68screen->pitch);//32bit depth
 	  /*texture → renderer copy rect */
 	  x68rect.x = 0;
 	  x68rect.y = 0;
