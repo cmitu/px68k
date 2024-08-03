@@ -75,7 +75,7 @@ extern void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y, uint8_t keyboardLED);
 /*描画する*/
 void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y, uint8_t keyboardLED)
 {
-	int32_t i, x, y,Bpp;
+	int32_t i, x, y;
 	uint32_t *p;
 	uint32_t keycolor;
 	SDL_Rect keyrect;
@@ -83,9 +83,6 @@ void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y, uint8_t keyboardLED)
 	uint32_t skb_keycolor;
 
 	if (sft_kbd_window == NULL) return;
-
-	//Bpp = keydraw_buffer->format->bytes_per_pixel;
-	Bpp = 4; //RGBX8888 = 4byte/Pixcel
 
 	//sleep判定
 	if((keyboardLED == 0xff) && (LED_X68 == 0x80)){
@@ -185,7 +182,7 @@ void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y, uint8_t keyboardLED)
 	 y >>= 1;
 	}
 
-	// 描画結果を画面に表示(SDL2)
+	// 描画結果を画面に表示(SDL3)
 	SDL_UpdateTexture(sft_kbd_texture, NULL,keydraw_buffer->pixels, keydraw_buffer->pitch );
 	SDL_RenderTexture(sft_kbd_render, sft_kbd_texture, NULL, NULL);
 	SDL_RenderPresent(sft_kbd_render);

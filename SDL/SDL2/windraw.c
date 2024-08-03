@@ -235,7 +235,7 @@ WinDraw_InitWindowSize(uint32_t ScreenX, uint32_t ScreenY, uint32_t StartX, uint
 
 	//printf("XY %d:%d %d:%d\n",surfaceW,surfaceH,drawW,drawH);
 
-	//clippng...
+	//clipping...
 	if(drawW<0){ drawW=0; }
 	if(drawH<0){ drawH=0; }
 
@@ -339,7 +339,7 @@ int32_t WinDraw_Init(void)
 	WindowY = 512;
 
 	/* SDL2 create Texture */
-	sdl_texture = SDL_CreateTexture(sdl_render,SDL_PIXELFORMAT_RGBA8888,
+	sdl_texture = SDL_CreateTexture(sdl_render,SDL_PIXELFORMAT_RGBX8888,
 		SDL_TEXTUREACCESS_STREAMING, 800, 600);
 	if (sdl_texture == NULL) {
 		fprintf(stderr, "can't create texture.\n");
@@ -607,14 +607,14 @@ Update_Screen(uint32_t menu)
 
 	/*surface(Main mem.) → texture(Frame buff.) */
 	if(menu){
-	  SDL_UpdateTexture(sdl_texture, NULL, menu_surface->pixels, 800*4);//32bit depth
+	  SDL_UpdateTexture(sdl_texture, NULL, menu_surface->pixels, menu_surface->pitch);//32bit depth
 	  x68rect.x = CRTrect.x = 0;
 	  x68rect.y = CRTrect.y = 0;
 	  x68rect.w = CRTrect.w = 800;
 	  x68rect.h = CRTrect.h = 600;
 	}
 	else{
-	  SDL_UpdateTexture(sdl_texture, NULL, ScrBuf, 800*4);//32bit depth
+	  SDL_UpdateTexture(sdl_texture, NULL, sdl_x68screen->pixels, sdl_x68screen->pitch);//32bit depth
 	  /*texture → renderer copy rect */
 	  x68rect.x = 0;
 	  x68rect.y = 0;

@@ -87,7 +87,7 @@ GLuint shader_prog, v_shader, f_shader;
 extern SDL_DisplayMode sdl_dispmode;
 #endif
 
-/* Drawing SDL2 buffer */
+/* Drawing SDL3 buffer */
 extern SDL_Window *sdl_window;
 extern SDL_Renderer *sdl_render;
 extern SDL_Texture *sdl_texture;
@@ -98,13 +98,6 @@ SDL_Surface *menu_surface;
 #endif
 
 extern int32_t VID_MODE, CHANGEAV_TIMING;
-
-
-//int32_t WinDraw_Init(void);
-//void WinDraw_StartupScreen(void);
-//void WinDraw_Draw(void);
-//int32_t WinDraw_ChangeSize(void);
-//uint32_t conv_utf8tosjis();
 
 #define	APPNAME	"Keropi"
 
@@ -235,7 +228,7 @@ WinDraw_InitWindowSize(uint32_t ScreenX, uint32_t ScreenY, uint32_t StartX, uint
 
 	//printf("XY %d:%d %d:%d\n",surfaceW,surfaceH,drawW,drawH);
 
-	//clippng...
+	//clipping...
 	if(drawW<0){ drawW=0; }
 	if(drawH<0){ drawH=0; }
 

@@ -333,7 +333,7 @@ WinX68k_LoadROMs(void)
 	}
 #endif
 
-	SDL_SetWindowTitle(sdl_window, window_title); /*SDL2 only*/
+	SDL_SetWindowTitle(sdl_window, window_title); /*SDL2/3*/
 
 	return flg;
 }
