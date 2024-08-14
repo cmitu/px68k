@@ -25,7 +25,7 @@
 	uint32_t	Pal32_FullMask, Pal32_X68kMask;
 
 // 32bit depth Pallete init 
-// SDL2では32bitのRGBA8888:RRRRRIxxGGGGGIxxBBBBBIxx00000000 にしてみやう。
+// SDL2では24bitのRGBX8888:RRRRRIxxGGGGGIxxBBBBBIxx00000000 にしてみやう。
 void Pal32_SetColor(void)
 {
 	uint32_t r, g, b, i;
@@ -167,7 +167,7 @@ void Pal_TrackContrast(void)
 
 // -----------------------------------------------------------------------
 //   こんとらすと変更（パレットに対するSDL_Surface側の表示色で実現してます ^^;）
-// X68000のRGBI(16bit:GGGGGRRRRRBBBBBI)をRGBA8888の24bitColorに輝度情報含めて変換っすよ
+// X68000のRGBI(16bit:GGGGGRRRRRBBBBBI)をRGBX8888の24bitColorに輝度情報含めて変換っすよ
 // -----------------------------------------------------------------------
 void Pal32_ChangeContrast(int32_t num)
 {
