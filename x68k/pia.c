@@ -32,27 +32,28 @@ void PIA_Init(void)
 
 
 // -----------------------------------------------------------------------
-//   I/O Write
+//   I/O Write (8255A)
 // -----------------------------------------------------------------------
 void FASTCALL PIA_Write(uint32_t adr, uint8_t data)
 {
 	uint8_t mask, bit, portc = pia.PortC;
 
-	switch(adr){
-	case 0xe9a001://PortA
+	/*0xe9a000 ~ 0xe9bfff*/
+	switch(adr & 0x07){
+	case 0x01://PortA
 		pia.PortA = data;
 		break;
-	case 0xe9a003://PortB
+	case 0x03://PortB
 		pia.PortB = data;
 		break;
-	case 0xe9a005://PortC
+	case 0x05://PortC
 		portc = pia.PortC;
 		pia.PortC = data;
 		if ( (portc&0x0f)!=(pia.PortC&0x0f) ) ADPCM_SetPan(pia.PortC&0x0f);
 		if ( (portc&0x10)!=(pia.PortC&0x10) ) Joystick_Write(0, (uint8_t)((data&0x10)?0xff:0x00));
 		if ( (portc&0x20)!=(pia.PortC&0x20) ) Joystick_Write(1, (uint8_t)((data&0x20)?0xff:0x00));
 		break;
-	case 0xe9a007://Control
+	case 0x07://Control
 		if ( !(data&0x80) ) {
 			portc = pia.PortC;
 			bit = (data>>1)&7;// bit NO.
@@ -77,25 +78,26 @@ void FASTCALL PIA_Write(uint32_t adr, uint8_t data)
 
 
 // -----------------------------------------------------------------------
-//   I/O Read
+//   I/O Read (8255A)
 // -----------------------------------------------------------------------
 uint8_t FASTCALL PIA_Read(uint32_t adr)
 {
 	uint8_t ret=0xff;
 
-	switch(adr){
-	case 0xe9a001://PortA
+	/*0xe9a000 ~ 0xe9bfff*/
+	switch(adr & 0x07){
+	case 0x01://PortA
 		if(pia.Ctrl & 0x10) ret = Joystick_Read(0);
 		else ret = pia.PortA;
 		break;
-	case 0xe9a003://PortB
+	case 0x03://PortB
 		if(pia.Ctrl & 0x02) ret = Joystick_Read(1);
 		else ret = pia.PortB;
 		break;
-	case 0xe9a005://PortC
+	case 0x05://PortC
 		ret = pia.PortC;
 		break;
-	case 0xe9a007://Control
+	case 0x07://Control
 		ret = pia.Ctrl;
 		break;
 	default:

@@ -464,7 +464,7 @@ uint8_t FASTCALL MIDI_Read(uint32_t adr)
 		return 0xff;
 	}
 
-	switch(adr&15) /*CZ-6BM1(1st MIDI)*/
+	switch(adr & 0x0f) /*CZ-6BM1(1st MIDI)*/
 	{
 	case 0x01://R00
 		ret = (MIDI_Vector | MIDI_IntVect);
@@ -657,7 +657,7 @@ void FASTCALL MIDI_Write(uint32_t adr, uint8_t data)
 	}
 
 
-	switch(adr&15)
+	switch(adr & 0x0f)
 	{
 	case 0x01://R00
 		break;

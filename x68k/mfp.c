@@ -159,7 +159,7 @@ uint8_t FASTCALL MFP_Read(uint32_t adr)
 
 	if (adr>0xe8802f) return ret;		// ばすえらー？
 
-	if (adr&1)
+	if (adr & 1)
 	{
 		reg=(uint8_t)((adr&0x3f)>>1);
 		switch(reg)
@@ -203,8 +203,10 @@ uint8_t FASTCALL MFP_Read(uint32_t adr)
 void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 {
 	uint8_t reg;
+
 	if (adr>0xe8802f) return;
-	if (adr&1)
+
+	if (adr & 1)
 	{
 		reg=(uint8_t)((adr&0x3f)>>1);
 

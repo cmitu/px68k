@@ -45,16 +45,23 @@ X68_printout(uint8_t prn_data)
 void
 PRN_Write(uint32_t adr, uint8_t val)
 {
-  if(adr == 0xe8c001){/*data latch*/
-    X68_printdata = val;
-  }
-  if(adr == 0xe8c003){/*strobe*/
-    if((val & 0x01)==0x01 && (prnt_strb1 & 0x01)==0x00){/*L→H*/
-     IOC_IntStat |= 0x20;/*Busy*/
-     X68_printout(X68_printdata);
-    }
-    prnt_strb1 = val;
-  }
+	/*== 0xe8c001 ~ e8c003==*/
+	switch( adr )
+	{
+	case 0xe8c001:
+		X68_printdata = val; /*data latch*/
+		break;
+	case 0xe8c003:
+		if((val & 0x01)==0x01 && (prnt_strb1 & 0x01)==0x00){/*strobe L→H*/
+		  IOC_IntStat |= 0x20;/*Busy*/
+		  X68_printout(X68_printdata);
+		}
+		prnt_strb1 = val;
+		break;
+	default:
+		break;
+	}
+
 }
 
 // -----------------------------------------------------------------------
@@ -84,11 +91,18 @@ uint8_t FASTCALL IOC_Read(uint32_t adr)
 // -----------------------------------------------------------------------
 void FASTCALL IOC_Write(uint32_t adr, uint8_t data)
 {
-	if (adr==0xe9c001)
+	/*== 0xe9c001 ~ e9c003==*/
+	switch( adr )
 	{
+	case 0xe9c001://割り込みMASK
 		IOC_IntStat &= 0xf0;
 		IOC_IntStat |= data&0x0f;
-	}
-	if (adr==0xe9c003)
+		break;
+	case 0xe9c003://割り込みVector
 		IOC_IntVect = (data&0xfc);
+		break;
+	default:
+		break;
+	}
+
 }

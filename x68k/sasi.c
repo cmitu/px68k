@@ -127,25 +127,10 @@ uint8_t FASTCALL SASI_Read(uint32_t adr)
 	uint8_t ret = 0;
 	int32_t result;
 
-	if (adr==0xe96003)
+	/*== 0xe9600x ~ 0xe97ffx==*/
+	switch(adr & 0x07)
 	{
-		if (SASI_Phase)
-			ret |= 2;		// Busy
-		if (SASI_Phase>1)
-			ret |= 1;		// Req
-		if (SASI_Phase==2)
-			ret |= 8;		// C/D
-		if ((SASI_Phase==3)&&(SASI_RW))	// SASI_RW=1:Read
-			ret |= 4;		// I/O
-		if (SASI_Phase==9)		// Phase=9:SenseStatus中
-			ret |= 4;		// I/O
-		if ((SASI_Phase==4)||(SASI_Phase==5))
-			ret |= 0x0c;		// I/O & C/D
-		if (SASI_Phase==5)
-			ret |= 0x10;		// MSG
-	}
-	else if (adr ==0xe96001)
-	{
+	case 0x01:
 		if ((SASI_Phase==3)&&(SASI_RW))	// データリード中
 		{
 			ret = SASI_Buf[SASI_BufPtr++];
@@ -193,6 +178,25 @@ uint8_t FASTCALL SASI_Read(uint32_t adr)
 			IOC_IntStat|=0x10;
 			if (IOC_IntStat&8) IRQH_Int(1, &SASI_Int);
 		}
+		break;
+	case 0x03:
+		if (SASI_Phase)
+			ret |= 2;		// Busy
+		if (SASI_Phase>1)
+			ret |= 1;		// Req
+		if (SASI_Phase==2)
+			ret |= 8;		// C/D
+		if ((SASI_Phase==3)&&(SASI_RW))	// SASI_RW=1:Read
+			ret |= 4;		// I/O
+		if (SASI_Phase==9)		// Phase=9:SenseStatus中
+			ret |= 4;		// I/O
+		if ((SASI_Phase==4)||(SASI_Phase==5))
+			ret |= 0x0c;		// I/O & C/D
+		if (SASI_Phase==5)
+			ret |= 0x10;		// MSG
+		break;
+	default:
+		break;
 	}
 
 	StatBar_HDD((SASI_Phase)?2:0);
@@ -316,6 +320,8 @@ void FASTCALL SASI_Write(uint32_t adr, uint8_t data)
 	int32_t result;
 	int32_t i;
 	uint8_t bit;
+
+	/*== 0xe9600x ~ 0xe97ffx==*/
 
 	if ( (adr==0xe96007)&&(SASI_Phase==0) )
 	{

@@ -240,7 +240,7 @@ INLINE void ADPCM_WriteOne(int32_t val)
 void FASTCALL ADPCM_Write(uint32_t adr, uint8_t data)
 {
 	/*== 0xe9200x ~ 0xe93ffx==*/
-	if((adr > 0xe92fff) return;
+	if(adr > 0xe92fff) return;
 
 	switch(adr & 0x03)
 	{
@@ -277,7 +277,7 @@ void FASTCALL ADPCM_Write(uint32_t adr, uint8_t data)
 uint8_t FASTCALL ADPCM_Read(uint32_t adr)
 {
 	/*== 0xe9200x ~ 0xe93ffx==*/
-	if((adr > 0xe92fff) return 0x00;
+	if(adr > 0xe92fff) return 0x00;
 
 	switch(adr & 0x03)
 	{

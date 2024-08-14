@@ -36,11 +36,12 @@ uint8_t FASTCALL RTC_Read(uint32_t adr)
 	t = time(NULL);
 	tm = localtime(&t);
 
-	adr &= 0x1f;
-	if (!(adr&1)) return 0;
+	/*0xe8a000 ~ 0xe8bfff*/
+	uint32_t reg = (adr & 0x1f);
+	if (!(adr & 1)) return 0;
 	if (RTC_Bank == 0)
 	{
-		switch(adr)
+		switch(reg)
 		{
 		case 0x01: ret=(tm->tm_sec)%10; break;
 		case 0x03: ret=(tm->tm_sec)/10; break;
@@ -58,34 +59,44 @@ uint8_t FASTCALL RTC_Read(uint32_t adr)
 		case 0x1b: ret=RTC_Regs[0][13]; break;
 		case 0x1d: ret=RTC_Regs[0][14]; break;
 		case 0x1f: ret=RTC_Regs[0][15]; break;
+		default: break;
 		}
 	}
 	else
 	{
-		if (adr == 0x1b)
-			ret = (RTC_Regs[1][13]|1);
-		else if (adr == 0x17)
-			ret = ((tm->tm_year)-80)%4;
-		else
-			ret = RTC_Regs[1][adr>>1];
+		switch(reg)
+		{
+		case 0x1b: ret = (RTC_Regs[1][13]|1); break;
+		case 0x17: ret = ((tm->tm_year)-80)%4; break;
+		default:   ret = RTC_Regs[1][reg>>1]; break;
+		}
 	}
 	return ret;
 }
 
 
 // -----------------------------------------------------------------------
-//   らいと
+//   らいと (日付や時間のSetは行わない)
 // -----------------------------------------------------------------------
 void FASTCALL RTC_Write(uint32_t adr, uint8_t data)
 {
-	if ( adr==0xe8a001 ) {
-//		RTC_Timer1  = 0;
-//		RTC_Timer16 = 0;
-	} else if ( adr==0xe8a01b ) {
+	/*0xe8a000 ~ 0xe8bfff*/
+	switch(adr & 0x1f)
+	{
+	case 0x01:
+	//	RTC_Timer1  = 0;
+	//	RTC_Timer16 = 0;
+		break;
+	case 0x1b:
 		RTC_Regs[0][13] = RTC_Regs[1][13] = data&0x0c;		// Alarm/Timer Enable制御
-	} else if ( adr==0xe8a01f ) {
+		break;
+	case 0x1f:
 		RTC_Regs[0][15] = RTC_Regs[1][15] = data&0x0c;		// Alarm端子出力制御
+		break;
+	default:
+		break;
 	}
+
 }
 
 

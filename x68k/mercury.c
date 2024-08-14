@@ -144,8 +144,13 @@ INLINE void Mcry_WriteOne(void)
 // -----------------------------------------------------------------------
 void FASTCALL Mcry_Write(uint32_t adr, uint8_t data)
 {
-	if ((adr == 0xecc080)||(adr == 0xecc081)||(adr == 0xecc000)||(adr == 0xecc001))	// Data Port
+	/*== 0xecc000 ~ 0xecdfff==*/
+	switch(adr & 0xff)
 	{
+	  case 0x00:
+	  case 0x01:
+	  case 0x80:
+	  case 0x81:// Data Port
 		if ( Mcry_SampleCnt<=0 ) return;
 		if ( Mcry_Status&2 ) {		// Stereo
 			if (Mcry_LRTiming)		// 右
@@ -189,23 +194,27 @@ void FASTCALL Mcry_Write(uint32_t adr, uint8_t data)
 				Mcry_OutDataL = ((Mcry_Status&4)?((Mcry_OutDataL&0x00ff)|((uint16_t)data<<8)):0);
 			}
 		}
-	}
-	else if ((adr == 0xecc091)||(adr == 0xecc011))
-	{
+		break;
+	  case 0x91:
+	  case 0x11:
 		if (Mcry_Status != data)
 		{
 			Mcry_Status = data;
 			Mcry_SetClock();
 		}
-	}
-	else if ( adr== 0xecc0b1 )						// Int Vector
-	{
+		break;
+	  case 0xb1: // Int Vector
 		Mcry_Vector = data;
-	}
-	else if ( (adr>=0xecc0c0)&&(adr<=0xecc0c7)&&(adr&1) )	// 満開版まーきゅりー OPN
-	{
+		break;
+	  case 0xc1:
+	  case 0xc3:
+	  case 0xc5:
+	  case 0xc7: // 満開版まーきゅりー OPN
 		M288_Write((uint8_t)((adr>>1)&3), data);
+		break;
 	}
+
+  return;
 }
 
 
@@ -215,35 +224,43 @@ void FASTCALL Mcry_Write(uint32_t adr, uint8_t data)
 uint8_t FASTCALL Mcry_Read(uint32_t adr)
 {
 	uint8_t ret = 0;
-	if ((adr == 0xecc080)||(adr == 0xecc081)||(adr == 0xecc000)||(adr == 0xecc001))
+
+	/*== 0xecc000 ~ 0xecdfff==*/
+	switch(adr & 0xff)
 	{
-	}
-	else if ((adr == 0xecc0a1)||(adr == 0xecc021))	// Status Port
-	{
+	  case 0x00:
+	  case 0x01:
+	  case 0x80:
+	  case 0x81:// Data Port
+		break;
+	  case 0xa1:
+	  case 0x21:// Status Port
 		ret = ((Mcry_Status&0xf0)|0x0f);
-	}
-	else if ((adr == 0xecc091)||(adr == 0xecc011))	//
-	{
-	}
-	else if ((adr == 0xecc090)||(adr == 0xecc010))	//
-	{
+		break;
+	  case 0x91:
+	  case 0x11:
+		break;
+	  case 0x90:
+	  case 0x10:
 		ret = (Mcry_LRTiming<<3);
 		Mcry_LRTiming ^= 1;
-	}
-	else if ( adr== 0xecc0b1 )						// Int Vector
-	{
+		break;
+	  case 0xb1:// Int Vector
 		ret = Mcry_Vector;
-	}
-	else if ( (adr>=0xecc0c0)&&(adr<=0xecc0c7)&&(adr&1) )	// 満開版まーきゅりー OPN
-	{
+		break;
+	  case 0xc1:
+	  case 0xc3:
+	  case 0xc5:
+	  case 0xc7: // 満開版まーきゅりー OPN
 		ret = M288_Read((uint8_t)((adr>>1)&3));
+		break;
+	  default:
+		ret = 0xff;// BusErrFlag = 1にはしない？
+		break;
 	}
-	else if ( adr>=0xecc100 )
-	{				// Bus Error?
-		BusErrFlag = 1;
-		printf("func = %s addr = %x flag = %d\n", __func__, adr, BusErrFlag);
-	}
+
 	return ret;
+
 }
 
 

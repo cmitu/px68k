@@ -90,7 +90,7 @@ void CRTC_RasterCopy(void)
 uint8_t FASTCALL VCtrl_Read(int32_t adr)
 {
 	uint8_t ret = 0xff;
-	switch(adr&0x701)
+	switch(adr & 0x701)
 	{
 	case 0x400:
 	case 0x401:
@@ -111,7 +111,7 @@ uint8_t FASTCALL VCtrl_Read(int32_t adr)
 
 void FASTCALL VCtrl_Write16(int32_t adr, uint16_t data)
 {
-	switch(adr&0x700)
+	switch(adr & 0x700)
 	{
 	case 0x400:
 	case 0x401:
@@ -146,7 +146,7 @@ void FASTCALL VCtrl_Write16(int32_t adr, uint16_t data)
 void FASTCALL VCtrl_Write(int32_t adr, uint8_t data)
 {
 
-	switch(adr&0x701)
+	switch(adr & 0x701)
 	{
 	case 0x401:
 		if (VCReg0[adr&1] != data)
@@ -221,7 +221,7 @@ uint16_t FASTCALL CRTC_Read16(uint32_t adr)
 
 void FASTCALL CRTC_Write(uint32_t adr, uint8_t data)
 {
-	if(adr&0x01){
+	if(adr & 0x01){
 	  CRTC_Write16(adr&0x00fffffe,(uint16_t)data,0x01);//奇数アドレス
 	}
 	else{
