@@ -239,7 +239,12 @@ INLINE void ADPCM_WriteOne(int32_t val)
 // -----------------------------------------------------------------------
 void FASTCALL ADPCM_Write(uint32_t adr, uint8_t data)
 {
-	if ( adr==0xe92001 ) {
+	/*== 0xe9200x ~ 0xe93ffx==*/
+	if((adr > 0xe92fff) return;
+
+	switch(adr & 0x03)
+	{
+	case 0x01:  // Command
 		if ( data&1 ) {
 			ADPCM_Playing = 0;
 		} else if ( data&2 ) {
@@ -251,12 +256,18 @@ void FASTCALL ADPCM_Write(uint32_t adr, uint8_t data)
 			}
 			OutsIp[0] = OutsIp[1] = OutsIp[2] = OutsIp[3] = -1;
 		}
-	} else if ( adr==0xe92003 ) {
+		break;
+	case 0x03:  // ADPCM data out
 		if ( ADPCM_Playing ) {
 			ADPCM_WriteOne((int)(data&15));
 			ADPCM_WriteOne((int)((data>>4)&15));
 		}
+		break;
+	default:
+		break;
 	}
+
+  return;
 }
 
 
@@ -265,10 +276,20 @@ void FASTCALL ADPCM_Write(uint32_t adr, uint8_t data)
 // -----------------------------------------------------------------------
 uint8_t FASTCALL ADPCM_Read(uint32_t adr)
 {
-	if ( adr==0xe92001 )
+	/*== 0xe9200x ~ 0xe93ffx==*/
+	if((adr > 0xe92fff) return 0x00;
+
+	switch(adr & 0x03)
+	{
+	case 0x01:  // Status bit7:1=standdby 0=Playing
 		return ((ADPCM_Playing)?0xc0:0x40);
-	else
+	case 0x03:  // ADPCM input (not support)
 		return 0x00;
+	default:
+		break;
+	}
+
+  return 0x00;
 }
 
 
@@ -290,7 +311,7 @@ void ADPCM_SetVolume(uint8_t vol)
 // -----------------------------------------------------------------------
 //   Panning
 // -----------------------------------------------------------------------
-void ADPCM_SetPan(int32_t n)
+void ADPCM_SetPan(uint8_t n)
 {
 	if ( (ADPCM_Pan&0x0c)!=(n&0x0c) ) {
 		ADPCM_Count = 0;
@@ -304,7 +325,7 @@ void ADPCM_SetPan(int32_t n)
 // -----------------------------------------------------------------------
 //   Clock
 // -----------------------------------------------------------------------
-void ADPCM_SetClock(int32_t n)
+void ADPCM_SetClock(uint8_t n)
 {
 	if ( (ADPCM_Clock&4)!=n ) {
 		ADPCM_Count = 0;

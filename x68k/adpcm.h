@@ -11,8 +11,8 @@ void FASTCALL ADPCM_Write(uint32_t adr, uint8_t data);
 uint8_t FASTCALL ADPCM_Read(uint32_t adr);
 
 void ADPCM_SetVolume(uint8_t vol);
-void ADPCM_SetPan(int32_t n);
-void ADPCM_SetClock(int32_t n);
+void ADPCM_SetPan(uint8_t n);
+void ADPCM_SetClock(uint8_t n);
 
 void ADPCM_Init(int32_t samplerate);
 int32_t ADPCM_IsReady(void);
