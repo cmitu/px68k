@@ -360,7 +360,7 @@ WinX68k_Reset(void)
 	SCC_Init();
 	Keyboard_Init();
 	PIA_Init();
-	GamePad_Init();
+	//GamePad_Init();
 	RTC_Init();
 	TVRAM_Init();
 	GVRAM_Init();
@@ -842,7 +842,7 @@ int32_t main(int32_t argc, char *argv[])
 	SysPort_Init();
 	Mouse_Init();
 	WinX68k_Reset();
-	//GamePad_Open(); // Mapping XBOX like Game Controller
+	GamePad_Init();
 	Timer_Init();
 
 	//MIDI_Init();

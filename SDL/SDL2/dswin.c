@@ -144,7 +144,7 @@ static void sound_send(int32_t length)
 	OPM_Update  ((int16_t *)pbwp, length, pbsp, pbep);
 
 #ifndef	NO_MERCURY
-	//Mcry_Update((int16_t *)pcmbufp, length);
+	//Mcry_Update((int16_t *)pbwp, length);
 #endif
 
 	pbwp += length * 2;// 2ch

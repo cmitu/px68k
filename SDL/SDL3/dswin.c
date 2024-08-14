@@ -141,7 +141,7 @@ sdlaudio_callback(void *userdata, SDL_AudioStream *stream, int len , int total)
 	ADPCM_Update((int16_t *)pcmbuffer, len /4, pcmbuffer, &pcmbuffer[len]);
 	OPM_Update  ((int16_t *)pcmbuffer, len /4, pcmbuffer, &pcmbuffer[len]);
 #ifndef	NO_MERCURY
-	//Mcry_Update((int16_t *)pcmbuffer, len / 4);
+	Mcry_Update((int16_t *)pcmbuffer, len / 4);
 #endif
 
 	//Streaming!
