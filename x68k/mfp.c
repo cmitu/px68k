@@ -161,10 +161,10 @@ uint8_t FASTCALL MFP_Read(uint32_t adr)
 
 	if (adr & 1)
 	{
-		reg=(uint8_t)((adr&0x3f)>>1);
+		reg=(uint8_t)((adr&0x3f)>>1);// Reg0~23
 		switch(reg)
 		{
-		case MFP_GPIP:
+		case MFP_GPIP://Reg0
 			if ( (vline>=CRTC_VSTART)&&(vline<CRTC_VEND) )
 				ret = 0x13;
 			else
@@ -177,18 +177,23 @@ uint8_t FASTCALL MFP_Read(uint32_t adr)
 			if (vline!=CRTC_IntLine)
 				ret |= 0x40;
 			break;
-		case MFP_UDR:
+		case MFP_UDR://Reg23
 			ret = LastKey;
 			KeyIntFlag = 0;
 			break;
-		case MFP_RSR:
+		case MFP_RSR://Reg21
 			if (KeyBufRP!=KeyBufWP)
 				ret = MFP[reg] & 0x7f;
 			else
 				ret = MFP[reg] | 0x80;
 			break;
-		default:
+		case MFP_AER ... MFP_UCR: // Reg1~20
+		case MFP_TSR:             // Reg22
 			ret = MFP[reg];
+			break;
+		default://Over Reg24~
+			ret = 0xff;
+			break;
 		}
 		return ret;
 	}
@@ -208,54 +213,54 @@ void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 
 	if (adr & 1)
 	{
-		reg=(uint8_t)((adr&0x3f)>>1);
+		reg=(uint8_t)((adr&0x3f)>>1);// Reg0~23
 
 		switch(reg)
 		{
-		case MFP_IERA:
-		case MFP_IERB:
+		case MFP_IERA://Reg03
+		case MFP_IERB://Reg04
 			MFP[reg] = data;
 			MFP[reg+2] &= data;  // 禁止されたものはIPRA/Bを落とす
 			MFP_RecheckInt();
 			break;
-		case MFP_IPRA:
+		case MFP_IPRA://Reg05 ~ 08
 		case MFP_IPRB:
 		case MFP_ISRA:
 		case MFP_ISRB:
 			MFP[reg] &= data;
 			MFP_RecheckInt();
 			break;
-		case MFP_IMRA:
+		case MFP_IMRA://Reg09~10
 		case MFP_IMRB:
 			MFP[reg] = data;
 			MFP_RecheckInt();
 			break;
-		case MFP_TSR:
+		case MFP_TSR://Reg22
 			MFP[reg] = data|0x80; // Txは常にEnableに
 			break;
-		case MFP_TADR:
+		case MFP_TADR://Reg15
 			Timer_Reload[0] = MFP[reg] = data;
 			break;
-		case MFP_TACR:
+		case MFP_TACR://Reg12
 			MFP[reg] = data;
 			break;
-		case MFP_TBDR:
+		case MFP_TBDR://Reg16
 			Timer_Reload[1] = MFP[reg] = data;
 			break;
-		case MFP_TBCR:
+		case MFP_TBCR://Reg13
 			MFP[reg] = data;
 			if ( MFP[reg]&0x10 ) Timer_TBO = 0;
 			break;
-		case MFP_TCDR:
+		case MFP_TCDR://Reg17
 			Timer_Reload[2] = MFP[reg] = data;
 			break;
-		case MFP_TDDR:
+		case MFP_TDDR://Reg18
 			Timer_Reload[3] = MFP[reg] = data;
 			break;
-		case MFP_TCDCR:
+		case MFP_TCDCR://Reg14
 			MFP[reg] = data;
 			break;
-		case MFP_UDR://Send to keyboard
+		case MFP_UDR://Reg23  Send to keyboard
 			if(data & 0x80){
 			  if(keyLED != data){
 			    draw_soft_kbd(0,0,data);
@@ -269,12 +274,18 @@ void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 			  keyREP_TIME = data;
 			}
 			break;
-		default:
+		case MFP_GPIP ... MFP_DDR://Reg00~02
+		case MFP_VR://Reg11
+		case MFP_SCR://Reg19
+		case MFP_UCR://Reg20
+		case MFP_RSR://Reg21
 			MFP[reg] = data;
+			break;
+		default:
+			break;
 		}
 	}
 }
-
 
 int16_t timertrace = 0;
 //static int TimerACounted = 0;
