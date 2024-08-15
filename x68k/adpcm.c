@@ -47,7 +47,7 @@ static int32_t ADPCM_PreCounter = 0;
 static int32_t ADPCM_DifBuf = 0;
 
 
-static int32_t ADPCM_Pan = 0x00;
+static uint8_t ADPCM_Pan = 0x00;
 static int32_t OldR = 0, OldL = 0;
 static int32_t Outs[8];
 static int32_t OutsIp[4];
@@ -240,8 +240,6 @@ INLINE void ADPCM_WriteOne(int32_t val)
 void FASTCALL ADPCM_Write(uint32_t adr, uint8_t data)
 {
 	/*== 0xe9200x ~ 0xe93ffx==*/
-	if(adr > 0xe92fff) return;
-
 	switch(adr & 0x03)
 	{
 	case 0x01:  // Command
@@ -277,8 +275,6 @@ void FASTCALL ADPCM_Write(uint32_t adr, uint8_t data)
 uint8_t FASTCALL ADPCM_Read(uint32_t adr)
 {
 	/*== 0xe9200x ~ 0xe93ffx==*/
-	if(adr > 0xe92fff) return 0x00;
-
 	switch(adr & 0x03)
 	{
 	case 0x01:  // Status bit7:1=standdby 0=Playing
