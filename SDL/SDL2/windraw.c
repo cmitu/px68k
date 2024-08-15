@@ -1763,9 +1763,6 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 	int32_t i, drv;
 	char tmp[256];
 
-	SDL_SetRenderDrawColor(sdl_render, 0, 0, 0, 0);	/* select color (black) */
-	SDL_RenderClear(sdl_render);/*screen buffer clear*/
-
 // ソフトウェアキーボード描画時にset_sbp(kbd_buffer)されているので戻す
 #if defined(USE_OGLES20)
 	set_sbp(menu_buffer);

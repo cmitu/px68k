@@ -14,31 +14,31 @@
 #include "m68000.h"
 #include <string.h>
 
-	uint8_t	BG[0x8000];
-	uint8_t	Sprite_Regs[0x800];
-	uint8_t	BG_Regs[0x12];
+	uint8_t 	BG[0x8000];
+	uint8_t 	Sprite_Regs[0x800];
+	uint8_t 	BG_Regs[0x12];
 	uint16_t	BG_CHREND = 0;
 	uint16_t	BG_BG0TOP = 0;
 	uint16_t	BG_BG0END = 0;
 	uint16_t	BG_BG1TOP = 0;
 	uint16_t	BG_BG1END = 0;
-	uint8_t	BG_CHRSIZE = 16;
+	uint8_t 	BG_CHRSIZE = 16;
 	uint32_t	BG_AdrMask = 511;
 	uint32_t	BG0ScrollX = 0, BG0ScrollY = 0;
 	uint32_t	BG1ScrollX = 0, BG1ScrollY = 0;
 
-	int32_t	BG_HAdjust = 0;
-	int32_t	BG_VLINE = 0;
+	int32_t 	BG_HAdjust = 0;
+	int32_t 	BG_VLINE = 0;
 
-	uint8_t	BG_Dirty0[64*64];
-	uint8_t	BG_Dirty1[64*64];
-	uint8_t	BGCHR8[8*8*256];
-	uint8_t	BGCHR16[16*16*256];
+	uint8_t 	BG_Dirty0[64*64];
+	uint8_t 	BG_Dirty1[64*64];
+	uint8_t 	BGCHR8[8*8*256];
+	uint8_t 	BGCHR16[16*16*256];
 
 	uint32_t	BG_LineBuf32[1600];
 	uint16_t	BG_PriBuf[1600];
 
-	int32_t	VLINEBG = 0;
+	int32_t 	VLINEBG = 0;
 
 
 // -----------------------------------------------------------------------

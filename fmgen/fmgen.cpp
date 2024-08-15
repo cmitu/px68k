@@ -336,8 +336,8 @@ void Operator::MakeTable()
 	{
 		int32_t v = int32_t(floor(pow(2., 13. - i / 256.)));
 		v = (v + 2) & ~3;
-		*p++ = v;
-		*p++ = -v;
+		*p =  v; p++;
+		*p = -v; p++;
 	}
 	while (p < cltable + FM_CLENTS)
 	{
