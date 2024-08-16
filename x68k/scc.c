@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------------------
-//  SCC.C - Z8530 SCC（マウスのみ）
+//  SCC.C - Z8530 SCC（PortB:Mouse  PortA:RS-232C(NotUse)）
 // ---------------------------------------------------------------------------------------
 
 #include "common.h"
@@ -46,7 +46,6 @@ int32_t FASTCALL SCC_Int(uint8_t irq)
 	return ret;
 }
 
-
 // -----------------------------------------------------------------------
 //   割り込みのチェック
 // -----------------------------------------------------------------------
@@ -61,7 +60,6 @@ void SCC_IntCheck(void)
 		IRQH_Int(5, &SCC_Int);
 	}
 }
-
 
 // -----------------------------------------------------------------------
 //   初期化
@@ -79,16 +77,17 @@ void SCC_Init(void)
 	SCC_DatNum = 0;
 }
 
-
 // -----------------------------------------------------------------------
-//   I/O Write
+//   I/O Write (Z8530)
 // -----------------------------------------------------------------------
 void FASTCALL SCC_Write(uint32_t adr, uint8_t data)
 {
-	if (adr>=0xe98008) return;
+	/*0xe98000 ~ 0xe99fff*/
+	if (adr>=0xe99000) return;
 
-	if ((adr&7) == 1)
+	switch(adr & 0x07)
 	{
+	case 0x01:// SCC Command B
 		if (SCC_RegSetB)
 		{
 			if (SCC_RegNumB == 5)
@@ -121,9 +120,10 @@ void FASTCALL SCC_Write(uint32_t adr, uint8_t data)
 				SCC_RegNumB = 0;
 			}
 		}
-	}
-	else if ((adr&7) == 5)
-	{
+		break;
+	case 0x03:// SCC data B
+		break;
+	case 0x05:// SCC Command A
 		if (SCC_RegSetA)
 		{
 			SCC_RegSetA = 0;
@@ -152,42 +152,41 @@ void FASTCALL SCC_Write(uint32_t adr, uint8_t data)
 				SCC_RegNumA = 0;
 			}
 		}
+		break;
+	case 0x07:// SCC data A
+		break;
+	default:
+		break;
 	}
-	else if ((adr&7) == 3)
-	{
-	}
-	else if ((adr&7) == 7)
-	{
-	}
+
 }
 
-
 // -----------------------------------------------------------------------
-//   I/O Read
+//   I/O Read (Z8530)
 // -----------------------------------------------------------------------
 uint8_t FASTCALL SCC_Read(uint32_t adr)
 {
 	uint8_t ret=0;
 
-	if (adr>=0xe98008) return ret;
+	/*0xe98000 ~ 0xe99fff*/
+	if (adr>=0xe99000) return ret;
 
-	if ((adr&7) == 1)
+	switch(adr & 0x07)
 	{
+	case 0x01:// SCC Command B
 		if (!SCC_RegNumB)
 			ret = ((SCC_DatNum)?1:0);
 		SCC_RegNumB = 0;
 		SCC_RegSetB = 0;
-	}
-	else if ((adr&7) == 3)
-	{
+		break;
+	case 0x03:// SCC data B
 		if (SCC_DatNum)
 		{
 			SCC_DatNum--;
 			ret = SCC_Dat[SCC_DatNum];
 		}
-	}
-	else if ((adr&7) == 5)
-	{
+		break;
+	case 0x05:// SCC Command A
 		switch(SCC_RegNumA)
 		{
 		case 0:
@@ -199,6 +198,12 @@ uint8_t FASTCALL SCC_Read(uint32_t adr)
 		}
 		SCC_RegNumA = 0;
 		SCC_RegSetA = 0;
+		break;
+	case 0x07:// SCC data A
+		break;
+	default:
+		break;
 	}
+
 	return ret;
 }
