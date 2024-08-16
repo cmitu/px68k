@@ -41,7 +41,7 @@ void FASTCALL SysPort_Write(uint32_t adr, uint8_t data)
 	case 0x05:
 		SysPort[3] = data & 0x1f;
 		break;
-	case 0xe8e007:
+	case 0x07:
 		SysPort[4] = data & 0x0e;
 		break;
 	case 0x0d:
