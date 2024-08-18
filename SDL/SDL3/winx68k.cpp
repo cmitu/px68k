@@ -731,6 +731,7 @@ int32_t main(int32_t argc, char *argv[])
 #endif
 
 	strcat(window_title,APPNAME);
+	strcat(window_title," SDL3");/*SDL3*/
 
 #ifdef USE_OGLES20
 	SDL_GetCurrentDisplayMode(0, &sdl_dispmode);
@@ -745,39 +746,37 @@ int32_t main(int32_t argc, char *argv[])
 
 #if TARGET_OS_IPHONE
 	/* for iPhone */
-	sdl_window = SDL_CreateWindow(window_title, 0, 0, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT,
+	sdl_window = SDL_CreateWindow(window_title, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT,
 			SDL_WINDOW_OPENGL|SDL_WINDOW_SHOWN|SDL_WINDOW_BORDERLESS);
 #else
 	/* for Android: window sizeの指定は関係なくフルスクリーンになるみたい*/
-	sdl_window = SDL_CreateWindow(window_title, 0, 0, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT,
+	sdl_window = SDL_CreateWindow(window_title, FULLSCREEN_WIDTH, FULLSCREEN_HEIGHT,
 			SDL_WINDOW_OPENGL|SDL_WINDOW_SHOWN);
 #endif
 #else
 	/* SDL3 for GPU */
-	strcat(window_title," SDL3");
-	uint32_t flags = 0;
-	if (Config.WinStrech == 1){flags |= SDL_WINDOW_RESIZABLE;} /*Windowサイズ変更可能？*/
-
 	SDL_PropertiesID props = SDL_CreateProperties();
-	SDL_SetStringProperty(props, "title", window_title);
-	SDL_SetNumberProperty(props, "x", winx);
-	SDL_SetNumberProperty(props, "w", winy);
-	SDL_SetNumberProperty(props, "width", FULLSCREEN_WIDTH);
-	SDL_SetNumberProperty(props, "height", FULLSCREEN_HEIGHT);
-	SDL_SetNumberProperty(props, "flags", flags);
+	SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, window_title);
+	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, winx);
+	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, winy);
+	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, FULLSCREEN_WIDTH);
+	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, FULLSCREEN_HEIGHT);
+	if (Config.WinStrech == 1){
+	  SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_RESIZABLE_BOOLEAN, SDL_TRUE);
+	}
+	SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_HIGH_PIXEL_DENSITY_BOOLEAN, SDL_TRUE); // Handle DPI scaling internally
 	sdl_window = SDL_CreateWindowWithProperties(props);
 	SDL_DestroyProperties(props);
-
-	sdl_render = SDL_CreateRenderer( sdl_window ,NULL );
-	SDL_SetRenderLogicalPresentation( sdl_render ,FULLSCREEN_WIDTH,
-								FULLSCREEN_HEIGHT,SDL_LOGICAL_PRESENTATION_LETTERBOX,SDL_SCALEMODE_LINEAR);
-	SDL_SetRenderDrawColor(sdl_render, 64, 64, 64, 0);	/* select color (black) */
-	SDL_RenderClear(sdl_render);
 #endif
 
 	if (sdl_window == NULL) {
-		p6logd("sdl_window: %ld", sdl_window);
+		p6logd("Cαn`t Create sdl_window: %ld", sdl_window);
 	}
+
+	/*Create Renderer */
+	sdl_render = SDL_CreateRenderer( sdl_window ,NULL );
+	SDL_SetRenderLogicalPresentation( sdl_render ,FULLSCREEN_WIDTH,
+								FULLSCREEN_HEIGHT,SDL_LOGICAL_PRESENTATION_LETTERBOX,SDL_SCALEMODE_LINEAR);
 
 	Soft_kbd_CreateScreen();// Soft Keyboard Window init.
 

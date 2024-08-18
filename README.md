@@ -7,14 +7,15 @@
 ## About
 * 単独アプリ形式のエミュレータの改良を目指します。
 * (DWORD)-1 で頻繁に異常終了する問題に対処
-* SDL2のRenderer(GPU)を活用、よって"sdl-gfx"は不要
+* SDL2/3のTexture,Renderer(GPU)を活用("sdl-gfx"は不要)
 * Support Full-Screen Mode.(`F11`)
 * ソフトキーボード復活(Right click on `F12`Menu mode)
 * SCSI DiskImageサポート(`Can boot from *.HDS`)
-* 最終画面出力を24bitに変更(RGB565→RGBA8888)
+* 最終画面出力を24bitに変更(RGB565→RGBX8888)
+* Fileを画面へDrag&Dropで自動的にFDD/HDDにマウント
 * `Support MIDI-Play` (Internal/Munt/fluidsynth/USB-MIDI)
 * Support US-KeyBoard. `keyconf.dat` put into .keropi folder
-* Printer出力はFileに保存
+* Printer出力をFileに保存
 * Can use XBOX like USB-GamePad (hot-pluggable)
 * Add support CyberStick! (DIGITAL/ANALOG mode)
 * `FileNameのutf8/sjis` 自動判別日本語表示(専用table変換)
@@ -23,7 +24,7 @@
 
 ## for macOS
 * Mac用単独アプリ化ラッパー追加
-* Mac用SDL2.frameworkでのbuildスクリプト添付
+* SDL2/3.frameworkでのbuildにも対応
 * pngからiconリソース生成機能搭載(% make icon)
 
 ## Need
