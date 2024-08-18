@@ -21,7 +21,7 @@
 //	WORD	Text_LineBuf[1024];	// →BGのを使うように変更
 	uint8_t	Text_TrFlag[1024 + 100];
 
-INLINE void TVRAM_WriteByteMask(int32_t adr, uint8_t data);
+INLINE void TVRAM_WriteByteMask(uint32_t adr, uint8_t data);
 
 // -----------------------------------------------------------------------
 //   全部書き換え〜
@@ -102,7 +102,7 @@ INLINE void TVRAM_WriteByte(uint32_t adr, uint8_t data)
 // -----------------------------------------------------------------------
 //   ますく付きで書くなり
 // -----------------------------------------------------------------------
-INLINE void TVRAM_WriteByteMask(int32_t adr, uint8_t data)
+INLINE void TVRAM_WriteByteMask(uint32_t adr, uint8_t data)
 {
 	data = (TVRAM[adr] & CRTC_Regs[0x2e + ((adr^1) & 1)]) | (data & (~CRTC_Regs[0x2e + ((adr ^1) & 1)]));
 
@@ -153,11 +153,11 @@ void FASTCALL TVRAM_Write(uint32_t adr, uint8_t data)
 	}
 
 	/* TV-RAM */
-	int32_t *ptr = (int32_t *)TextDrawPattern;
-	int32_t tvram_addr = adr & 0x1ffff;
-	int32_t t0, t1;
+	uint32_t *ptr = (uint32_t *)TextDrawPattern;
+	uint32_t tvram_addr = adr & 0x1ffff;
+	uint32_t t0, t1;
 	uint8_t pat;
-	int32_t workadr = ((adr & 0x1ff80) + ((adr ^ 1) & 0x7f)) << 3;
+	uint32_t workadr = ((adr & 0x1ff80) + ((adr ^ 1) & 0x7f)) << 3;
 
 	pat = TVRAM[tvram_addr + 0x60000];
 	t0 = ptr[(pat * 2) + 1536];
@@ -175,8 +175,8 @@ void FASTCALL TVRAM_Write(uint32_t adr, uint8_t data)
 	t0 |= ptr[(pat * 2)];
 	t1 |= ptr[(pat * 2 + 1)];
 
-	*((int32_t *)&TextDrawWork[workadr]) = t0;
-	*(((int32_t *)(&TextDrawWork[workadr])) + 1) = t1;
+	*((uint32_t *)&TextDrawWork[workadr]) = t0;
+	*(((uint32_t *)(&TextDrawWork[workadr])) + 1) = t1;
 
 }
 
@@ -186,13 +186,13 @@ void FASTCALL TVRAM_Write(uint32_t adr, uint8_t data)
 // -----------------------------------------------------------------------
 void FASTCALL TVRAM_RCUpdate(void)
 {
-	int32_t adr = ((int32_t)CRTC_Regs[0x2d]<<9);
+	uint32_t adr = ((int32_t)CRTC_Regs[0x2d]<<9);
 
 	/* XXX: BUG */
-	int32_t *ptr = (int32_t *)TextDrawPattern;
-	int32_t *wptr = (int32_t *)(TextDrawWork + (adr << 3));
-	int32_t t0, t1;
-	int32_t tadr;
+	uint32_t *ptr = (uint32_t *)TextDrawPattern;
+	uint32_t *wptr = (uint32_t *)(TextDrawWork + (adr << 3));
+	uint32_t t0, t1;
+	uint32_t tadr;
 	uint8_t pat;
 	int_fast16_t i;
 

@@ -318,55 +318,12 @@ void SASI_CheckCmd(void)
 void FASTCALL SASI_Write(uint32_t adr, uint8_t data)
 {
 	int32_t result;
-	int32_t i;
 	uint8_t bit;
 
 	/*== 0xe9600x ~ 0xe97ffx==*/
-
-	if ( (adr==0xe96007)&&(SASI_Phase==0) )
+	switch(adr & 0x07)
 	{
-		SASI_Device = 0x7f;
-		if (data)
-		{
-			for (i=0, bit=1; bit; i++, bit<<=1)
-			{
-				if (data&bit)
-				{
-					SASI_Device = i;
-					break;
-				}
-			}
-		}
-		if ( (Config.HDImage[SASI_Device*2][0])||(Config.HDImage[SASI_Device*2+1][0]) )
-		{
-			SASI_Phase++;
-			SASI_CmdPtr = 0;
-		}
-		else
-		{
-			SASI_Phase = 0;
-		}
-	}
-	else if ( (adr==0xe96003)&&(SASI_Phase==1) )
-	{
-		SASI_Phase++;
-	}
-	else if (adr==0xe96005)						// SASI Reset
-	{
-		SASI_Phase = 0;
-		SASI_Sector = 0;
-		SASI_Blocks = 0;
-		SASI_CmdPtr = 0;
-		SASI_Device = 0;
-		SASI_Unit = 0;
-		SASI_BufPtr = 0;
-		SASI_RW = 0;
-		SASI_Stat = 0;
-		SASI_Error = 0;
-		SASI_SenseStatPtr = 0;
-	}
-	else if (adr==0xe96001)
-	{
+	case 0x01:
 		if (SASI_Phase==2)
 		{
 			SASI_Cmd[SASI_CmdPtr++] = data;
@@ -411,6 +368,50 @@ void FASTCALL SASI_Write(uint32_t adr, uint8_t data)
 			IOC_IntStat|=0x10;
 			if (IOC_IntStat&8) IRQH_Int(1, &SASI_Int);
 		}
+		break;
+	case 0x03:
+		if(SASI_Phase==1) SASI_Phase++;
+		break;
+	case 0x05://--SASI Reset
+		SASI_Phase = 0;
+		SASI_Sector = 0;
+		SASI_Blocks = 0;
+		SASI_CmdPtr = 0;
+		SASI_Device = 0;
+		SASI_Unit = 0;
+		SASI_BufPtr = 0;
+		SASI_RW = 0;
+		SASI_Stat = 0;
+		SASI_Error = 0;
+		SASI_SenseStatPtr = 0;
+		break;
+	case 0x07:
+		SASI_Device = 0x7f;
+		if (data)
+		{
+			for (uint32_t i=0, bit=1; bit; i++, bit<<=1)
+			{
+				if (data&bit)
+				{
+					SASI_Device = i;
+					break;
+				}
+			}
+		}
+		if ( (Config.HDImage[SASI_Device*2][0])||(Config.HDImage[SASI_Device*2+1][0]) )
+		{
+			SASI_Phase++;
+			SASI_CmdPtr = 0;
+		}
+		else
+		{
+			SASI_Phase = 0;
+		}
+		break;
+	default:
+		break;
 	}
+
 	StatBar_HDD((SASI_Phase)?2:0);
+	return;
 }
