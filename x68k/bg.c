@@ -5,14 +5,10 @@
 
 #include "common.h"
 #include "windraw.h"
-#include "winx68k.h"
 #include "palette.h"
 #include "tvram.h"
 #include "crtc.h"
 #include "bg.h"
-
-#include "m68000.h"
-#include <string.h>
 
 	uint8_t 	BG[0x8000];
 	uint8_t 	Sprite_Regs[0x800];
@@ -46,13 +42,13 @@
 // -----------------------------------------------------------------------
 void BG_Init(void)
 {
-	uint32_t i;
+	int_fast16_t i;
 
-	memset(Sprite_Regs, 0, 0x800);
-	memset(BG, 0, 0x8000);
-	memset(BGCHR8, 0, 8*8*256);
-	memset(BGCHR16, 0, 16*16*256);
-	memset(BG_LineBuf32, 0, 1600*4);
+	memset(Sprite_Regs, 0, sizeof(Sprite_Regs));
+	memset(BG, 0, sizeof(BG));
+	memset(BGCHR8, 0, sizeof(BGCHR8));
+	memset(BGCHR16, 0, sizeof(BGCHR16));
+	memset(BG_LineBuf32, 0, sizeof(BG_LineBuf32));
 	for (i=0; i<0x12; i++)
 		BG_Write(0xeb0800+i, 0);
 	BG_CHREND = 0x8000;
@@ -64,20 +60,26 @@ void BG_Init(void)
 // -----------------------------------------------------------------------
 uint8_t FASTCALL BG_Read(uint32_t adr)
 {
-	if ((adr>=0xeb0000)&&(adr<0xeb0400))
+	// 0xeb0000 ~ 0xebffff
+	switch(adr)
 	{
-		adr -= 0xeb0000;
-#ifndef C68K_BIG_ENDIAN
+	 case 0xeb0000 ... 0xeb03ff:
+		adr &= 0x0003ff;
 		adr ^= 1;
-#endif
 		return Sprite_Regs[adr];
+		break;
+	 case 0xeb0400 ... 0xeb07ff:
+		break;
+	 case 0xeb0800 ... 0xeb0811:
+		return BG_Regs[adr&0x00001f];
+		break;
+	 case 0xeb8000 ... 0xebffff:
+		return BG[adr&0x007fff];
+		break;
+	 default:
+		break;
 	}
-	else if ((adr>=0xeb0800)&&(adr<0xeb0812))
-		return BG_Regs[adr-0xeb0800];
-	else if ((adr>=0xeb8000)&&(adr<0xec0000))
-		return BG[adr-0xeb8000];
-	else
-		return 0xff;
+	return 0xff;
 }
 
 
@@ -99,15 +101,17 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 {
 	uint32_t bg16chr;
 	int32_t s1, s2, v = 0;
+
 	s1 = (((BG_Regs[0x11]  &4)?2:1)-((BG_Regs[0x11]  &16)?1:0));
 	s2 = (((CRTC_Regs[0x29]&4)?2:1)-((CRTC_Regs[0x29]&16)?1:0));
 	if ( !(BG_Regs[0x11]&16) ) v = ((BG_Regs[0x0f]>>s1)-(CRTC_Regs[0x0d]>>s2));
-	if ((adr>=0xeb0000)&&(adr<0xeb0400))
+
+	// 0xeb0000 ~ 0xebffff
+	switch(adr)
 	{
-		adr &= 0x3ff;
-#ifndef C68K_BIG_ENDIAN
+	 case 0xeb0000 ... 0xeb03ff:
+		adr &= 0x0003ff;
 		adr ^= 1;
-#endif
 		if (Sprite_Regs[adr] != data)
 		{
 
@@ -128,32 +132,33 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 			}
 
 		}
-	}
-	else if ((adr>=0xeb0800)&&(adr<0xeb0812))
-	{
-		adr -= 0xeb0800;
+		break;
+	 case 0xeb0400 ... 0xeb07ff:
+		break;
+	 case 0xeb0800 ... 0xeb0811:
+		adr &= 0x00001f;
 		if (BG_Regs[adr]==data) return;	// データに変化が無ければ帰る
 		BG_Regs[adr] = data;
 		switch(adr)
 		{
 		case 0x00:
 		case 0x01:
-			BG0ScrollX = (((int32_t)BG_Regs[0x00]<<8)+BG_Regs[0x01])&BG_AdrMask;
+			BG0ScrollX = (((uint32_t)BG_Regs[0x00]<<8)+BG_Regs[0x01])&BG_AdrMask;
 			TVRAM_SetAllDirty();
 			break;
 		case 0x02:
 		case 0x03:
-			BG0ScrollY = (((int32_t)BG_Regs[0x02]<<8)+BG_Regs[0x03])&BG_AdrMask;
+			BG0ScrollY = (((uint32_t)BG_Regs[0x02]<<8)+BG_Regs[0x03])&BG_AdrMask;
 			TVRAM_SetAllDirty();
 			break;
 		case 0x04:
 		case 0x05:
-			BG1ScrollX = (((int32_t)BG_Regs[0x04]<<8)+BG_Regs[0x05])&BG_AdrMask;
+			BG1ScrollX = (((uint32_t)BG_Regs[0x04]<<8)+BG_Regs[0x05])&BG_AdrMask;
 			TVRAM_SetAllDirty();
 			break;
 		case 0x06:
 		case 0x07:
-			BG1ScrollY = (((int32_t)BG_Regs[0x06]<<8)+BG_Regs[0x07])&BG_AdrMask;
+			BG1ScrollY = (((uint32_t)BG_Regs[0x06]<<8)+BG_Regs[0x07])&BG_AdrMask;
 			TVRAM_SetAllDirty();
 			break;
 
@@ -162,11 +167,11 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 			break;
 
 		case 0x0d:
-			BG_HAdjust = ((int32_t)BG_Regs[0x0d]-(CRTC_HSTART+4))*8;	// 水平方向は解像度による1/2はいらない？（Tetris）
+			BG_HAdjust = ((uint32_t)BG_Regs[0x0d]-(CRTC_HSTART+4))*8;	// 水平方向は解像度による1/2はいらない？（Tetris）
 			TVRAM_SetAllDirty();
 			break;
 		case 0x0f:
-			BG_VLINE = ((int32_t)BG_Regs[0x0f]-CRTC_VSTART)/((BG_Regs[0x11]&4)?1:2);	// BGとその他がずれてる時の差分
+			BG_VLINE = ((uint32_t)BG_Regs[0x0f]-CRTC_VSTART)/((BG_Regs[0x11]&4)?1:2);	// BGとその他がずれてる時の差分
 			TVRAM_SetAllDirty();
 			break;
 
@@ -231,13 +236,13 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 			break;
 		case 0x0b:
 			break;
+		default:
+			break;
 		}
 		Draw_DrawFlag = 1;
-
-	}
-	else if ((adr>=0xeb8000)&&(adr<0xec0000))
-	{
-		adr -= 0xeb8000;
+		break;
+	 case 0xeb8000 ... 0xebffff:
+		adr &= 0x007fff;
 		if (BG[adr]==data) return;			// データに変化が無ければ帰る
 		BG[adr] = data;
 		if (adr<0x2000)
@@ -261,7 +266,11 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 		{
 			TVRAM_SetAllDirty();
 		}
+		break;
+	 default:
+		break;
 	}
+
 }
 
 #ifndef USE_GAS
@@ -488,7 +497,7 @@ BG_DrawLine(int32_t opaq, int32_t gd)
 		}
 	}
 
-	func8 = (gd)? BG_DrawLineMcr8 : BG_DrawLineMcr8_ng;
+	func8  = (gd)? BG_DrawLineMcr8 : BG_DrawLineMcr8_ng;
 	func16 = (gd)? BG_DrawLineMcr16 : BG_DrawLineMcr16_ng;
 
 	Sprite_DrawLineMcr(1);
