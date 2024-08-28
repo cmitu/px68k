@@ -83,8 +83,6 @@ void SCC_Init(void)
 void FASTCALL SCC_Write(uint32_t adr, uint8_t data)
 {
 	/*0xe98000 ~ 0xe99fff*/
-	if (adr>=0xe99000) return;
-
 	switch(adr & 0x07)
 	{
 	case 0x01:// SCC Command B
@@ -166,16 +164,17 @@ void FASTCALL SCC_Write(uint32_t adr, uint8_t data)
 // -----------------------------------------------------------------------
 uint8_t FASTCALL SCC_Read(uint32_t adr)
 {
-	uint8_t ret=0;
+	uint8_t ret=0xff;
 
 	/*0xe98000 ~ 0xe99fff*/
-	if (adr>=0xe99000) return ret;
-
 	switch(adr & 0x07)
 	{
 	case 0x01:// SCC Command B
 		if (!SCC_RegNumB)
 			ret = ((SCC_DatNum)?1:0);
+		else
+			ret = 0x00;
+
 		SCC_RegNumB = 0;
 		SCC_RegSetB = 0;
 		break;
@@ -184,6 +183,10 @@ uint8_t FASTCALL SCC_Read(uint32_t adr)
 		{
 			SCC_DatNum--;
 			ret = SCC_Dat[SCC_DatNum];
+		}
+		else
+		{
+			ret = 0x00;
 		}
 		break;
 	case 0x05:// SCC Command A
@@ -195,11 +198,15 @@ uint8_t FASTCALL SCC_Read(uint32_t adr)
 		case 3:
 			ret = ((SCC_DatNum)?4:0);
 			break;
+		default:
+			ret = 0x00;
+			break;
 		}
 		SCC_RegNumA = 0;
 		SCC_RegSetA = 0;
 		break;
 	case 0x07:// SCC data A
+			ret = 0x00; //Not Use
 		break;
 	default:
 		break;

@@ -279,13 +279,15 @@ uint8_t FASTCALL ADPCM_Read(uint32_t adr)
 	{
 	case 0x01:  // Status bit7:1=standdby 0=Playing
 		return ((ADPCM_Playing)?0xc0:0x40);
+		//if(ADPCM_Playing) return 0x40;
+		//return 0xc0;
 	case 0x03:  // ADPCM input (not support)
 		return 0x00;
 	default:
 		break;
 	}
 
-  return 0x00;
+  return 0xff;
 }
 
 
