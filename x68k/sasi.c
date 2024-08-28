@@ -42,7 +42,7 @@ int32_t FASTCALL SASI_Int(uint8_t irq)
 {
 	IRQH_IRQCallBack(irq);
 	if (irq==1)
-		return ((long)IOC_IntVect+2);
+		return ((int32_t)IOC_IntVect + 2);
 	return -1;
 }
 
@@ -124,7 +124,7 @@ int32_t SASI_Flush(void)
 // -----------------------------------------------------------------------
 uint8_t FASTCALL SASI_Read(uint32_t adr)
 {
-	uint8_t ret = 0;
+	uint8_t ret = 0xff;
 	int32_t result;
 
 	/*== 0xe9600x ~ 0xe97ffx==*/
@@ -162,6 +162,7 @@ uint8_t FASTCALL SASI_Read(uint32_t adr)
 		}
 		else if (SASI_Phase==5)				// MessagePhase
 		{
+			ret = 0x00;
 			SASI_Phase = 0;				// 0を返すだけxA掘ＢusFreeに帰ります
 		}
 		else if (SASI_Phase==9)				// DataPhase(SenseStat専用)
@@ -175,11 +176,13 @@ uint8_t FASTCALL SASI_Read(uint32_t adr)
 		}
 		if (SASI_Phase==4)
 		{
+			ret = 0x00;
 			IOC_IntStat|=0x10;
 			if (IOC_IntStat&8) IRQH_Int(1, &SASI_Int);
 		}
 		break;
 	case 0x03:
+		ret = 0x00;// All clear
 		if (SASI_Phase)
 			ret |= 2;		// Busy
 		if (SASI_Phase>1)

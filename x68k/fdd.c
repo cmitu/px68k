@@ -74,7 +74,7 @@ int32_t FASTCALL FDD_Int(uint8_t irq)
 {
 	IRQH_IRQCallBack(irq);
 	if ( irq==1 ){
-		return ((long)IOC_IntVect+1);
+		return (int32_t)(IOC_IntVect+1);
 	}
 
 	return -1;

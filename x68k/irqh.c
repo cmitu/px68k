@@ -40,7 +40,7 @@ void IRQH_IRQCallBack(uint8_t irq)
 
 	m68000_set_irq_line(0);
 
-	for (i=7; i>0; i--)
+	for (i=7; i>0; i--) // Hight to Low Priority
 	{
 	    if (IRQH_IRQ[i])
 	    {
@@ -58,10 +58,12 @@ void IRQH_Int(uint8_t irq, void* handler)
 	int_fast16_t i;
 
 	IRQH_IRQ[irq&7] = 1;
+
 	if (handler==NULL)
 	    IRQH_CallBack[irq&7] = &IRQH_DefaultVector;
 	else
 	    IRQH_CallBack[irq&7] = handler;
+
 	for (i=7; i>0; i--)
 	{
 	    if (IRQH_IRQ[i])

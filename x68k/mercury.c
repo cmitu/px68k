@@ -212,6 +212,8 @@ void FASTCALL Mcry_Write(uint32_t adr, uint8_t data)
 	  case 0xc7: // 満開版まーきゅりー OPN
 		M288_Write((uint8_t)((adr>>1)&3), data);
 		break;
+	  default:
+		break;
 	}
 
   return;

@@ -26,7 +26,6 @@
 #include "sram.h"
 #include "sysport.h"
 #include "tvram.h"
-#include "x68kmemory.h"
 
 #include "fmg_wrap.h"
 

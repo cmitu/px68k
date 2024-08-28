@@ -99,7 +99,7 @@ int32_t FASTCALL FDC_Int(uint8_t irq)
 {
 	IRQH_IRQCallBack(irq);
 	if (irq==1)
-		return ((long)IOC_IntVect);
+		return ((int32_t)IOC_IntVect);
 	else
 		return -1;
 }
