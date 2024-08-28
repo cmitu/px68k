@@ -202,7 +202,7 @@ void GamePad_Open(void)
 			sdl_gamepad = SDL_OpenGamepad(i);
 			name = SDL_GetGamepadName(sdl_gamepad);
 			strcpy(menu_items[13][i],name);
-			//p6logd("Game Controller %d: %s\n", i, name ? name : "Unknown Controller");
+			//p6logd("GamePad %d: %s\n", i, name ? name : "Unknown GamePad");
 			p6logd("GamePad No.%d %s connected.\n", i,name);
 			SDL_CloseGamepad(sdl_gamepad);
 		}
@@ -238,7 +238,7 @@ void GamePad_Init(void)
 	//GamePad 定義File読み込み
 	gamepad_db = File_Getcd((char *)gamepaddb_filename);
 	int num = SDL_AddGamepadMappingsFromFile((char *)gamepad_db);
-	if(num > 0) p6logd("%d Game Controller mapped.\n",num);
+	if(num > 0) p6logd("%d GamePad mapped.\n",num);
 
 	strcpy(menu_items[13][0],No_GamePad);
 	strcpy(menu_items[13][1],"\0"); // Menu END
