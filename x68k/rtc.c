@@ -30,45 +30,59 @@ void RTC_Init(void)
 // -----------------------------------------------------------------------
 uint8_t FASTCALL RTC_Read(uint32_t adr)
 {
-	uint8_t ret = 0;
 	struct tm *tm;
 	time_t t;
 	t = time(NULL);
 	tm = localtime(&t);
 
+	RTC_Bank = RTC_Regs[0][13] & 0x01;
+	uint8_t ret = 0xff;
+
 	/*0xe8a000 ~ 0xe8bfff*/
-	uint32_t reg = (adr & 0x1f);
-	if (!(adr & 1)) return 0;
 	if (RTC_Bank == 0)
 	{
-		switch(reg)
+		switch(adr & 0x1f)
 		{
-		case 0x01: ret=(tm->tm_sec)%10; break;
-		case 0x03: ret=(tm->tm_sec)/10; break;
-		case 0x05: ret=(tm->tm_min)%10; break;
-		case 0x07: ret=(tm->tm_min)/10; break;
-		case 0x09: ret=(tm->tm_hour)%10; break;
-		case 0x0b: ret=(tm->tm_hour)/10; break;
-		case 0x0d: ret=(uint8_t)(tm->tm_wday); break;
-		case 0x0f: ret=(tm->tm_mday)%10; break;
-		case 0x11: ret=(tm->tm_mday)/10; break;
-		case 0x13: ret=(tm->tm_mon+1)%10; break;
-		case 0x15: ret=(tm->tm_mon+1)/10; break;
-		case 0x17: ret=((tm->tm_year)-80)%10; break;
-		case 0x19: ret=(((tm->tm_year)-80)/10)&0xf; break;
-		case 0x1b: ret=RTC_Regs[0][13]; break;
-		case 0x1d: ret=RTC_Regs[0][14]; break;
-		case 0x1f: ret=RTC_Regs[0][15]; break;
+		case 0x01: ret&=0xf0; ret|=((tm->tm_sec)%10 & 0x0f); break;
+		case 0x03: ret&=0xf0; ret|=((tm->tm_sec)/10 & 0x0f); break;
+		case 0x05: ret&=0xf0; ret|=((tm->tm_min)%10 & 0x0f); break;
+		case 0x07: ret&=0xf0; ret|=((tm->tm_min)/10 & 0x0f); break;
+		case 0x09: ret&=0xf0; ret|=((tm->tm_hour)%10 & 0x0f); break;
+		case 0x0b: ret&=0xf0; ret|=((tm->tm_hour)/10 & 0x0f); break;
+		case 0x0d: ret&=0xf0; ret|=((tm->tm_wday) & 0x0f); break;
+		case 0x0f: ret&=0xf0; ret|=((tm->tm_mday)%10 & 0x0f); break;
+		case 0x11: ret&=0xf0; ret|=((tm->tm_mday)/10 & 0x0f); break;
+		case 0x13: ret&=0xf0; ret|=((tm->tm_mon+1)%10 & 0x0f); break;
+		case 0x15: ret&=0xf0; ret|=((tm->tm_mon+1)/10 & 0x0f); break;
+		case 0x17: ret&=0xf0; ret|=(((tm->tm_year)-80)%10 & 0x0f); break;
+		case 0x19: ret&=0xf0; ret|=(((tm->tm_year)-80)/10 & 0x0f); break;
+		case 0x1b: ret&=0xf0; ret|=(RTC_Regs[0][13] & 0x0d); break;
+		case 0x1d: ret&=0xf0; ret|=(RTC_Regs[0][14] & 0x0f); break;
+		case 0x1f: ret&=0xf0; ret|=(RTC_Regs[0][15] & 0x0f); break;
 		default: break;
 		}
 	}
 	else
 	{
-		switch(reg)
+		switch(adr & 0x1f)
 		{
-		case 0x1b: ret = (RTC_Regs[1][13]|1); break;
-		case 0x17: ret = ((tm->tm_year)-80)%4; break;
-		default:   ret = RTC_Regs[1][reg>>1]; break;
+		case 0x01: ret&=0xf0; ret|=(RTC_Regs[1][0] & 0x07); break;
+		case 0x03: ret&=0xf0; ret|=(RTC_Regs[1][1] & 0x01); break;
+		case 0x05: ret&=0xf0; ret|=(RTC_Regs[1][2] & 0x0f); break;
+		case 0x07: ret&=0xf0; ret|=(RTC_Regs[1][3] & 0x07); break;
+		case 0x09: ret&=0xf0; ret|=(RTC_Regs[1][4] & 0x0f); break;
+		case 0x0b: ret&=0xf0; ret|=(RTC_Regs[1][5] & 0x03); break;
+		case 0x0d: ret&=0xf0; ret|=(RTC_Regs[1][6] & 0x07); break;
+		case 0x0f: ret&=0xf0; ret|=(RTC_Regs[1][7] & 0x0f); break;
+		case 0x11: ret&=0xf0; ret|=(RTC_Regs[1][8] & 0x03); break;
+		case 0x13: ret&=0xf0; break;
+		case 0x15: ret&=0xf0; ret|=(RTC_Regs[1][10] & 0x01); break;
+		case 0x17: ret&=0xf0; ret|= ((((tm->tm_year)-80)%4) & 0x03); break;
+		case 0x19: ret&=0xf0; break;
+		case 0x1b: ret&=0xf0; ret|=(RTC_Regs[1][13] & 0x0d); break;
+		case 0x1d: ret&=0xf0; ret|=(RTC_Regs[0][14] & 0x0f); break;
+		case 0x1f: ret&=0xf0; ret|=(RTC_Regs[0][15] & 0x0f); break;
+		default: break;
 		}
 	}
 	return ret;
@@ -76,25 +90,58 @@ uint8_t FASTCALL RTC_Read(uint32_t adr)
 
 
 // -----------------------------------------------------------------------
-//   らいと (日付や時間のSetは行わない)
+//   らいと (日付や時間のSetは行わない。保存するだけで使用しない)
 // -----------------------------------------------------------------------
 void FASTCALL RTC_Write(uint32_t adr, uint8_t data)
 {
+	RTC_Bank = RTC_Regs[0][13] & 0x01;
+
 	/*0xe8a000 ~ 0xe8bfff*/
-	switch(adr & 0x1f)
+	if (RTC_Bank == 0)
 	{
-	case 0x01:
-	//	RTC_Timer1  = 0;
-	//	RTC_Timer16 = 0;
-		break;
-	case 0x1b:
-		RTC_Regs[0][13] = RTC_Regs[1][13] = data&0x0c;		// Alarm/Timer Enable制御
-		break;
-	case 0x1f:
-		RTC_Regs[0][15] = RTC_Regs[1][15] = data&0x0c;		// Alarm端子出力制御
-		break;
-	default:
-		break;
+		switch(adr & 0x1f)
+		{
+		case 0x01: RTC_Regs[0][0] = (data & 0x0f); break;// 1-second
+		case 0x03: RTC_Regs[0][1] = (data & 0x07); break;// 10-second
+		case 0x05: RTC_Regs[0][2] = (data & 0x0f); break;// 1-min
+		case 0x07: RTC_Regs[0][3] = (data & 0x07); break;// 10-min
+		case 0x09: RTC_Regs[0][4] = (data & 0x0f); break;// 1-hor
+		case 0x0b: RTC_Regs[0][5] = (data & 0x03); break;// 10-hor
+		case 0x0d: RTC_Regs[0][6] = (data & 0x07); break;// day of the week
+		case 0x0f: RTC_Regs[0][7] = (data & 0x0f); break;// 1-day counter
+		case 0x11: RTC_Regs[0][8] = (data & 0x03); break;// 10-day counter
+		case 0x13: RTC_Regs[0][9] = (data & 0x0f); break;// 1-month counter
+		case 0x15: RTC_Regs[0][10] = (data & 0x01); break;// 10-month counter
+		case 0x17: RTC_Regs[0][11] = (data & 0x0f); break;// 1-year counter
+		case 0x19: RTC_Regs[0][12] = (data & 0x0f); break;// 10-year counter
+		case 0x1b: RTC_Regs[0][13] = RTC_Regs[1][13] = data&0x0d; break;	// Alarm/Timer Enable制御 BANK
+		case 0x1d: RTC_Regs[0][14] = RTC_Regs[1][14] = data&0x0f; break;	// TEST Mode
+		case 0x1f: RTC_Regs[0][15] = RTC_Regs[1][15] = data&0x0c; break;	// Alarm端子出力制御
+		default: break;
+		}
+	}
+	else
+	{
+		switch(adr & 0x1f)
+		{
+		case 0x01: RTC_Regs[1][0] = (data & 0x07); break;// Clock OutPut select
+		case 0x03: RTC_Regs[1][1] = (data & 0x01); break;// ADJ
+		case 0x05: RTC_Regs[1][2] = (data & 0x0f); break;// Alarm min x1
+		case 0x07: RTC_Regs[1][3] = (data & 0x07); break;// Alarm min x10
+		case 0x09: RTC_Regs[1][4] = (data & 0x0f); break;// Alarm hor x1
+		case 0x0b: RTC_Regs[1][5] = (data & 0x03); break;// Alarm hor x10
+		case 0x0d: RTC_Regs[1][6] = (data & 0x07); break;// Alarm day of week
+		case 0x0f: RTC_Regs[1][7] = (data & 0x0f); break;// 1 day alarm
+		case 0x11: RTC_Regs[1][8] = (data & 0x03); break;// 10 day alarm
+		case 0x13: RTC_Regs[1][9] = 0x00; break;
+		case 0x15: RTC_Regs[1][10] = (data & 0x01); break;// 12or24 select
+		case 0x17: RTC_Regs[1][11] = (data & 0x03); break;// Leap year counter
+		case 0x19: RTC_Regs[1][12] = 0x00; break;
+		case 0x1b: RTC_Regs[0][13] = RTC_Regs[1][13] = (data & 0x0d); break; // Alarm/Timer Enable制御 BANK
+		case 0x1d: RTC_Regs[0][14] = RTC_Regs[1][14] = (data & 0x0f); break; // TEST Mode
+		case 0x1f: RTC_Regs[0][15] = RTC_Regs[1][15] = (data & 0x0c); break; // Alarm端子出力制御
+		default: break;
+		}
 	}
 
 }

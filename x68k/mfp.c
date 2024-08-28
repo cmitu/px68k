@@ -153,52 +153,63 @@ void MFP_Init(void)
 // -----------------------------------------------------------------------
 uint8_t FASTCALL MFP_Read(uint32_t adr)
 {
-	uint8_t reg;
-	uint8_t ret = 0;
-	int32_t hpos;
+	uint8_t ret = 0xff;
+	uint8_t reg = (uint8_t)((adr&0x3f)>>1);// Reg0~23(31)
 
-	if (adr>0xe8802f) return ret;		// ばすえらー？
-
-	if (adr & 1)
+	switch(adr & 0x3f)
 	{
-		reg=(uint8_t)((adr&0x3f)>>1);// Reg0~23
-		switch(reg)
-		{
-		case MFP_GPIP://Reg0
-			if ( (vline>=CRTC_VSTART)&&(vline<CRTC_VEND) )
-				ret = 0x13;
-			else
-				ret = 0x03;
-			hpos = (int32_t)(ICount%HSYNC_CLK);
-			if ( (hpos>=((int32_t)CRTC_Regs[5]*HSYNC_CLK/CRTC_Regs[1]))&&(hpos<((int32_t)CRTC_Regs[7]*HSYNC_CLK/CRTC_Regs[1])) )
-				ret &= 0x7f;
-			else
-				ret |= 0x80;
-			if (vline!=CRTC_IntLine)
-				ret |= 0x40;
-			break;
-		case MFP_UDR://Reg23
-			ret = LastKey;
-			KeyIntFlag = 0;
-			break;
-		case MFP_RSR://Reg21
-			if (KeyBufRP!=KeyBufWP)
-				ret = MFP[reg] & 0x7f;
-			else
-				ret = MFP[reg] | 0x80;
-			break;
-		case MFP_AER ... MFP_UCR: // Reg1~20
-		case MFP_TSR:             // Reg22
-			ret = MFP[reg];
-			break;
-		default://Over Reg24~
-			ret = 0xff;
-			break;
-		}
-		return ret;
+	case 0x01://Reg00
+		if ( (vline>=CRTC_VSTART)&&(vline<CRTC_VEND) )
+			ret = 0x13;
+		else
+			ret = 0x03;
+		int32_t hpos = (int32_t)(ICount%HSYNC_CLK);
+		if ( (hpos>=((int32_t)CRTC_Regs[5]*HSYNC_CLK/CRTC_Regs[1]))&&(hpos<((int32_t)CRTC_Regs[7]*HSYNC_CLK/CRTC_Regs[1])) )
+			ret &= 0x7f;
+		else
+			ret |= 0x80;
+		if (vline!=CRTC_IntLine)
+			ret |= 0x40;
+		break;
+	case 0x03://Reg01
+	case 0x05://Reg02
+	case 0x07://Reg03
+	case 0x09://Reg04
+	case 0x0b://Reg05
+	case 0x0d://Reg06
+	case 0x0f://Reg07
+	case 0x11://Reg08
+	case 0x13://Reg09
+	case 0x15://Reg10
+	case 0x17://Reg11
+	case 0x19://Reg12
+	case 0x1b://Reg13
+	case 0x1d://Reg14
+	case 0x1f://Reg15
+	case 0x21://Reg16
+	case 0x23://Reg17
+	case 0x25://Reg18
+	case 0x27://Reg19
+	case 0x29://Reg20
+	case 0x2d://Reg22
+		ret = MFP[reg];
+		break;
+	case 0x2b://Reg21
+		if (KeyBufRP!=KeyBufWP)
+			ret = MFP[reg] & 0x7f;
+		else
+			ret = MFP[reg] | 0x80;
+		break;
+	case 0x2f://Reg23
+		ret = LastKey;
+		KeyIntFlag = 0;
+		break;
+	default:
+		break;
 	}
-	else
-		return 0xff;
+
+	return ret;
+
 }
 
 
@@ -207,84 +218,82 @@ uint8_t FASTCALL MFP_Read(uint32_t adr)
 // -----------------------------------------------------------------------
 void FASTCALL MFP_Write(uint32_t adr, uint8_t data)
 {
-	uint8_t reg;
+	uint8_t reg=(uint8_t)((adr&0x3f)>>1);// Reg0~23(31)
 
-	if (adr>0xe8802f) return;
-
-	if (adr & 1)
+	switch(adr & 0x3f)
 	{
-		reg=(uint8_t)((adr&0x3f)>>1);// Reg0~23
-
-		switch(reg)
-		{
-		case MFP_IERA://Reg03
-		case MFP_IERB://Reg04
-			MFP[reg] = data;
-			MFP[reg+2] &= data;  // 禁止されたものはIPRA/Bを落とす
-			MFP_RecheckInt();
-			break;
-		case MFP_IPRA://Reg05 ~ 08
-		case MFP_IPRB:
-		case MFP_ISRA:
-		case MFP_ISRB:
-			MFP[reg] &= data;
-			MFP_RecheckInt();
-			break;
-		case MFP_IMRA://Reg09~10
-		case MFP_IMRB:
-			MFP[reg] = data;
-			MFP_RecheckInt();
-			break;
-		case MFP_TSR://Reg22
-			MFP[reg] = data|0x80; // Txは常にEnableに
-			break;
-		case MFP_TADR://Reg15
-			Timer_Reload[0] = MFP[reg] = data;
-			break;
-		case MFP_TACR://Reg12
-			MFP[reg] = data;
-			break;
-		case MFP_TBDR://Reg16
-			Timer_Reload[1] = MFP[reg] = data;
-			break;
-		case MFP_TBCR://Reg13
-			MFP[reg] = data;
-			if ( MFP[reg]&0x10 ) Timer_TBO = 0;
-			break;
-		case MFP_TCDR://Reg17
-			Timer_Reload[2] = MFP[reg] = data;
-			break;
-		case MFP_TDDR://Reg18
-			Timer_Reload[3] = MFP[reg] = data;
-			break;
-		case MFP_TCDCR://Reg14
-			MFP[reg] = data;
-			break;
-		case MFP_UDR://Reg23  Send to keyboard
-			if(data & 0x80){
-			  if(keyLED != data){
-			    draw_soft_kbd(0,0,data);
-			  }
-			  keyLED = data;
-			}
-			else if((data & 0x60) == 0x60){
-			  keyREP_DELAY = data;
-			}
-			else if((data & 0x70) == 0x70){
-			  keyREP_TIME = data;
-			}
-			break;
-		case MFP_GPIP ... MFP_DDR://Reg00~02
-		case MFP_VR://Reg11
-		case MFP_SCR://Reg19
-		case MFP_UCR://Reg20
-		case MFP_RSR://Reg21
-			MFP[reg] = data;
-			break;
-		default:
-			break;
+	case 0x01://Reg00 (保存するだけ)
+	case 0x03://Reg01
+	case 0x05://Reg02
+		MFP[reg] = data;
+		break;
+	case 0x07://Reg03
+	case 0x09://Reg04
+		MFP[reg] = data;
+		MFP[reg+2] &= data;  // 禁止されたものはIPRA/Bを落とす
+		MFP_RecheckInt();
+		break;
+	case 0x0b://Reg05
+	case 0x0d://Reg06
+	case 0x0f://Reg07
+	case 0x11://Reg08
+		MFP[reg] &= data;
+		MFP_RecheckInt();
+		break;
+	case 0x13://Reg09
+	case 0x15://Reg10
+		MFP[reg] = data;
+		MFP_RecheckInt();
+		break;
+	case 0x17://Reg11
+	case 0x19://Reg12
+		MFP[reg] = data;
+		break;
+	case 0x1b://Reg13
+		MFP[reg] = data;
+		if ( MFP[reg]&0x10 ) Timer_TBO = 0;
+		break;
+	case 0x1d://Reg14
+		MFP[reg] = data;
+		break;
+	case 0x1f://Reg15
+		Timer_Reload[0] = MFP[reg] = data;
+		break;
+	case 0x21://Reg16
+		Timer_Reload[1] = MFP[reg] = data;
+		break;
+	case 0x23://Reg17
+		Timer_Reload[2] = MFP[reg] = data;
+		break;
+	case 0x25://Reg18
+		Timer_Reload[3] = MFP[reg] = data;
+		break;
+	case 0x27://Reg19
+	case 0x29://Reg20
+	case 0x2b://Reg21
+		MFP[reg] = data;
+		break;
+	case 0x2d://Reg22
+		MFP[reg] = data|0x80; // Txは常にEnableに
+		break;
+	case 0x2f://Reg23
+		if(data & 0x80){
+		  if(keyLED != data){
+		    draw_soft_kbd(0,0,data);
+		  }
+		  keyLED = data;
 		}
+		else if((data & 0x60) == 0x60){
+		  keyREP_DELAY = data;
+		}
+		else if((data & 0x70) == 0x70){
+		  keyREP_TIME = data;
+		}
+		break;
+	default:
+		break;
 	}
+
 }
 
 int16_t timertrace = 0;
