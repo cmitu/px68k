@@ -16,8 +16,6 @@
 #include	"../m68000/m68000.h"
 #include	"../m68000/c68k/c68k.h"
 
-#include 	<sys/stat.h>
-
 // ----------------------
 //   define
 // ----------------------
@@ -108,9 +106,9 @@ void init_SPCreg();
 uint8_t SetPSNS();
 uint8_t SetSSTS();
 
-int32_t Get_FileSize(uint8_t SCSI_ID);
-int32_t SCSI_BlockRead(void);
-int32_t SCSI_BlockWrite(void);
+uint32_t Get_FileSize(uint8_t SCSI_ID);
+BOOL SCSI_BlockRead(void);
+BOOL SCSI_BlockWrite(void);
 
 /*MB89352 reg set*/
 static uint8_t	scsi_bdid;
@@ -329,7 +327,7 @@ SCSI_iocs(uint8_t SCSIiocs)
 		SCSI_Device = target_id;
 		SCSI_Blocks = 0;
 		SCSI_BlockSize = 512;
-		if(SCSI_BlockRead()==1){
+		if(SCSI_BlockRead()==TRUE){
 			for(i=0; i<dtcnt; i++){
 			  Memory_WriteB(m68_adrs+i, INQHD[i]);
 			}
@@ -363,7 +361,7 @@ SCSI_iocs(uint8_t SCSIiocs)
 		  default:SCSI_BlockSize =  512; break;
 		}
 		for(i=0; i<dtcnt; i++){
-		  if(SCSI_BlockRead()==1){
+		  if(SCSI_BlockRead()==TRUE){
 			for(j=0; j<SCSI_BlockSize; j++){
 			  Memory_WriteB(m68_adrs+(i*SCSI_BlockSize)+j,SCSI_Buf[j]);
 			}
@@ -394,7 +392,7 @@ SCSI_iocs(uint8_t SCSIiocs)
 		  for(j=0; j<SCSI_BlockSize; j++){
 		    SCSI_Buf[j] = Memory_ReadB(m68_adrs+(i*SCSI_BlockSize)+j);
 		  }
-		  if(SCSI_BlockWrite()==1){
+		  if(SCSI_BlockWrite()==TRUE){
 			m68000_set_reg(M68K_D0,0);/*OK*/
 		  }
 		  else{
@@ -414,7 +412,7 @@ SCSI_iocs(uint8_t SCSIiocs)
 
 		memset(SCSI_Buf, 0, SCSI_BlockSize);
 		memcpy(SCSI_Buf,MAGICSTR,sizeof(MAGICSTR));
-		if((SCSI_BlockWrite()==1)&&(SCSI_OK[target_id]==TRUE)){
+		if((SCSI_BlockWrite()==TRUE)&&(SCSI_OK[target_id]==TRUE)){
 			m68000_set_reg(M68K_D0,0);/*OK*/
 		}
 		else{
@@ -430,7 +428,7 @@ SCSI_iocs(uint8_t SCSIiocs)
 			m68000_set_reg(M68K_D0, 0xffffffff);/*err(not support)*/
 		}
 		else{
-		  if((SCSI_BlockRead()==1)&&(SCSI_OK[target_id]==TRUE)){
+		  if((SCSI_BlockRead()==TRUE)&&(SCSI_OK[target_id]==TRUE)){
 			m68000_set_reg(M68K_D0,0);/*OK*/
 			//printf("DeviceNO %d OK\n",SCSI_Device);
 		  }
@@ -445,7 +443,7 @@ SCSI_iocs(uint8_t SCSIiocs)
 		SCSI_Device = target_id;
 		SCSI_Blocks = 0;
 		SCSI_BlockSize = 512;
-		if(SCSI_BlockRead()==1){
+		if(SCSI_BlockRead()==TRUE){
 			//if(memcmp(SCSI_Buf,"X68SCSI1",8) == 0){
 			//  i = (SCSI_Buf[0x0a]<<24)|(SCSI_Buf[0x0b]<<16)|(SCSI_Buf[0x0c]<<8)|SCSI_Buf[0x0d];/*全ブロック数*/
 			//  j = (SCSI_Buf[8]<<8 | SCSI_Buf[9]);
@@ -487,7 +485,7 @@ SCSI_iocs(uint8_t SCSIiocs)
 		SCSI_Device = target_id;
 		SCSI_Blocks = 0;
 		SCSI_BlockSize = 512;
-		if(SCSI_BlockRead()==1){
+		if(SCSI_BlockRead()==TRUE){
 			RQ_SENSE[0]=0x80;//Losical Address OK
 			RQ_SENSE[1]=SCSI_Buf[11]; RQ_SENSE[2]=SCSI_Buf[12];RQ_SENSE[3]=SCSI_Buf[13];
 			for (i=0; i<dtcnt; i++){
@@ -546,7 +544,7 @@ SCSI_ipl(void)
 	SCSI_Device = 0;
 	SCSI_Blocks = 0;
 	SCSI_BlockSize = 1024;
-	if(SCSI_BlockRead()==1){
+	if(SCSI_BlockRead()==TRUE){
 		for(j=0; j<SCSI_BlockSize; j++){
 		  Memory_WriteB(0x02000+j,SCSI_Buf[j]);
 		}
@@ -558,7 +556,7 @@ SCSI_ipl(void)
 		return;
 	}
 	SCSI_Blocks = 1;
-	if(SCSI_BlockRead()==1){
+	if(SCSI_BlockRead()==TRUE){
 		for(j=0; j<SCSI_BlockSize; j++){
 		  Memory_WriteB(0x002000+j,SCSI_Buf[j]);
 		}
@@ -567,7 +565,7 @@ SCSI_ipl(void)
 		return;
 	}
 	SCSI_Blocks = 2;
-	if(SCSI_BlockRead()==1){
+	if(SCSI_BlockRead()==TRUE){
 		for(j=0; j<SCSI_BlockSize; j++){
 		  Memory_WriteB(0x002400+j,SCSI_Buf[j]);
 		}
@@ -606,7 +604,7 @@ Human_ipl(void)
 	SCSI_Device = 0;
 	SCSI_Blocks = 0;
 	SCSI_BlockSize = 1024;
-	if(SCSI_BlockRead()==1){
+	if(SCSI_BlockRead()==TRUE){
 		for(j=0; j<SCSI_BlockSize; j++){
 		  Memory_WriteB(0x02000+j,SCSI_Buf[j]);
 		}
@@ -616,7 +614,7 @@ Human_ipl(void)
 	}
 
 	SCSI_Blocks = 2;
-	if(SCSI_BlockRead()==2){
+	if(SCSI_BlockRead()==TRUE){
 		for(j=0; j<SCSI_BlockSize; j++){
 		  Memory_WriteB(0x02000+j,SCSI_Buf[j]);
 		}
@@ -930,21 +928,31 @@ uint8_t SetSSTS(){
 // ----------------------
 //   Get File Size
 // ----------------------
-int32_t Get_FileSize(uint8_t SCSI_ID)
+uint32_t Get_FileSize(uint8_t SCSI_ID)
 {
-	struct stat statBuf;
+	FILEH fp;
 
-	if (stat((char *)Config.SCSIEXHDImage[SCSI_ID], &statBuf) == 0){
-		return statBuf.st_size;
+	fp = File_Open((char *)(char *)Config.SCSIEXHDImage[SCSI_ID]);
+	if (!fp){
+		File_Close(fp);
+		return FALSE;
 	}
 
-    return -1;
+	uint32_t size = File_Seek(fp, SCSI_Blocks*SCSI_BlockSize, FSEEK_END);
+	if (size == 0xffffffff){//Error
+		File_Close(fp);
+		return FALSE;
+	}
+
+	File_Close(fp);
+	return size;
+
 }
 
 // -----------------------------------------------------------------------
 //   SCSI BlockRead （SCSI_BlocksからBlockSize分ReadしてSCSI_Bufに格納）
 // -----------------------------------------------------------------------
-int32_t SCSI_BlockRead(void)
+BOOL SCSI_BlockRead(void)
 {
 	FILEH fp;
 	memset(SCSI_Buf, 0, SCSI_BlockSize);
@@ -952,44 +960,44 @@ int32_t SCSI_BlockRead(void)
 	if (!fp)
 	{
 		memset(SCSI_Buf, 0, SCSI_BlockSize);
-		return -1;
+		return FALSE;
 	}
 	if (File_Seek(fp, SCSI_Blocks*SCSI_BlockSize, FSEEK_SET)!=(SCSI_Blocks*SCSI_BlockSize)) 
 	{
 		File_Close(fp);
-		return 0;
+		return FALSE;
 	}
 	if (File_Read(fp, SCSI_Buf, SCSI_BlockSize)!=SCSI_BlockSize)
 	{
 		File_Close(fp);
-		return 0;
+		return FALSE;
 	}
 	File_Close(fp);
 
-	return 1;/*success*/
+	return TRUE;/*success*/
 }
 
 
 // -----------------------------------------------------------------------
 //   SCSI BlockWrite（SCSI_BlocksからBlockSize分,Write）
 // -----------------------------------------------------------------------
-int32_t SCSI_BlockWrite(void)
+BOOL SCSI_BlockWrite(void)
 {	FILEH fp;
 
 	fp = File_Open((char *)Config.SCSIEXHDImage[SCSI_Device]);
-	if (!fp) return -1;
+	if (!fp) return FALSE;
 	if (File_Seek(fp, SCSI_Blocks*SCSI_BlockSize, FSEEK_SET)!=(SCSI_Blocks*SCSI_BlockSize))
 	{
 		File_Close(fp);
-		return 0;
+		return FALSE;
 	}
 	if (File_Write(fp, SCSI_Buf, SCSI_BlockSize)!=SCSI_BlockSize)
 	{
 		File_Close(fp);
-		return 0;
+		return FALSE;
 	}
 	File_Close(fp);
 
-	return 1;/*success*/
+	return TRUE;/*success*/
 }
 
