@@ -173,9 +173,4 @@ DSound_Cleanup(void)
 {
 	return TRUE;
 }
-
-void FASTCALL
-DSound_Send0(long clock)
-{
-}
 #endif	/* !NOSOUND */

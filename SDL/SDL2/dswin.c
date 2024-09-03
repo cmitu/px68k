@@ -296,7 +296,7 @@ DSound_Cleanup(void)
 }
 
 void FASTCALL
-DSound_Send0(long clock)
+DSound_Send0(int32_t clock)
 {
 }
 #endif	/* !NOSOUND */

@@ -716,13 +716,13 @@ int32_t main(int32_t argc, char *argv[])
 	LoadConfig();
 
 #ifdef NOSOUND
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+	if (!SDL_Init(SDL_INIT_VIDEO)) {
 		return 1;
 	}
 #else
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
+	if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
 		p6logd("SDL_Init error\n");
-		if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+		if (!SDL_Init(SDL_INIT_VIDEO)) {
 			return 1;
 		}
 	} else {

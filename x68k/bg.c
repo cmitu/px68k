@@ -167,11 +167,11 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 			break;
 
 		case 0x0d:
-			BG_HAdjust = ((uint32_t)BG_Regs[0x0d]-(CRTC_HSTART+4))*8;	// 水平方向は解像度による1/2はいらない？（Tetris）
+			BG_HAdjust = (int32_t)(BG_Regs[0x0d]-(CRTC_HSTART+4))*8;	// 水平方向は解像度による1/2はいらない？（Tetris）
 			TVRAM_SetAllDirty();
 			break;
 		case 0x0f:
-			BG_VLINE = ((uint32_t)BG_Regs[0x0f]-CRTC_VSTART)/((BG_Regs[0x11]&4)?1:2);	// BGとその他がずれてる時の差分
+			BG_VLINE = (int32_t)(BG_Regs[0x0f]-CRTC_VSTART)/((BG_Regs[0x11]&4)?1:2);	// BGとその他がずれてる時の差分
 			TVRAM_SetAllDirty();
 			break;
 
@@ -189,8 +189,8 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 				BG_CHREND = 0x2000;
 			BG_CHRSIZE = ((data&3)?16:8);
 			BG_AdrMask = ((data&3)?1023:511);
-			BG_HAdjust = ((int32_t)BG_Regs[0x0d]-(CRTC_HSTART+4))*8;		// 水平方向は解像度による1/2はいらない？（Tetris）
-			BG_VLINE = ((int32_t)BG_Regs[0x0f]-CRTC_VSTART)/((BG_Regs[0x11]&4)?1:2);	// BGとその他がずれてる時の差分
+			BG_HAdjust = (int32_t)(BG_Regs[0x0d]-(CRTC_HSTART+4))*8;		// 水平方向は解像度による1/2はいらない？（Tetris）
+			BG_VLINE   = (int32_t)(BG_Regs[0x0f]-CRTC_VSTART)/((BG_Regs[0x11]&4)?1:2);	// BGとその他がずれてる時の差分
 			break;
 		case 0x09:		// BG Plane Cfg Changed
 			TVRAM_SetAllDirty();
@@ -273,10 +273,6 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 
 }
 
-#ifndef USE_GAS
-//#define USE_GAS
-#endif
-
 // -----------------------------------------------------------------------
 //   1ライン分の描画
 // -----------------------------------------------------------------------
@@ -319,18 +315,24 @@ Sprite_DrawLineMcr(int32_t pri)
 				int32_t i, d;
 				uint8_t bh, dat;
 				
-				if (sctp->sprite_ctrl < 0x4000) {
-					p = &BGCHR16[((sctp->sprite_ctrl * 256) & 0xffff)  + (y * 16)];
-					d = 1;
-				} else  if ((sctp->sprite_ctrl - 0x4000) & 0x8000) {
-					p = &BGCHR16[((sctp->sprite_ctrl * 256) & 0xffff) + (((y * 16) & 0xff) ^ 0xf0) + 15];
+				switch(sctp->sprite_ctrl & 0xc000)
+				{
+				case 0x4000://水平反転
+					p = &BGCHR16[((sctp->sprite_ctrl << 8) & 0xffff) + (y * 16) + 15];
 					d = -1;
-				} else if ((int16_t)(sctp->sprite_ctrl) >= 0x4000) {
-					p = &BGCHR16[((sctp->sprite_ctrl * 256) & 0xffff) + (y * 16) + 15];
-					d = -1;
-				}  else {
+					break;
+				case 0x8000://垂直反転
 					p = &BGCHR16[((sctp->sprite_ctrl << 8) & 0xffff)  + (((y * 16) & 0xff) ^ 0xf0)];
 					d = 1;
+					break;
+				case 0xc000://水平・垂直反転
+					p = &BGCHR16[((sctp->sprite_ctrl << 8) & 0xffff) + (((y * 16) & 0xff) ^ 0xf0) + 15];
+					d = -1;
+					break;
+				default://反転なし
+					p = &BGCHR16[((sctp->sprite_ctrl << 8) & 0xffff)  + (y * 16)];
+					d = 1;
+					break;
 				}
 
 				for (i = 0; i < 16; i++, t++, p += d) {
@@ -399,7 +401,7 @@ void bg_drawline_loopx8(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY, 
                } else if ((bl - 0x40) & 0x80) {
                        esi = &BGCHR8[si + 0x3f - ebp];
                        d = -1;
-               } else if ((signed char)bl >= 0x40) {
+               } else if (bl >= 0x40) {
                        esi = &BGCHR8[si + ebp + 7];
                        d = -1;
                } else {
@@ -439,7 +441,7 @@ void bg_drawline_loopx16(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY,
 		} else if ((bl - 0x40) & 0x80) {
 			esi = &BGCHR16[si + 0xff - ebp];
 			d = -1;
-		} else if ((signed char)bl >= 0x40) {
+		} else if (bl >= 0x40) {
 			esi = &BGCHR16[si + ebp + 15];
 			d = -1;
 		} else {

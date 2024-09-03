@@ -181,7 +181,7 @@ void FASTCALL VCtrl_Write(int32_t adr, uint8_t data)
 
 void CRTC_Init(void)
 {
-	memset(CRTC_Regs, 0, 48);
+	memset(CRTC_Regs, 0, sizeof(CRTC_Regs));
 	TextScrollX = 0, TextScrollY = 0;
 	memset(GrphScrollX, 0, sizeof(GrphScrollX));
 	memset(GrphScrollY, 0, sizeof(GrphScrollY));
@@ -260,7 +260,7 @@ void FASTCALL CRTC_Write16(uint32_t adr, uint16_t data, uint8_t ulds)
 		case 0x05:
 			CRTC_HSTART = (((uint16_t)CRTC_Regs[0x4]<<8)+CRTC_Regs[0x5]);
 			if(CRTC_HEND>CRTC_HSTART){ TextDotX = (CRTC_HEND-CRTC_HSTART)*8; }//設定途中対策
-			BG_HAdjust = ((int32_t)BG_Regs[0x0d]-(CRTC_HSTART+4))*8;		// 水平方向は解像度による1/2はいらない？（Tetris）
+			BG_HAdjust = (int32_t)(BG_Regs[0x0d]-(CRTC_HSTART+4))*8;		// 水平方向は解像度による1/2はいらない？（Tetris）
 			WinDraw_ChangeSize();
 			break;
 		case 0x06:
@@ -284,7 +284,7 @@ void FASTCALL CRTC_Write16(uint32_t adr, uint16_t data, uint8_t ulds)
 			CRTC_Regs[0x0c] &= 0x03;
 		case 0x0d:
 			CRTC_VSTART = (((uint16_t)CRTC_Regs[0xc]<<8)+CRTC_Regs[0xd]);
-			BG_VLINE = ((long)BG_Regs[0x0f]-CRTC_VSTART)/((BG_Regs[0x11]&4)?1:2);	// BGとその他がずれてる時の差分
+			BG_VLINE = (int32_t)(BG_Regs[0x0f]-CRTC_VSTART)/((BG_Regs[0x11]&4)?1:2);	// BGとその他がずれてる時の差分
 			if(CRTC_VEND>CRTC_VSTART){ TextDotY = CRTC_VEND-CRTC_VSTART; }//設定途中対策
 			if ((CRTC_Regs[0x29]&0x14)==0x10)
 			{
