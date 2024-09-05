@@ -65,7 +65,9 @@ uint8_t FASTCALL BG_Read(uint32_t adr)
 	{
 	 case 0xeb0000 ... 0xeb03ff:
 		adr &= 0x0003ff;
+#ifndef C68K_BIG_ENDIAN
 		adr ^= 1;
+#endif
 		return Sprite_Regs[adr];
 		break;
 	 case 0xeb0400 ... 0xeb07ff:
@@ -111,7 +113,9 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 	{
 	 case 0xeb0000 ... 0xeb03ff:
 		adr &= 0x0003ff;
+#ifndef C68K_BIG_ENDIAN
 		adr ^= 1;
+#endif
 		if (Sprite_Regs[adr] != data)
 		{
 
@@ -142,21 +146,25 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 		switch(adr)
 		{
 		case 0x00:
+			BG_Regs[0x00] &= 0x03;
 		case 0x01:
 			BG0ScrollX = (((uint32_t)BG_Regs[0x00]<<8)+BG_Regs[0x01])&BG_AdrMask;
 			TVRAM_SetAllDirty();
 			break;
 		case 0x02:
+			BG_Regs[0x02] &= 0x03;
 		case 0x03:
 			BG0ScrollY = (((uint32_t)BG_Regs[0x02]<<8)+BG_Regs[0x03])&BG_AdrMask;
 			TVRAM_SetAllDirty();
 			break;
 		case 0x04:
+			BG_Regs[0x04] &= 0x03;
 		case 0x05:
 			BG1ScrollX = (((uint32_t)BG_Regs[0x04]<<8)+BG_Regs[0x05])&BG_AdrMask;
 			TVRAM_SetAllDirty();
 			break;
 		case 0x06:
+			BG_Regs[0x06] &= 0x03;
 		case 0x07:
 			BG1ScrollY = (((uint32_t)BG_Regs[0x06]<<8)+BG_Regs[0x07])&BG_AdrMask;
 			TVRAM_SetAllDirty();
@@ -281,8 +289,7 @@ struct SPRITECTRLTBL {
 	uint16_t	sprite_posx;
 	uint16_t	sprite_posy;
 	uint16_t	sprite_ctrl;
-	uint8_t		sprite_ply;
-	uint8_t		dummy;
+	uint16_t	sprite_ply;
 } __attribute__ ((packed));
 typedef struct SPRITECTRLTBL SPRITECTRLTBL_T;
 
@@ -295,7 +302,7 @@ Sprite_DrawLineMcr(int32_t pri)
 	int32_t n;
 
 	for (n = 127; n >= 0; --n) {
-		if ((sct[n].sprite_ply & 3) == pri) {
+		if ((sct[n].sprite_ply & 0x0003) == pri) {
 			SPRITECTRLTBL_T *sctp = &sct[n];
 
 			t = (sctp->sprite_posx + BG_HAdjust) & 0x3ff;
@@ -311,32 +318,32 @@ Sprite_DrawLineMcr(int32_t pri)
 			// add y, 16; jnc .spline_lpcnt
 			if (y <= 15) {
 				uint8_t *p;
-				uint32_t pal;
+				uint8_t pal;
 				int32_t i, d;
 				uint8_t bh, dat;
 				
 				switch(sctp->sprite_ctrl & 0xc000)
 				{
 				case 0x4000://水平反転
-					p = &BGCHR16[((sctp->sprite_ctrl << 8) & 0xffff) + (y * 16) + 15];
+					p = &BGCHR16[((sctp->sprite_ctrl << 8) & 0xff00) + (y * 16) + 15];
 					d = -1;
 					break;
 				case 0x8000://垂直反転
-					p = &BGCHR16[((sctp->sprite_ctrl << 8) & 0xffff)  + (((y * 16) & 0xff) ^ 0xf0)];
+					p = &BGCHR16[((sctp->sprite_ctrl << 8) & 0xff00)  + (((y * 16) & 0xff) ^ 0xf0)];
 					d = 1;
 					break;
 				case 0xc000://水平・垂直反転
-					p = &BGCHR16[((sctp->sprite_ctrl << 8) & 0xffff) + (((y * 16) & 0xff) ^ 0xf0) + 15];
+					p = &BGCHR16[((sctp->sprite_ctrl << 8) & 0xff00) + (((y * 16) & 0xff) ^ 0xf0) + 15];
 					d = -1;
 					break;
 				default://反転なし
-					p = &BGCHR16[((sctp->sprite_ctrl << 8) & 0xffff)  + (y * 16)];
+					p = &BGCHR16[((sctp->sprite_ctrl << 8) & 0xff00)  + (y * 16)];
 					d = 1;
 					break;
 				}
 
 				for (i = 0; i < 16; i++, t++, p += d) {
-					pal = *p & 0xf;
+					pal = *p & 0x0f;
 					if (pal) {
 						pal |= (sctp->sprite_ctrl >> 4) & 0xf0;
 						if (BG_PriBuf[t] >= n * 8) {

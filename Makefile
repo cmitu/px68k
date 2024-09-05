@@ -199,7 +199,7 @@ X68KOBJS= x68k/adpcm.o x68k/bg.o x68k/crtc.o x68k/dmac.o x68k/fdc.o x68k/fdd.o x
 
 FMGENOBJS= fmgen/fmgen.o fmgen/fmg_wrap.o fmgen/file.o fmgen/fmtimer.o fmgen/opm.o fmgen/opna.o fmgen/psg.o
 
-SDLOBJS= SDL/juliet.o SDL/mouse.o SDL/status.o SDL/timer.o SDL/about.o SDL/common.o SDL/prop.o SDL/winui.o SDL/keyboard.o
+SDLOBJS= SDL/juliet.o SDL/mouse.o SDL/status.o SDL/timer.o SDL/common.o SDL/prop.o SDL/winui.o SDL/keyboard.o
 
 ifdef SDL3
 SDLOBJS += SDL/SDL3/windraw.o SDL/SDL3/GamePad.o SDL/SDL3/dswin.o

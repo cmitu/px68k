@@ -194,8 +194,9 @@ void FASTCALL ADPCM_Update(int16_t *buffer, int32_t length, int16_t *pbsp, int16
 // -----------------------------------------------------------------------
 //   1nibble（4bit）をデコード
 // -----------------------------------------------------------------------
-INLINE void ADPCM_WriteOne(int32_t val)
+INLINE void ADPCM_WriteOne(uint8_t val)
 {
+	val &= 0x0f;
 	ADPCM_Out += dif_table[ADPCM_Step+val];
 	if ( ADPCM_Out>ADPCMMAX ) ADPCM_Out = ADPCMMAX; else if ( ADPCM_Out<ADPCMMIN ) ADPCM_Out = ADPCMMIN;
 	ADPCM_Step += index_shift[val];
@@ -257,8 +258,8 @@ void FASTCALL ADPCM_Write(uint32_t adr, uint8_t data)
 		break;
 	case 0x03:  // ADPCM data out
 		if ( ADPCM_Playing ) {
-			ADPCM_WriteOne((int)(data&15));
-			ADPCM_WriteOne((int)((data>>4)&15));
+			ADPCM_WriteOne((uint8_t)(data&0x0f));
+			ADPCM_WriteOne((uint8_t)((data>>4)&0x0f));
 		}
 		break;
 	default:

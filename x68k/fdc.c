@@ -437,7 +437,7 @@ static void FDC_WriteBuffer(void)
 // -----------------------------------------------------------------------
 uint8_t FASTCALL FDC_Read(uint32_t adr)
 {
-	uint8_t ret = 0x00;
+	uint8_t ret = 0xff;
 
 	/*== 0xe9400x ~ 0xe95ffx==*/
 	switch(adr & 0x07)
@@ -461,8 +461,11 @@ uint8_t FASTCALL FDC_Read(uint32_t adr)
 		}
 		break;
 	case 0x05:
+		ret = 0x00;
 		if ( (fdc.ctrl&1)&&(FDD_IsReady(0)) ) ret = 0x80;
 		if ( (fdc.ctrl&2)&&(FDD_IsReady(1)) ) ret = 0x80;
+		break;
+	case 0x07:
 		break;
 	default:
 		break;
@@ -481,6 +484,8 @@ void FASTCALL FDC_Write(uint32_t adr, uint8_t data)
 	/*== 0xe9400x ~ 0xe95ffx==*/
 	switch(adr & 0x07)
 	{
+	case 0x01:
+		break;
 	case 0x03:
 		if ( fdc.bufnum ) {                 // WriteData
 			fdc.DataBuf[fdc.wrptr++] = data;
