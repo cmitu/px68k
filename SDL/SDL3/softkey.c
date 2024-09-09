@@ -21,16 +21,8 @@ static uint32_t sleep_counter;
 /*非表示で初期化*/
 void Soft_kbd_CreateScreen(void)
 {
-	SDL_PropertiesID props = SDL_CreateProperties();
-	SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, "X68000 keyboard");
-	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, winx+16);// Window位置
-	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, winy+380);
-	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, softkey_width);//大きさ
-	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, softkey_hight);
-	SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_HIGH_PIXEL_DENSITY_BOOLEAN, SDL_TRUE); // Handle DPI scaling internally
-	SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_HIDDEN_BOOLEAN, SDL_TRUE);//非表示
-	sft_kbd_window  = SDL_CreateWindowWithProperties(props);
-	SDL_DestroyProperties(props);
+	sft_kbd_window  = SDL_CreateWindow("X68000 keyboard",softkey_width,softkey_hight,
+								SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY);
 
 	if (sft_kbd_window == NULL) {
 		p6logd("Can't create Soft_Keyboard Window: %s\n", SDL_GetError());

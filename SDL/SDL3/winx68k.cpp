@@ -677,7 +677,7 @@ drop_file(const char* dropped_fileurl)
 //
 // main
 //
-int32_t main(int32_t argc, char *argv[])
+int main(int argc, char *argv[])
 {
 	SDL_Event ev;
 	SDL_Keycode menu_key_down;
@@ -755,23 +755,18 @@ int32_t main(int32_t argc, char *argv[])
 #endif
 #else
 	/* SDL3 for GPU */
-	SDL_PropertiesID props = SDL_CreateProperties();
-	SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, window_title);
-	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, winx);
-	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, winy);
-	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, FULLSCREEN_WIDTH);
-	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, FULLSCREEN_HEIGHT);
+	SDL_WindowFlags flags = SDL_WINDOW_HIGH_PIXEL_DENSITY;
 	if (Config.WinStrech == 1){
-	  SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_RESIZABLE_BOOLEAN, SDL_TRUE);
+	  flags |= SDL_WINDOW_RESIZABLE;
 	}
-	SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_HIGH_PIXEL_DENSITY_BOOLEAN, SDL_TRUE); // Handle DPI scaling internally
-	sdl_window = SDL_CreateWindowWithProperties(props);
-	SDL_DestroyProperties(props);
+	sdl_window = SDL_CreateWindow(window_title,FULLSCREEN_WIDTH,FULLSCREEN_HEIGHT,flags);
 #endif
 
 	if (sdl_window == NULL) {
 		p6logd("Cαn`t Create sdl_window: %ld", sdl_window);
 	}
+
+	SDL_SetWindowPosition(sft_kbd_window, winx, winy);
 
 	/*Create Renderer */
 	sdl_render = SDL_CreateRenderer( sdl_window ,NULL );

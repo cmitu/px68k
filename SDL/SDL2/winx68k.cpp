@@ -680,7 +680,7 @@ drop_file(char* dropped_fileurl)
 //
 // main
 //
-int32_t main(int32_t argc, char *argv[])
+int main(int argc, char *argv[])
 {
 	SDL_Event ev;
 	SDL_Keycode menu_key_down;
