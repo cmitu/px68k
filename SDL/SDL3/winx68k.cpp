@@ -766,7 +766,7 @@ int main(int argc, char *argv[])
 		p6logd("Cαn`t Create sdl_window: %ld", sdl_window);
 	}
 
-	SDL_SetWindowPosition(sft_kbd_window, winx, winy);
+	SDL_SetWindowPosition(sdl_window, winx, winy);
 
 	/*Create Renderer */
 	sdl_render = SDL_CreateRenderer( sdl_window ,NULL );

@@ -294,7 +294,7 @@ struct SPRITECTRLTBL {
 typedef struct SPRITECTRLTBL SPRITECTRLTBL_T;
 
 INLINE void
-Sprite_DrawLineMcr(int32_t pri)
+Sprite_DrawLineMcr(uint16_t pri)
 {
 	SPRITECTRLTBL_T *sct = (SPRITECTRLTBL_T *)Sprite_Regs;
 	uint32_t y;
