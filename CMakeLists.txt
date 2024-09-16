@@ -22,7 +22,7 @@ project(px68k VERSION ${PROJECT_VERSION})
 string(TIMESTAMP TIMESTAMP "%Y%m%d")
 
 # == option ==
-option(SDL2 "Use SDL2" ON)
+option(SDL3 "Use SDL3" OFF)
 option(NO_MIDI "No MIDI Play" OFF)
 option(FLUID "Use fluidsynth" OFF)
 option(NO_MERCURY "No Mercury" OFF)
@@ -49,14 +49,14 @@ add_definitions(
 endif()
 
 # == Find SDL2/3 library and add to linker flags ==
-if(SDL2)
+if(SDL3)
+  message(" - define SDL3")
+ find_package(SDL3 REQUIRED)
+else()
   message(" - define SDL2")
  add_definitions( -DSDL2 )
  find_package(SDL2 REQUIRED)
  find_package(SDL2_ttf REQUIRED)
-else()
-  message(" - define SDL3")
- find_package(SDL3 REQUIRED)
 endif ()
 
 if(APPLE)
@@ -158,17 +158,7 @@ set(SDL_sources
   SDL/common.c
 )
 
-if(SDL2)
-  list(APPEND SDL_sources
-  SDL/SDL2/winx68k.cpp
-  SDL/SDL2/windraw.c
-  SDL/SDL2/GameController.c
-  SDL/SDL2/dswin.c
-  )
-  list(APPEND SDL_INCLUDE_DIR
-  SDL/SDL2
-  )
-else()
+if(SDL3)
   list(APPEND SDL_sources
   SDL/SDL3/winx68k.cpp
   SDL/SDL3/windraw.c
@@ -177,6 +167,16 @@ else()
   )
   list(APPEND SDL_INCLUDE_DIR
   SDL/SDL3
+  )
+else()
+  list(APPEND SDL_sources
+  SDL/SDL2/winx68k.cpp
+  SDL/SDL2/windraw.c
+  SDL/SDL2/GameController.c
+  SDL/SDL2/dswin.c
+  )
+  list(APPEND SDL_INCLUDE_DIR
+  SDL/SDL2
   )
 endif ()
 
@@ -244,10 +244,10 @@ include_directories(
 )
 
 # == add execute ==
-if(SDL2)
-  set(BIN_TARGET "px68k.sdl2")
-else()
+if(SDL3)
   set(BIN_TARGET "px68k.sdl3")
+else()
+  set(BIN_TARGET "px68k.sdl2")
 endif()
 
 if(UNIX AND NOT APPLE)

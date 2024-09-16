@@ -41,9 +41,11 @@
 ```sh
  $ make      (SDL2でLINK Linux/macOS/MinGW)
  $ make mac  (macOS only)
-
- $ make NO_MIDI=1 (No MIDI Support)
- $ make FLUID=1 (use fluidsynth for MIDI)
+ 
+[option]
+ $ make SDL3=ON  (SDL3 test drive!)
+ $ make NO_MIDI=ON (No MIDI Support)
+ $ make FLUID=ON (use fluidsynth for MIDI)
 
  $ make clean (お掃除)
  $ make cgrom (app for Generate cgrom.tmp)
@@ -57,7 +59,7 @@
  $ cmake ..
  $ cmake --build .
 or
- $ cmake -DSDL2=OFF .. (SDL3 test drive!)
+ $ cmake -DSDL3=ON .. (SDL3 test drive!)
  $ cmake --build .
 ```
 
@@ -89,13 +91,13 @@ or
 ## How to make `cgrom.tmp`
  * cgrom.datがない場合用に代替ファイルをTrueTypeから生成できます。
  * generate from Japanese-TrueType Font.(need `SDL2_ttf`)
- * maked `cgrom.tmp` put into ./keropi folder.
+ * maked `cgrom.tmp` put into .keropi folder.
 
 ```sh
   $ make cgrom
-  $ ./SDL/tool/mkcgrom
+  $ ./mkcgrom
   or
-  $ ./SDL/tool/mkcgrom ./pri.ttf ./sec.ttf
+  $ ./mkcgrom ./pri.ttf ./sec.ttf
 ```
 
 ## How to make SCSI Disk image (*.HDS)

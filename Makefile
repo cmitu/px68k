@@ -87,7 +87,7 @@ CC	 = gcc
 CXX	 = g++
 
 CXXLINK	 = $(CXX)
-RM	 = rm -f
+RM	 = rm -rf
 TAGS	 = etags
 DEPEND	 = gccmakedep
 DEPEND_DEFINES =
@@ -217,9 +217,6 @@ CGROMOBJS=	SDL/mkcgrom.o SDL/tool/create_cgrom.o
 
 COBJS=		$(X68KOBJS) $(SDLOBJS) $(WIN32APIOBJS) $(CPUOBJS) $(C68KOBJS) $(MIDIOBJS)
 CXXOBJS=	$(FMGENOBJS) $(SDLCXXOBJS)
-OBJS=		$(COBJS) $(CXXOBJS)
-
-MKCGROMOBJS= $(WIN32APIOBJS) $(CGROMOBJS)
 
 CSRCS=		$(COBJS:.o=.c)
 CXXSRCS=	$(CXXOBJS:.o=.cpp)
@@ -227,27 +224,57 @@ SRCS=		$(CSRCS) $(CXXSRCS)
 
 .SUFFIXES: .c .cpp
 
-.c.o:
-	$(CC) -o $@ $(CFLAGS) -c $*.c
+OBJDIR		= obj
 
-.cpp.o:
-	$(CXX) -o $@ $(CXXFLAGS) -c $*.cpp
+OBJS		 = $(addprefix $(OBJDIR)/, $(COBJS))
+OBJS		+= $(addprefix $(OBJDIR)/, $(CXXOBJS))
+
+MKCGROMOBJS	  = $(addprefix $(OBJDIR)/, $(WIN32APIOBJS))
+MKCGROMOBJS	 += $(addprefix $(OBJDIR)/, $(CGROMOBJS))
+
+OBJDIRS		= $(OBJDIR) $(OBJDIR)/m68000 $(OBJDIR)/m68000/c68k \
+		  	$(OBJDIR)/fmgen $(OBJDIR)/win32api \
+		  	$(OBJDIR)/SDL $(OBJDIR)/SDL/tool $(OBJDIR)/SDL/SDL2 $(OBJDIR)/SDL/SDL3 \
+			$(OBJDIR)/x68k
 
 px68kicon = ./macOS
 
-all:: $(PROGRAM)
+all:: $(OBJDIRS) $(PROGRAM)
+
+$(OBJDIRS):
+		-mkdir $@
 
 $(PROGRAM): $(OBJS)
 	$(RM) $@
 	$(CXXLINK) $(MOPT) -o $(PROGRAM) $(CXXLDOPTIONS) $(OBJS) $(LDLIBS) $(SDL_LIB) $(FLUID_LIB)
+
+$(OBJDIR)/m68000/%.o: m68000/%.c
+		$(CC) $(CFLAGS) -o $@ -c $<
+
+$(OBJDIR)/fmgen/%.o: fmgen/%.cpp
+		$(CXX) $(CXXFLAGS) -o $@ -c $<
+
+$(OBJDIR)/win32api/%.o: win32api/%.c
+		$(CC) $(CFLAGS) -o $@ -c $<
+
+$(OBJDIR)/x68k/%.o: x68k/%.c
+		$(CC) $(CFLAGS) -o $@ -c $<
+
+$(OBJDIR)/SDL/%.o: SDL/%.c
+		$(CC) $(CFLAGS) -o $@ -c $<
+
+$(OBJDIR)/SDL/%.o: SDL/%.cpp
+		$(CXX) $(CXXFLAGS) -o $@ -c $<
+
+$(OBJDIR)/SDL/tool/%.o: SDL/tool/%.c
+		$(CC) $(CFLAGS) -o $@ -c $<
 
 depend::
 	$(DEPEND) -- $(CXXFLAGS) $(DEPEND_DEFINES) -- $(SRCS)
 
 clean::
 	$(RM) $(PROGRAM)
-	$(RM) $(OBJS)
-	$(RM) $(CGROMOBJS)
+	$(RM) $(OBJDIR)
 	$(RM) *.CKP *.ln *.BAK *.bak *.o core errs ,* *~ *.a .emacs_* tags TAGS make.log MakeOut   "#"*
 
 tags::
@@ -287,6 +314,6 @@ c68k::
 	cmake $(C68KFLAGS) -S ./m68000/c68k -B ./m68000/c68k
 	cmake --build ./m68000/c68k
 
-cgrom:: $(MKCGROMOBJS)
-	$(RM) SDL/tool/mkcgrom
-	$(CXXLINK) -o SDL/tool/mkcgrom $(MKCGROMOBJS) $(SDL_LIB) $(SDL_TTF_LIB)
+cgrom:: $(OBJDIRS) $(MKCGROMOBJS)
+	$(RM) mkcgrom
+	$(CXXLINK) -o mkcgrom $(MKCGROMOBJS) $(SDL_LIB) $(SDL_TTF_LIB)
