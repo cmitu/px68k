@@ -164,6 +164,7 @@ if(SDL3)
   SDL/SDL3/windraw.c
   SDL/SDL3/GamePad.c
   SDL/SDL3/dswin.c
+  SDL/SDL3/menudraw.c
   )
   list(APPEND SDL_INCLUDE_DIR
   SDL/SDL3

@@ -202,7 +202,7 @@ FMGENOBJS= fmgen/fmgen.o fmgen/fmg_wrap.o fmgen/file.o fmgen/fmtimer.o fmgen/opm
 SDLOBJS= SDL/juliet.o SDL/mouse.o SDL/status.o SDL/timer.o SDL/common.o SDL/prop.o SDL/winui.o SDL/keyboard.o
 
 ifdef SDL3
-SDLOBJS += SDL/SDL3/windraw.o SDL/SDL3/GamePad.o SDL/SDL3/dswin.o
+SDLOBJS += SDL/SDL3/windraw.o SDL/SDL3/GamePad.o SDL/SDL3/dswin.o SDL/SDL3/menudraw.o
 SDLCXXOBJS += SDL/SDL3/winx68k.o
 EXTRA_INCLUDES += -I./SDL/SDL3
 else

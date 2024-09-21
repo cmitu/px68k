@@ -1246,7 +1246,7 @@ void WinDraw_DrawLine(void)
 			tdrawed = 1;
 		}
 #endif
-					// Pri = 2 or 3（最下位）に設定されている画面を表示
+					// Pri = 1 or 2（最下位）に設定されている画面を表示
 					// プライオリティが同じ場合は、GRP<SP<TEXT？（ドラスピ、桃伝、YsIII等）
 
 					// GrpよりTextが上にある場合にTextとの半透明を行うと、SPのプライオリティも
