@@ -25,7 +25,7 @@ string(TIMESTAMP TIMESTAMP "%Y%m%d")
 option(SDL3 "Use SDL3" OFF)
 option(NO_MIDI "No MIDI Play" OFF)
 option(FLUID "Use fluidsynth" OFF)
-option(NO_MERCURY "No Mercury" OFF)
+option(NO_MERCURY "No Mercury" ON)
 
 # ==Set compile options ==
 add_compile_options(

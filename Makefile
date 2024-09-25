@@ -104,7 +104,7 @@ CDEBUGFLAGS += -O0  -fstrict-aliasing
 #
 # disable mercury unit
 #
-# CDEBUGFLAGS+= -DNO_MERCURY
+CDEBUGFLAGS+= -DNO_MERCURY
 
 #
 # enable RFMDRV(Over TCP/IP)
