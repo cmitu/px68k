@@ -15,7 +15,7 @@ uint8_t	SysPort[7];
 void SysPort_Init(void)
 {
 
-	for (int_fast16_t i=0; i<7; i++) SysPort[i]=0;
+	memset(SysPort, 0, sizeof(SysPort));
 
 }
 

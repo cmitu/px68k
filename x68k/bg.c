@@ -113,6 +113,9 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 	{
 	 case 0xeb0000 ... 0xeb03ff:
 		adr &= 0x0003ff;
+		if((adr & 0x0007) == 0x0000) data &= 0x03; 
+		if((adr & 0x0007) == 0x0002) data &= 0x03;
+		if((adr & 0x0007) == 0x0004) data &= 0xcf;
 #ifndef C68K_BIG_ENDIAN
 		adr ^= 1;
 #endif

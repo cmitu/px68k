@@ -288,11 +288,11 @@ void WinDraw_ChangeMode(int32_t flg)
 	SDL_RenderClear(sdl_render);
 
 	if (flg == 1) {
-	  SDL_SetWindowFullscreen(sdl_window,SDL_TRUE);
+	  SDL_SetWindowFullscreen(sdl_window,TRUE);
 	  SDL_HideCursor();
 	}
 	else{
-	  SDL_SetWindowFullscreen(sdl_window,SDL_FALSE);
+	  SDL_SetWindowFullscreen(sdl_window,FALSE);
 	  SDL_ShowCursor();
 	}
 
@@ -757,7 +757,7 @@ INLINE void WinDraw_DrawGrpLine(int32_t opaq)
 {
 #define _DGL_SUB(SUFFIX) WD_SUB(SUFFIX, Grp_LineBuf32[i])
 
-	int32_t adr;
+	uint32_t adr;
 	uint32_t w;
 	uint32_t i;
 
@@ -774,7 +774,7 @@ INLINE void WinDraw_DrawGrpLineNonSP(int32_t opaq)
 {
 #define _DGL_NSP_SUB(SUFFIX) WD_SUB(SUFFIX, Grp_LineBuf32SP2[i])
 
-	int32_t adr;
+	uint32_t adr;
 	uint32_t w;
 	uint32_t i;
 
@@ -797,7 +797,7 @@ INLINE void WinDraw_DrawTextLine(int32_t opaq, int32_t td)
 	}				\
 }	
 
-	int32_t adr;
+	uint32_t adr;
 	uint32_t w;
 	uint32_t i;
 
@@ -859,7 +859,7 @@ INLINE void WinDraw_DrawTextLineTR(int32_t opaq)
 	}						\
 }
 
-	int32_t adr;
+	uint32_t adr;
 	int32_t v;
 	uint32_t w;
 	uint32_t i;
@@ -883,7 +883,7 @@ INLINE void WinDraw_DrawBGLine(int32_t opaq, int32_t td)
 	} \
 }
 
-	int32_t adr;
+	uint32_t adr;
 	uint32_t w;
 	uint32_t i;
 
@@ -949,7 +949,7 @@ INLINE void WinDraw_DrawBGLineTR(int32_t opaq)
 	}						\
 }
 
-	int32_t adr;
+	uint32_t adr;
 	int32_t v;
 	uint32_t w;
 	uint32_t i;
@@ -968,7 +968,7 @@ INLINE void WinDraw_DrawPriLine(void)
 {
 #define _DPL_SUB(SUFFIX) WD_SUB(SUFFIX, Grp_LineBuf32SP[i])
 
-	int32_t adr;
+	uint32_t adr;
 	uint32_t w;
 	uint32_t i;
 
@@ -979,12 +979,12 @@ INLINE void WinDraw_DrawPriLine(void)
 
 void WinDraw_DrawLine(void)
 {
-	int32_t opaq= 0;
-	int32_t ton = 0; // TX on
-	int32_t gon = 0; // GR on
+	int32_t opaq= 0; // Opaque Mode
+	int32_t ton = 0; // TX ON
+	int32_t gon = 0; // GR ON
 	int32_t bgon= 0; // BacGround ON
 	int32_t tron= 0; // Transparent ON
-	int32_t pron= 0; // Priority ON
+	int32_t pron= 0; // 特殊Priority ON
 
 	if((VLINE < 0) || (VLINE >= 1024)){ return; } /* Area check */
 	if (!TextDirtyLine[VLINE]) return;
@@ -993,7 +993,7 @@ void WinDraw_DrawLine(void)
 	Draw_DrawFlag = 1;
 
 	//  VCR2[0]:特殊BIT    [YS][AH][VHT][EXON][H/P][B/P][G/G][G/T]
-	//	VCR2[1]:画面ON/OFF [ 0][SON][TON][GS4][GS3][GS2][GS1][GS0]
+	//  VCR2[1]:画面ON/OFF [ 0][SON][TON][GS4][GS3][GS2][GS1][GS0]
 	if (Debug_Grp)
 	{
 	switch(VCReg0[1]&3)
@@ -1001,9 +1001,9 @@ void WinDraw_DrawLine(void)
 	case 0:					// 16 colors
 		if (VCReg0[1]&4)		// 1024dot
 		{
-			if (VCReg2[1]&0x10)
+			if (VCReg2[1]&0x10)//GS4
 			{
-				if ( (VCReg2[0]&0x14)==0x14 )
+				if ( (VCReg2[0]&0x14)==0x14 )//EXON B/P
 				{
 					Grp_DrawLine4hSP();
 					pron = tron = 1;
@@ -1017,7 +1017,7 @@ void WinDraw_DrawLine(void)
 		}
 		else				// 512dot
 		{
-			if ( (VCReg2[0]&0x10)&&(VCReg2[1]&1) )
+			if ( (VCReg2[0]&0x10)&&(VCReg2[1]&1) )//EXON GS0
 			{
 				Grp_DrawLine4SP((VCReg1[1]   )&3/*, 1*/);			// 半透明の下準備
 				pron = tron = 1;
@@ -1136,10 +1136,8 @@ void WinDraw_DrawLine(void)
 	}
 	}
 
-
-//	if ( ( ((VCReg1[0]&0x30)>>4) < (VCReg1[0]&0x03) ) && (gon) )
-//		gdrawed = 1;				// GrpよりBGの方が上
-
+	//  VCR1[0]: [xx][SP][TX][GR] 優先順描画前処理
+	//  VCR2[1]:画面ON/OFF [ 0][SON][TON][GS4][GS3][GS2][GS1][GS0]
 	if ( ((VCReg1[0]&0x30)>>2) < (VCReg1[0]&0x0c) )
 	{						// SP<TX  SPの方が上
 		if ((VCReg2[1]&0x20)&&(Debug_Text))//TEXT-ON
@@ -1150,7 +1148,7 @@ void WinDraw_DrawLine(void)
 		else
 			memset(Text_TrFlag, 0, TextDotX+16);//TEXT-OFF
 
-		if ((VCReg2[1]&0x40)&&(BG_Regs[8]&2)&&(!(BG_Regs[0x11]&2))&&(Debug_Sp))
+		if ((VCReg2[1]&0x40)&&(BG_Regs[8]&2)&&(!(BG_Regs[0x11]&2))&&(Debug_Sp))//SP-ON
 		{
 			int32_t s1, s2;
 			s1 = (((BG_Regs[0x11]  &4)?2:1)-((BG_Regs[0x11]  &16)?1:0));
@@ -1165,7 +1163,7 @@ void WinDraw_DrawLine(void)
 	}
 	else
 	{						// SPよりTXの方が上
-		if ((VCReg2[1]&0x40)&&(BG_Regs[8]&2)&&(!(BG_Regs[0x11]&2))&&(Debug_Sp))
+		if ((VCReg2[1]&0x40)&&(BG_Regs[8]&2)&&(!(BG_Regs[0x11]&2))&&(Debug_Sp))//SP-ON
 		{
 			int32_t s1, s2;
 			s1 = (((BG_Regs[0x11]  &4)?2:1)-((BG_Regs[0x11]  &16)?1:0));
@@ -1174,13 +1172,13 @@ void WinDraw_DrawLine(void)
 			VLINEBG <<= s1;
 			VLINEBG >>= s2;
 			if ( !(BG_Regs[0x11]&16) ) VLINEBG -= ((BG_Regs[0x0f]>>s1)-(CRTC_Regs[0x0d]>>s2));
-			memset(Text_TrFlag, 0, TextDotX+16);
+			memset(Text_TrFlag, 0, TextDotX+16);//Clear
 			BG_DrawLine(1, 1);
 			bgon = 1;
 		}
 		else
 		{
-			if ((VCReg2[1]&0x20)&&(Debug_Text))
+			if ((VCReg2[1]&0x20)&&(Debug_Text))//TX-ON
 			{
 				int_fast32_t i;
 				for (i = 16; i < TextDotX + 16; ++i)
@@ -1192,7 +1190,7 @@ void WinDraw_DrawLine(void)
 			bgon = 1;
 		}
 
-		if ((VCReg2[1]&0x20)&&(Debug_Text))
+		if ((VCReg2[1]&0x20)&&(Debug_Text))//TX-ON
 		{
 			Text_DrawLine(!bgon);
 			ton = 1;
@@ -1234,13 +1232,14 @@ void WinDraw_DrawLine(void)
 			tdrawed = 1;
 		}
 #endif
-					// Pri = 1 or 2（最下位）に設定されている画面を表示
-					// プライオリティが同じ場合は、GRP<SP<TEXT？（ドラスピ、桃伝、YsIII等）
 
-					// GrpよりTextが上にある場合にTextとの半透明を行うと、SPのプライオリティも
-					// Textに引きずられる？（つまり、Grpより下にあってもSPが表示される？）
+		// Pri = 1 or 2（最下位）に設定されている画面を表示
+		// プライオリティが同じ場合は、GRP<SP<TEXT？（ドラスピ、桃伝、YsIII等）
 
-					// KnightArmsとかを見ると、半透明のベースプレーンは一番上になるみたい…。
+		// GrpよりTextが上にある場合にTextとの半透明を行うと、SPのプライオリティも
+		// Textに引きずられる？（つまり、Grpより下にあってもSPが表示される？）
+
+		// KnightArmsとかを見ると、半透明のベースプレーンは一番上になるみたい…。
 
 		if ( (VCReg1[0]&0x02) )// GR2
 		{
@@ -1283,7 +1282,7 @@ void WinDraw_DrawLine(void)
 			tdrawed = 1;
 		}
 
-					// Pri = 1（2番目）に設定されている画面を表示
+		// Pri = 1（2番目）に設定されている画面を表示
 		if ( ((VCReg1[0]&0x03)==0x01)&&(gon) )//GR1
 		{
 			WinDraw_DrawGrpLine(opaq);
@@ -1334,7 +1333,7 @@ void WinDraw_DrawLine(void)
 			tdrawed = 1;
 		}
 
-					// Pri = 0（最優先）に設定されている画面を表示
+		// Pri = 0（最優先）に設定されている画面を表示
 		if ( (!(VCReg1[0]&0x03))&&(gon) )// GR0
 		{
 			WinDraw_DrawGrpLine(opaq);
@@ -1368,39 +1367,37 @@ void WinDraw_DrawLine(void)
 			opaq = 0;
 		}
 
-					// 特殊プライオリティ時のグラフィック
-		if ( ((VCReg2[0]&0x5c)==0x14)&&(pron) )	// 特殊Pri時は、対象プレーンビットは意味が無いらしい（ついんびー）
-		{
-			WinDraw_DrawPriLine();
-		}
-		else if ( ((VCReg2[0]&0x5d)==0x1c)&&(tron) )	// 半透明時に全てが透明なドットをハーフカラーで埋める
-		{						// （AQUALES）
 
-#define _DL_SUB(SUFFIX) \
+	// ==特殊プライオリティ時のグラフィック==
+	if ( ((VCReg2[0]&0x5c)==0x14)&&(pron) )	// 特殊Pri時は、対象プレーンビットは意味が無いらしい（ついんびー）
+	{
+		WinDraw_DrawPriLine();
+	}
+	else if ( ((VCReg2[0]&0x5d)==0x1c)&&(tron) )	// 半透明時に全てが透明なドットをハーフカラーで埋める
+	{						// （AQUALES）
+
+#define _DL_SUB(SUFFIX) 		\
 {								\
-	w = Grp_LineBuf32SP[i];					\
+	w = Grp_LineBuf32SP[i];		\
 	if (w != 0 && (ScrBuf##SUFFIX[adr] & 0xffffff00) == 0)	\
 		ScrBuf##SUFFIX[adr] = (w & Pal32_FullMask) >> 1;	\
 }
 
-			int32_t adr;
-			uint32_t w;
-			uint32_t i;
+		uint32_t adr;
+		uint32_t w;
+		uint32_t i;
 
-			if(VLINE < 0) return;
-			adr = VLINE*FULLSCREEN_WIDTH;
+		adr = VLINE*FULLSCREEN_WIDTH;
+		WD_LOOP(0, TextDotX, _DL_SUB);
 
-			WD_LOOP(0, TextDotX, _DL_SUB);
-		}
+	}
 
-
+	// ==後片付け==
 	if (opaq)
 	{
-		int32_t adr;
+		uint32_t adr;
 
-		if(VLINE < 0) return;
 		adr = VLINE*FULLSCREEN_WIDTH;
-
 		memset(&ScrBuf[adr], 0, TextDotX * 4);//32bit depth clear
 
 	}

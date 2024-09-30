@@ -25,7 +25,7 @@
 	uint32_t	Pal32_FullMask, Pal32_X68kMask;
 
 // 32bit depth Pallete init 
-// SDL2では24bitのRGBX8888:RRRRRIxxGGGGGIxxBBBBBIxx00000000 にしてみやう。
+// SDL2では24bitのRGBX8888:RRRRRIxx GGGGGIxx BBBBBIxx 0000000α にしてみやう。
 void Pal32_SetColor(void)
 {
 	uint32_t r, g, b, i;
@@ -56,11 +56,11 @@ void Pal32_SetColor(void)
 	}
 
 	Ibit32 = B[0] | R[0] | G[0]; //共通Ibit=6bit目 0x04040400
-	Abit32 = 0x0000001;  // α透明bitの割付場所
+	Abit32 = 0x00000001;  // α透明bitの割付場所
 	Pal32_X68kMask = TempMask; //RGB有効 6bitのMASK 0xfcfcfc00
 	Pal32_FullMask = (WinDraw_Pal32R | WinDraw_Pal32G | WinDraw_Pal32B);
 
-	//printf("Ibit32:%08x Pal32_X68kMask:%08x Pal32_Ix2:%08x \n",Ibit32,Pal32_X68kMask,Pal32_Ix2);
+	//printf("Ibit32:%08x Abit32:%08x Pal32_X68kMask:%08x Pal32_Ix2:%08x\n",Ibit32、Abit32,Pal32_X68kMask,Pal32_FullMask);
 
 	Pal32_ChangeContrast(15);
 

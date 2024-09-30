@@ -244,7 +244,7 @@ void GamePad_Init(void)
 	strcpy(menu_items[13][1],"\0"); // Menu END
 
 	// GamePad をイベントで駆動する
-	SDL_SetGamepadEventsEnabled(SDL_TRUE);
+	SDL_SetGamepadEventsEnabled(TRUE);
 
 	sdl_gamepad = NULL;
 

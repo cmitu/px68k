@@ -710,7 +710,7 @@ int main(int argc, char *argv[])
 
 	dosio_init();
 	File_Setcd(winx68k_dir);
-    puts(winx68k_dir);
+    p6logd("%s\n",winx68k_dir);
 
 	SRAM_Init();
 	LoadConfig();
@@ -771,7 +771,7 @@ int main(int argc, char *argv[])
 	/*Create Renderer */
 	sdl_render = SDL_CreateRenderer( sdl_window ,NULL );
 	SDL_SetRenderLogicalPresentation( sdl_render ,FULLSCREEN_WIDTH,
-								FULLSCREEN_HEIGHT,SDL_LOGICAL_PRESENTATION_LETTERBOX,SDL_SCALEMODE_LINEAR);
+								FULLSCREEN_HEIGHT,SDL_LOGICAL_PRESENTATION_LETTERBOX);
 
 	Soft_kbd_CreateScreen();// Soft Keyboard Window init.
 
