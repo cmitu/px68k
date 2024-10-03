@@ -116,6 +116,8 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 		if((adr & 0x0007) == 0x0000) data &= 0x03; 
 		if((adr & 0x0007) == 0x0002) data &= 0x03;
 		if((adr & 0x0007) == 0x0004) data &= 0xcf;
+		if((adr & 0x0007) == 0x0006) data &= 0x00;
+		if((adr & 0x0007) == 0x0007) data &= 0x03;
 #ifndef C68K_BIG_ENDIAN
 		adr ^= 1;
 #endif
@@ -256,7 +258,7 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 		adr &= 0x007fff;
 		if (BG[adr]==data) return;			// データに変化が無ければ帰る
 		BG[adr] = data;
-		if (adr<0x2000)
+		if (adr<0x2000)//PCG Area (8x8,16x16)
 		{
 			BGCHR8[adr*2]   = data>>4;
 			BGCHR8[adr*2+1] = data&15;
@@ -346,9 +348,9 @@ Sprite_DrawLineMcr(uint16_t pri)
 				}
 
 				for (i = 0; i < 16; i++, t++, p += d) {
-					pal = *p & 0x0f;
+					pal = *p & 0x0f;//色下位4bit
 					if (pal) {
-						pal |= (sctp->sprite_ctrl >> 4) & 0xf0;
+						pal |= (sctp->sprite_ctrl >> 4) & 0xf0;//色上位4bit
 						if (BG_PriBuf[t] >= n * 8) {
 							BG_LineBuf32[t] = TextPal32[pal];
 							Text_TrFlag[t] |= 2;
@@ -376,16 +378,16 @@ Sprite_DrawLineMcr(uint16_t pri)
 }
 
 #define BG_DRAWLINE_LOOPY_NG(cnt) \
-{  \
-	bl = bl << 4;					    \
-        for (j = 0; j < cnt; j++, esi += d, edi++) {	    \
-                dat = *esi & 0xf;			    \
-		if (dat) {				    \
-			dat |= bl;			    \
-                        BG_LineBuf32[1 + edi] = TextPal32[dat]; \
-			Text_TrFlag[edi + 1] |= 2;	    \
-                }					    \
-        }						    \
+{									\
+	bl = bl << 4;					\
+	for (j = 0; j < cnt; j++, esi += d, edi++) {	\
+		dat = *esi & 0xf;			\
+		if (dat) {					\
+			dat |= bl;				\
+			BG_LineBuf32[1 + edi] = TextPal32[dat];	\
+			Text_TrFlag[edi + 1] |= 2;		\
+		}						\
+	}							\
 }
 
 void bg_drawline_loopx8(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY, int32_t adjust, int32_t ng)

@@ -80,7 +80,7 @@ void FASTCALL GVRAM_FastClear(void)
 // -----------------------------------------------------------------------
 //   VRAM Read
 // -----------------------------------------------------------------------
-uint8_t FASTCALL GVRAM_Read(int32_t adr)
+uint8_t FASTCALL GVRAM_Read(uint32_t adr)
 {
 	uint8_t ret=0;
 	uint8_t page;
@@ -131,6 +131,8 @@ uint8_t FASTCALL GVRAM_Read(int32_t adr)
 //			else
 //				BusErrFlag = 1;
 			break;
+		default:
+			break;
 		}
 	}
 	return ret;
@@ -140,7 +142,7 @@ uint8_t FASTCALL GVRAM_Read(int32_t adr)
 // -----------------------------------------------------------------------
 //   VRAM Write
 // -----------------------------------------------------------------------
-void FASTCALL GVRAM_Write(int32_t adr, uint8_t data)
+void FASTCALL GVRAM_Write(uint32_t adr, uint8_t data)
 {
 	uint8_t page;
 	int32_t line = 1023, scr = 0;
@@ -224,6 +226,8 @@ void FASTCALL GVRAM_Write(int32_t adr, uint8_t data)
 //				BusErrFlag = 1;
 //				return;
 //			}
+			break;
+		default:
 			break;
 		}
 		TextDirtyLine[line] = 1;
@@ -643,7 +647,7 @@ void FASTCALL Grp_DrawLine4SP(uint32_t page/*, int opaq*/)
 	int32_t x, y;
 	uint32_t off;
 	int_fast32_t i;
-	uint16_t v;
+	uint8_t v;
 
 	if (page & 1) {
 		y = scry + VLINE;

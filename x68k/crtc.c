@@ -87,7 +87,7 @@ void CRTC_RasterCopy(void)
 // 方も許されるのれす。
 // コットン起動時やYs（電波版）OPなどで使われてまふ。
 
-uint8_t FASTCALL VCtrl_Read(int32_t adr)
+uint8_t FASTCALL VCtrl_Read(uint32_t adr)
 {
 	uint8_t ret = 0xff;
 	switch(adr & 0x701)
@@ -104,12 +104,14 @@ uint8_t FASTCALL VCtrl_Read(int32_t adr)
 	case 0x601:
 		ret = VCReg2[adr&1];
 		break;
+	default:
+		break;
 	}
 	return ret;
 }
 
 
-void FASTCALL VCtrl_Write16(int32_t adr, uint16_t data)
+void FASTCALL VCtrl_Write16(uint32_t adr, uint16_t data)
 {
 	switch(adr & 0x700)
 	{
@@ -140,10 +142,12 @@ void FASTCALL VCtrl_Write16(int32_t adr, uint16_t data)
 			TVRAM_SetAllDirty();
 		}
 		break;
+	default:
+		break;
 	}
 }
 
-void FASTCALL VCtrl_Write(int32_t adr, uint8_t data)
+void FASTCALL VCtrl_Write(uint32_t adr, uint8_t data)
 {
 
 	switch(adr & 0x701)
@@ -170,6 +174,8 @@ void FASTCALL VCtrl_Write(int32_t adr, uint8_t data)
 			VCReg2[adr&1] = data;
 			TVRAM_SetAllDirty();
 		}
+		break;
+	default:
 		break;
 	}
 }
@@ -423,6 +429,8 @@ void FASTCALL CRTC_Write16(uint32_t adr, uint16_t data, uint8_t ulds)
 				CRTC_RCFlag[0] = 0;
 				CRTC_RCFlag[1] = 0;
 			}
+			break;
+		default:
 			break;
 		}
 	}

@@ -198,6 +198,10 @@ uint8_t FASTCALL SASI_Read(uint32_t adr)
 		if (SASI_Phase==5)
 			ret |= 0x10;		// MSG
 		break;
+	case 0x05:
+	case 0x07:
+		ret = 0x00;
+		break;
 	default:
 		break;
 	}

@@ -364,7 +364,7 @@ void FASTCALL MFP_TimerA(void)
 			if (vline==CRTC_VSTART) MFP[MFP_TADR]--;	// 本来は同じだと思うんだけどなぁ……それじゃ動かんし（汗
 		} else {
 			if ( CRTC_VEND>=VLINE_TOTAL ) {
-				if ( (long)vline==(VLINE_TOTAL-1) ) MFP[MFP_TADR]--;	// 表示期間の終わりでカウントらしひ…（ろーどす）
+				if ( vline==(VLINE_TOTAL-1) ) MFP[MFP_TADR]--;	// 表示期間の終わりでカウントらしひ…（ろーどす）
 			} else {
 				if ( vline==CRTC_VEND ) MFP[MFP_TADR]--;
 			}

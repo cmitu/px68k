@@ -35,8 +35,8 @@ uint16_t FASTCALL CRTC_Read16(uint32_t adr);
 void FASTCALL CRTC_Write(uint32_t adr, uint8_t data);
 void FASTCALL CRTC_Write16(uint32_t adr, uint16_t data, uint8_t ulds);
 
-uint8_t FASTCALL VCtrl_Read(int32_t adr);
-void FASTCALL VCtrl_Write(int32_t adr, uint8_t data);
-void FASTCALL VCtrl_Write16(int32_t adr, uint16_t data);
+uint8_t FASTCALL VCtrl_Read(uint32_t adr);
+void FASTCALL VCtrl_Write(uint32_t adr, uint8_t data);
+void FASTCALL VCtrl_Write16(uint32_t adr, uint16_t data);
 
 #endif

@@ -182,7 +182,7 @@ static BOOL get_font_addr(uint16_t sjis, int32_t fs, uint32_t *addr)
 	return FALSE;
 }
 
-// RGBA8888
+// RGBX8888
 static void set_mcolor(uint32_t c)
 {
 	p6m.mcolor = c;
@@ -342,7 +342,7 @@ int32_t WinDraw_MenuInit(void)
 #else
 
 	/*SDL3 menu-surface */
-	menu_surface = SDL_CreateSurface( 800, 600,SDL_PIXELFORMAT_RGBA8888);
+	menu_surface = SDL_CreateSurface( 800, 600,SDL_PIXELFORMAT_RGBX8888);
 
 
 	if (!menu_surface)

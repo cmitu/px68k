@@ -22,7 +22,7 @@
 	uint32_t	Pal32[65536];
 
 	uint32_t	Ibit32, Abit32;				// 半透明処理とかで使うかも〜
-	uint32_t	Pal32_FullMask, Pal32_X68kMask;
+	uint32_t	Pal32_FullMask, Pal32_HalfMask, Pal32_X68kMask;
 
 // 32bit depth Pallete init 
 // SDL2では24bitのRGBX8888:RRRRRIxx GGGGGIxx BBBBBIxx 0000000α にしてみやう。
@@ -59,8 +59,10 @@ void Pal32_SetColor(void)
 	Abit32 = 0x00000001;  // α透明bitの割付場所
 	Pal32_X68kMask = TempMask; //RGB有効 6bitのMASK 0xfcfcfc00
 	Pal32_FullMask = (WinDraw_Pal32R | WinDraw_Pal32G | WinDraw_Pal32B);
+	Pal32_HalfMask = (WinDraw_Pal32R>>1 & WinDraw_Pal32R | WinDraw_Pal32G>>1 &
+						WinDraw_Pal32G | WinDraw_Pal32B>>1 & WinDraw_Pal32B)<<1;//0xfefefe00
 
-	//printf("Ibit32:%08x Abit32:%08x Pal32_X68kMask:%08x Pal32_Ix2:%08x\n",Ibit32、Abit32,Pal32_X68kMask,Pal32_FullMask);
+	//printf("Ibit32:%08x Abit32:%08x Pal32_X68kMask:%08x Pal32_FullMask:%08x Pal32_HalfMask:%08x\n",Ibit32,Abit32,Pal32_X68kMask,Pal32_FullMask,Pal32_HalfMask);
 
 	Pal32_ChangeContrast(15);
 
@@ -83,7 +85,7 @@ void Pal_Init(void)
 // -----------------------------------------------------------------------
 //   I/O Read
 // -----------------------------------------------------------------------
-uint16_t FASTCALL Pal_Read16(int32_t adr)
+uint16_t FASTCALL Pal_Read16(uint32_t adr)
 {
 	if (adr<0xe82400){
 	  adr &= 0x0003fe;
@@ -92,7 +94,7 @@ uint16_t FASTCALL Pal_Read16(int32_t adr)
 	return 0xffff;
 }
 
-uint8_t FASTCALL Pal_Read(int32_t adr)
+uint8_t FASTCALL Pal_Read(uint32_t adr)
 {
 	if (adr<0xe82400){
 	  adr &= 0x0003ff;
@@ -104,7 +106,7 @@ uint8_t FASTCALL Pal_Read(int32_t adr)
 // -----------------------------------------------------------------------
 //   I/O Write
 // -----------------------------------------------------------------------
-void FASTCALL Pal_Write16(int32_t adr, uint16_t data)
+void FASTCALL Pal_Write16(uint32_t adr, uint16_t data)
 {
 
 	if (adr>=0xe82400) return;
@@ -126,7 +128,7 @@ void FASTCALL Pal_Write16(int32_t adr, uint16_t data)
 	}
 }
 
-void FASTCALL Pal_Write(int32_t adr, uint8_t data)
+void FASTCALL Pal_Write(uint32_t adr, uint8_t data)
 {
 	uint16_t pal;
 
