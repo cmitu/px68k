@@ -88,7 +88,8 @@ uint8_t FASTCALL GVRAM_Read(uint32_t adr)
 #ifndef C68K_BIG_ENDIAN
 	adr ^= 1;
 #endif
-	adr -= 0xc00000;
+	// GVRAM:0x0c00000 ~ 0x0dfffff
+	adr &= 0x03fffff;
 
 	if (CRTC_Regs[0x28]&8) {			// 読み込み側も65536モードのVRAM配置（苦胃頭捕物帳）
 		if (adr<0x80000) ret = GVRAM[adr];
@@ -152,8 +153,8 @@ void FASTCALL GVRAM_Write(uint32_t adr, uint8_t data)
 #ifndef C68K_BIG_ENDIAN
 	adr ^= 1;
 #endif
-	adr -= 0xc00000;
-
+	// GVRAM:0x0c00000 ~ 0x0dfffff
+	adr &= 0x03fffff;
 
 	if (CRTC_Regs[0x28]&8)				// 65536モードのVRAM配置？（Nemesis）
 	{

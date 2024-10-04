@@ -243,12 +243,14 @@ void FASTCALL CRTC_Write16(uint32_t adr, uint16_t data, uint8_t ulds)
 	if (adr<0xe80400)
 	{
 		if ( reg>=0x30 ) return;
+		uint16_t wrtB4 = (((uint16_t)CRTC_Regs[reg & 0x3e]<<8)+CRTC_Regs[(reg & 0x3e) + 1]);//保存
 		if(ulds & 0x02){
 		  CRTC_Regs[reg & 0x3e] = (data >> 8) & 0xff;
 		}
 		if(ulds & 0x01){
 		  CRTC_Regs[(reg & 0x3e) +1] = data & 0xff;
 		}
+		if (data == wrtB4) return; //no change
 		TVRAM_SetAllDirty();
 		switch(reg)
 		{

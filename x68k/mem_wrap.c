@@ -294,7 +294,7 @@ wm16_main(uint32_t addr, uint16_t val)
     break;
   //case 0xe00000 ... 0xe7ffff: /*TVRAM*/
     
-  case 0xe80000 ... 0xe80480: /*CRTC*/
+  case 0xe80000 ... 0xe81fff: /*CRTC*/
 	CRTC_Write16(addr,val,0x03);
 	break;
   case 0xe82000 ... 0xe823ff: /*Pallette*/
@@ -490,7 +490,7 @@ rm16_main(uint32_t addr)
     break;
   //case 0xe00000 ... 0xe7ffff: /*TVRAM*/
 
-  case 0xe80000 ... 0xe80480: /*CRTC*/
+  case 0xe80000 ... 0xe81fff: /*CRTC*/
 	return CRTC_Read16(addr);
 	break;
   case 0xe82000 ... 0xe823ff: /*Pallette*/
