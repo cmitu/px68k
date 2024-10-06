@@ -72,10 +72,10 @@ int32_t D88_SetFD(int32_t drv, char* filename)
 	}
 
 	for (trk=0; trk<164; trk++) {
-		long ptr = D88Head[drv].trackp[trk];
+		uint32_t ptr = D88Head[drv].trackp[trk];
 		D88_SECTINFO *si, *oldsi;
 		
-		if ( (ptr>=(long)sizeof(D88_HEADER))&&(ptr<D88Head[drv].fd_size) ) {
+		if ( (ptr>=(uint32_t)sizeof(D88_HEADER))&&(ptr<D88Head[drv].fd_size) ) {
 			d88s.sectors = 65535;
 			File_Seek(fp, ptr, FSEEK_SET);
 			for (sct=0; sct<d88s.sectors; sct++) {

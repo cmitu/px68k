@@ -240,6 +240,7 @@ void FASTCALL CRTC_Write16(uint32_t adr, uint16_t data, uint8_t ulds)
 	uint8_t reg = (uint8_t)(adr&0x3e);
 	int32_t old_vidmode = VID_MODE;
 
+	// 0xe80000 ~ 0xe81fff
 	if (adr<0xe80400)
 	{
 		if ( reg>=0x30 ) return;

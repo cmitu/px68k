@@ -647,9 +647,6 @@ void FASTCALL
 WinDraw_Draw(void)
 {
 
-	int32_t x,y;
-
-
 #if defined(USE_OGLES20)
 	GLfloat texture_coordinates[8];
 	GLfloat vertices[8];
@@ -776,7 +773,7 @@ INLINE void WinDraw_DrawGrpLine(int32_t opaq)
 {
 #define _DGL_SUB(SUFFIX) WD_SUB(SUFFIX, Grp_LineBuf32[i])
 
-	int32_t adr;
+	uint32_t adr;
 	uint32_t w;
 	uint32_t i;
 
@@ -793,7 +790,7 @@ INLINE void WinDraw_DrawGrpLineNonSP(int32_t opaq)
 {
 #define _DGL_NSP_SUB(SUFFIX) WD_SUB(SUFFIX, Grp_LineBuf32SP2[i])
 
-	int32_t adr;
+	uint32_t adr;
 	uint32_t w;
 	uint32_t i;
 
@@ -816,7 +813,7 @@ INLINE void WinDraw_DrawTextLine(int32_t opaq, int32_t td)
 	}				\
 }	
 
-	int32_t adr;
+	uint32_t adr;
 	uint32_t w;
 	uint32_t i;
 
@@ -878,8 +875,8 @@ INLINE void WinDraw_DrawTextLineTR(int32_t opaq)
 	}						\
 }
 
-	int32_t adr;
-	int32_t v;
+	uint32_t adr;
+	uint32_t v;
 	uint32_t w;
 	uint32_t i;
 
@@ -902,7 +899,7 @@ INLINE void WinDraw_DrawBGLine(int32_t opaq, int32_t td)
 	} \
 }
 
-	int32_t adr;
+	uint32_t adr;
 	uint32_t w;
 	uint32_t i;
 
@@ -968,8 +965,8 @@ INLINE void WinDraw_DrawBGLineTR(int32_t opaq)
 	}						\
 }
 
-	int32_t adr;
-	int32_t v;
+	uint32_t adr;
+	uint32_t v;
 	uint32_t w;
 	uint32_t i;
 
@@ -987,7 +984,7 @@ INLINE void WinDraw_DrawPriLine(void)
 {
 #define _DPL_SUB(SUFFIX) WD_SUB(SUFFIX, Grp_LineBuf32SP[i])
 
-	int32_t adr;
+	uint32_t adr;
 	uint32_t w;
 	uint32_t i;
 
@@ -1001,11 +998,10 @@ void WinDraw_DrawLine(void)
 	int32_t opaq, ton=0, gon=0, bgon=0, tron=0, pron=0, tdrawed=0;
 
 	if((VLINE < 0) || (VLINE >= 1024)){ return; } /* Area check */
-
 	if (!TextDirtyLine[VLINE]) return;
+
 	TextDirtyLine[VLINE] = 0;
 	Draw_DrawFlag = 1;
-
 
 	if (Debug_Grp)
 	{
@@ -1378,39 +1374,34 @@ void WinDraw_DrawLine(void)
 			opaq = 0;
 		}
 
-					// 特殊プライオリティ時のグラフィック
-		if ( ((VCReg2[0]&0x5c)==0x14)&&(pron) )	// 特殊Pri時は、対象プレーンビットは意味が無いらしい（ついんびー）
-		{
-			WinDraw_DrawPriLine();
-		}
-		else if ( ((VCReg2[0]&0x5d)==0x1c)&&(tron) )	// 半透明時に全てが透明なドットをハーフカラーで埋める
-		{						// （AQUALES）
 
 #define _DL_SUB(SUFFIX) \
-{								\
+{											\
 	w = Grp_LineBuf32SP[i];					\
-	if (w != 0 && (ScrBuf##SUFFIX[adr] & 0xffffff00) == 0)	\
-		ScrBuf##SUFFIX[adr] = (w & Pal32_FullMask) >> 1;	\
+	if (w != 0 && (ScrBuf##SUFFIX[adr] & Pal32_FullMask) == 0)	\
+		ScrBuf##SUFFIX[adr] = (w & Pal32_HalfMask) >> 1;		\
 }
 
-			int32_t adr;
-			uint32_t w;
-			uint32_t i;
+				// 特殊プライオリティ時のグラフィック
+	if ( ((VCReg2[0]&0x5c)==0x14)&&(pron) )	// 特殊Pri時は、対象プレーンビットは意味が無いらしい（ついんびー）
+	{
+		WinDraw_DrawPriLine();
+	}
+	else if ( ((VCReg2[0]&0x5d)==0x1c)&&(tron) )	// 半透明時に全てが透明なドットをハーフカラーで埋める
+	{						// （AQUALES）
+		uint32_t adr;
+		uint32_t w;
+		uint32_t i;
 
-			if(VLINE < 0) return;
-			adr = VLINE*FULLSCREEN_WIDTH;
-
-			WD_LOOP(0, TextDotX, _DL_SUB);
-		}
-
+		adr = VLINE*FULLSCREEN_WIDTH;
+		WD_LOOP(0, TextDotX, _DL_SUB);
+	}
 
 	if (opaq)
 	{
-		int32_t adr;
+		uint32_t adr;
 
-		if(VLINE < 0) return;
 		adr = VLINE*FULLSCREEN_WIDTH;
-
 		memset(&ScrBuf[adr], 0, TextDotX * 4);//32bit depth clear
 
 	}

@@ -58,7 +58,7 @@ void Pal32_SetColor(void)
 	Ibit32 = B[0] | R[0] | G[0]; //共通Ibit=6bit目 0x04040400
 	Abit32 = 0x00000001;  // α透明bitの割付場所
 	Pal32_X68kMask = TempMask; //RGB有効 6bitのMASK 0xfcfcfc00
-	Pal32_FullMask = (WinDraw_Pal32R | WinDraw_Pal32G | WinDraw_Pal32B);
+	Pal32_FullMask = (WinDraw_Pal32R | WinDraw_Pal32G | WinDraw_Pal32B);//0xffffff00
 	Pal32_HalfMask = (WinDraw_Pal32R>>1 & WinDraw_Pal32R | WinDraw_Pal32G>>1 &
 						WinDraw_Pal32G | WinDraw_Pal32B>>1 & WinDraw_Pal32B)<<1;//0xfefefe00
 

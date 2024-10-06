@@ -396,7 +396,7 @@ WinX68k_Init(void)
 	}
 
 	if (MEM && FONT && IPL) {
-		m68000_init();  
+		m68000_init();
 		return TRUE;
 	}
 

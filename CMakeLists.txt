@@ -57,7 +57,7 @@ else()
  add_definitions( -DSDL2 )
  find_package(SDL2 REQUIRED)
  find_package(SDL2_ttf REQUIRED)
-endif ()
+endif()
 
 if(APPLE)
  find_library(CORESERVICES_LIB CoreServices)
@@ -89,14 +89,14 @@ else()
 if (APPLE)
   message (" - macOS CoreMIDI")
   option(px68k_midi_core "Compile with CoreMIDI support." ${APPLE})
-endif ()
-endif ()
+endif()
+endif()
 if (WIN32)
   message (" - WIN32 winmm MIDI")
   option(px68k_midi_winmm "Compile with WINMM support." ${WIN32})
-endif ()
-endif ()
-endif ()
+endif()
+endif()
+endif()
 
 # == Set source files ==
 set(x68k_sources
@@ -179,7 +179,7 @@ else()
   list(APPEND SDL_INCLUDE_DIR
   SDL/SDL2
   )
-endif ()
+endif()
 
 set(m68k_sources
   m68000/m68000.c

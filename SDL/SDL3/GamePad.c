@@ -190,7 +190,7 @@ void GamePad_Open(void)
 
 	SDL_GetJoysticks(&nr_joys);
 	if (nr_joys == 0){
-	 strcpy(menu_items[13][0],"No device found");
+	 strcpy(menu_items[13][0],No_GamePad);
 	 strcpy(menu_items[13][1],"\0"); // Menu END
 	 return;
 	}
