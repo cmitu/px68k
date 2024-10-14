@@ -1066,7 +1066,7 @@ int main(int argc, char *argv[])
 					break;
 				}
 #endif
-				p6logd("keydown: 0x%x\n", ev.key.key);
+				//p6logd("keydown: 0x%x\n", ev.key.key);
 				// F12 だけじゃなくescでもmenu抜ける
 				if ((ev.key.key == SDLK_ESCAPE) &&
 					(menu_mode != menu_out) && (menu_state == ms_key)){

@@ -1315,15 +1315,21 @@ void WinDraw_DrawLine(void)
 				opaq = 0;
 			}
 		}
-		if ( ((VCReg1[0]&0x0c)==0x04) && ((VCReg2[0]&0x5d)==0x1d) && (VCReg1[0]&0x03) && (((VCReg1[0]>>4)&3)>(VCReg1[0]&3)) && (bgon) && (tron) )
+		if ( ((VCReg1[0]&0x0c)==0x04) && ((VCReg2[0]&0x5c)==0x1c) && (VCReg1[0]&0x03) && (((VCReg1[0]>>4)&3)>(VCReg1[0]&3)) && (bgon) && (tron) )
 		{
-			WinDraw_DrawBGLineTR(opaq);
-			tdrawed = 1;
-			opaq = 0;
-			if (tron)
+			if( (VCReg2[0]&0x5d)==0x1d )//G/Tの重ね合わせ
 			{
-				WinDraw_DrawGrpLineNonSP(opaq);
+			  WinDraw_DrawBGLineTR(opaq);
+			  tdrawed = 1;
+			  opaq = 0;
 			}
+			if( (VCReg2[0]&0x5e)==0x1e )//G/Gの重ね合わせ
+			{
+			  Grp_DrawLine8TR(1,1);//GR画面1 再Load （有効かどうかを見てないけどいい？）
+			  WinDraw_DrawGrpLine(opaq);//GR描画
+			  opaq = 0;
+			}
+			WinDraw_DrawGrpLineNonSP(opaq);
 		}
 		else if ( ((VCReg1[0]&0x03)==0x01)&&(tron)&&(gon)&&(VCReg2[0]&0x10) )
 		{
@@ -1352,15 +1358,21 @@ void WinDraw_DrawLine(void)
 			tdrawed = 1;
 			opaq = 0;
 		}
-		if ( (!(VCReg1[0]&0x0c)) && ((VCReg2[0]&0x5d)==0x1d) && (((VCReg1[0]>>4)&3)>(VCReg1[0]&3)) && (bgon) && (tron) )
+		if ( (!(VCReg1[0]&0x0c)) && ((VCReg2[0]&0x5c)==0x1c) && (((VCReg1[0]>>4)&3)>(VCReg1[0]&3)) && (bgon) && (tron) )
 		{
-			WinDraw_DrawBGLineTR(opaq);
-			tdrawed = 1;
-			opaq = 0;
-			if (tron)
+			if( (VCReg2[0]&0x5d)==0x1d )//G/Tの重ね合わせ
 			{
-				WinDraw_DrawGrpLineNonSP(opaq);
+			  WinDraw_DrawBGLineTR(opaq);
+			  tdrawed = 1;
+			  opaq = 0;
 			}
+			if( (VCReg2[0]&0x5e)==0x1e )//G/Gの重ね合わせ
+			{
+			  Grp_DrawLine8TR(1,1);//GR画面1 再Load （有効かどうかを見てないけどいい？）
+			  WinDraw_DrawGrpLine(opaq);//GR描画
+			  opaq = 0;
+			}
+			WinDraw_DrawGrpLineNonSP(opaq);
 		}
 		else if ( (!(VCReg1[0]&0x03))&&(tron)&&(VCReg2[0]&0x10) )
 		{

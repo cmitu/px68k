@@ -89,10 +89,10 @@ uint8_t FASTCALL GVRAM_Read(uint32_t adr)
 	adr ^= 1;
 #endif
 	// GVRAM:0x0c00000 ~ 0x0dfffff
-	adr &= 0x03fffff;
+	adr &= 0x3fffff;
 
 	if (CRTC_Regs[0x28]&8) {			// 読み込み側も65536モードのVRAM配置（苦胃頭捕物帳）
-		if (adr<0x80000) ret = GVRAM[adr];
+		if (adr<0x080000) ret = GVRAM[adr];
 	} else {
 		switch(CRTC_Regs[0x28]&3)
 		{
@@ -154,11 +154,11 @@ void FASTCALL GVRAM_Write(uint32_t adr, uint8_t data)
 	adr ^= 1;
 #endif
 	// GVRAM:0x0c00000 ~ 0x0dfffff
-	adr &= 0x03fffff;
+	adr &= 0x3fffff;
 
 	if (CRTC_Regs[0x28]&8)				// 65536モードのVRAM配置？（Nemesis）
 	{
-		if ( adr<0x80000 )
+		if ( adr<0x080000 )
 		{
 			GVRAM[adr] = data;
 			line = (((adr&0x7ffff)/1024)-GrphScrollY[0])&511;

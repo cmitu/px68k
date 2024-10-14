@@ -93,10 +93,13 @@ uint8_t FASTCALL VCtrl_Read(uint32_t adr)
 	switch(adr & 0x701)
 	{
 	case 0x400:
+		ret = 0x00;
+		break;
 	case 0x401:
-		ret = VCReg0[adr&1];
+		ret = VCReg0[1] & 0x07;
 		break;
 	case 0x500:
+		VCReg1[0] &= 0x3f;
 	case 0x501:
 		ret = VCReg1[adr&1];
 		break;
@@ -117,6 +120,7 @@ void FASTCALL VCtrl_Write16(uint32_t adr, uint16_t data)
 	{
 	case 0x400:
 	case 0x401:
+		data &= 0x0007;
 		if ((VCReg0[0]<<8 | VCReg0[1]) != data)
 		{
 			VCReg0[0] = (data >> 8) & 0xff;
@@ -126,6 +130,7 @@ void FASTCALL VCtrl_Write16(uint32_t adr, uint16_t data)
 		break;
 	case 0x500:
 	case 0x501:
+		data &= 0x3fff;
 		if ((VCReg1[0]<<8 | VCReg1[1]) != data)
 		{
 			VCReg1[0] = (data >> 8) & 0xff;
@@ -152,14 +157,19 @@ void FASTCALL VCtrl_Write(uint32_t adr, uint8_t data)
 
 	switch(adr & 0x701)
 	{
+	case 0x400:
+		VCReg0[0]=0x00;
+		break;
 	case 0x401:
-		if (VCReg0[adr&1] != data)
+		data &= 0x07;
+		if (VCReg0[1] != data)
 		{
-			VCReg0[adr&1] = data;
+			VCReg0[1] = data;
 			TVRAM_SetAllDirty();
 		}
 		break;
 	case 0x500:
+		data &= 0x3f;
 	case 0x501:
 		if (VCReg1[adr&1] != data)
 		{
