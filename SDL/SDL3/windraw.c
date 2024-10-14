@@ -1286,7 +1286,7 @@ void WinDraw_DrawLine(void)
 		}
 
 		// TX1 GR1/2 SP>GR    (TX1 GR1 SP2):異常な設定
-		if ( ((VCReg1[0]&0x0c)==0x04) && ((VCReg2[0]&0x5d)==0x1d) && (VCReg1[0]&0x03) && (((VCReg1[0]>>4)&3)>(VCReg1[0]&3)) && (bgon) && (tron) )
+		if ( ((VCReg1[0]&0x0c)==0x04) && ((VCReg2[0]&0x5c)==0x1c) && (VCReg1[0]&0x03) && (((VCReg1[0]>>4)&3)>(VCReg1[0]&3)) && (bgon) && (tron) )
 		{
 			if( (VCReg2[0]&0x5d)==0x1d )//G/Tの重ね合わせ
 			{
@@ -1329,7 +1329,7 @@ void WinDraw_DrawLine(void)
 			tdrawed = 1;
 			opaq = 0;
 		}
-		if ( (!(VCReg1[0]&0x0c)) && ((VCReg2[0]&0x5d)==0x1d) && (((VCReg1[0]>>4)&3)>(VCReg1[0]&3)) && (bgon) && (tron) )//TX0
+		if ( (!(VCReg1[0]&0x0c)) && ((VCReg2[0]&0x5c)==0x1c) && (((VCReg1[0]>>4)&3)>(VCReg1[0]&3)) && (bgon) && (tron) )//TX0
 		{
 			if( (VCReg2[0]&0x5d)==0x1d )//G/Tの重ね合わせ
 			{
