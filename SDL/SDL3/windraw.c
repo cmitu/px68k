@@ -1293,14 +1293,18 @@ void WinDraw_DrawLine(void)
 			  WinDraw_DrawBGLineTR(opaq);
 			  tdrawed = 1;
 			  opaq = 0;
+			  WinDraw_DrawGrpLineNonSP(opaq);
 			}
 			if( (VCReg2[0]&0x5e)==0x1e )//G/Gの重ね合わせ
 			{
-			  Grp_DrawLine8TR(1,1);//GR画面1 再Load （有効かどうかを見てないけどいい？）
+			 if ( (VCReg1[1]&3) <= ((VCReg1[1]>>4)&3) ) {//GP0<=GP2 優先画面はどっち？
+			   Grp_DrawLine8TR(1,1);}//GR画面1 再Load（有効かどうかを見てないけどいい？）
+			 else
+			   Grp_DrawLine8TR(0,1);//GR画面0 再Load（有効かどうかを見てないけどいい？）
 			  WinDraw_DrawGrpLine(opaq);//GR描画
 			  opaq = 0;
+			  WinDraw_DrawGrpLineNonSP(opaq);
 			}
-			WinDraw_DrawGrpLineNonSP(opaq);
 		}
 		else if ( ((VCReg1[0]&0x03)==0x01)&&(tron)&&(gon)&&(VCReg2[0]&0x10) )
 		{
