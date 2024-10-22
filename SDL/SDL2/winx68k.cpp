@@ -633,6 +633,10 @@ get_cmd_line(int32_t argc, char *argv[])
  return;
 }
 
+	int32_t sdlaudio = -1;
+	enum {menu_out, menu_enter, menu_in};
+	int32_t menu_mode = menu_out;
+
 /* Drag & Drop file */
 void
 drop_file(char* dropped_fileurl)
@@ -671,6 +675,7 @@ drop_file(char* dropped_fileurl)
 	   strcpy((char *)Config.SCSIEXHDImage[5], dropped_fileurl);
 	}
 
+	if(menu_mode == menu_in) WinUI_Menu(1);//menu redraw
 	p6logd("DropFile:%s set %d\n",dropped_fileurl,drv);
 
   return;
@@ -690,9 +695,6 @@ int main(int argc, char *argv[])
 	int32_t menu_cnt = -1;
 	uint8_t state;
 #endif
-	int32_t sdlaudio = -1;
-	enum {menu_out, menu_enter, menu_in};
-	int32_t menu_mode = menu_out;
 
 	p6logd("PX68K Ver.%s\n", PX68KVERSTR);
 
