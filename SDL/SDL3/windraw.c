@@ -1176,190 +1176,222 @@ void WinDraw_DrawLine(void)
 		}
 	}
 
-	opaq = 1;
+	//優先順描画 [xx][SP][TX][GR]  (00 > 01 > 10) 異常系
+	// プライオリティが同じ場合は、GRP<SP<TEXT？（ドラスピ、桃伝、YsIII等）
+	// GrpよりTextが上にある場合にTextとの半透明を行うと、SPのプライオリティも
+	// Textに引きずられる？（つまり、Grpより下にあってもSPが表示される？）
+	uint8_t priK = VCReg1[0];
 
-	int32_t tdrawed=0;
+	switch(VCReg1[0])
+	{
+	  case 0b00000110://SP0 TX1 GR2 正常系
+	  case 0b00001001://SP0 TX2 GR1 正常系
+	  case 0b00010010://SP1 TX0 GR2 正常系
+	  case 0b00011000://SP1 TX2 GR0 正常系
+	  case 0b00100001://SP2 TX0 GR1 正常系
+	  case 0b00100100://SP2 TX1 GR0 正常系
+		break;
+	  case 0b00010001://SP1 TX0 GR1
+	  case 0b00100010://SP2 TX0 GR2
+	  case 0b00110011://SP3 TX0 GR3
+	  case 0b00110010://SP3 TX0 GR2 (ThunderForce2)
+		priK = 0b00010010;//SP1 TX0 GR2
+		break;
+	  case 0b00010100://SP1 TX1 GR0
+	  case 0b00101000://SP2 TX2 GR0
+	  case 0b00111100://SP3 TX3 GR0
+		priK = 0b00011000;//SP1 TX2 GR0
+		break;
+	  case 0b00010000://SP1 TX0 GR0
+	  case 0b00100000://SP2 TX0 GR0
+	  case 0b00110000://SP3 TX0 GR0
+		priK = 0b00100001;//SP2 TX0 GR1
+		break;
+	  case 0b00000100://SP0 TX1 GR0
+	  case 0b00001000://SP0 TX2 GR0
+	  case 0b00001100://SP0 TX3 GR0
+		priK = 0b00001001;//SP0 TX2 GR1
+		break;
+	  case 0b00011110://SP1 TX3 GR2 (ArcusOdyssey)
+	  default:
+		priK = 0b00000110;//SP0 TX1 GR2 基本形
+		break;
+	}
 
-#if 0
-					// Pri = 3（違反）に設定されている画面を表示
-		if ( ((VCReg1[0]&0x30)==0x30)&&(bgon) )
-		{
-			if ( ((VCReg2[0]&0x5d)==0x1d)&&((VCReg1[0]&0x03)!=0x03)&&(tron) )
-			{
-				if ( (VCReg1[0]&3)<((VCReg1[0]>>2)&3) )
-				{
-					WinDraw_DrawBGLineTR(opaq);
-					tdrawed = 1;
-					opaq = 0;
-				}
-			}
-			else
-			{
-				WinDraw_DrawBGLine(opaq, /*tdrawed*/0);
-				tdrawed = 1;
-				opaq = 0;
-			}
+  static uint16_t VCstore;
+  if(VCstore != (VCReg1[0]<<8 | VCReg2[0])){
+    p6logd("Pri:%02X→%02X %02X  gon:%d tron:%d ton:%d bgon:%d\n",VCReg1[0],priK,VCReg2[0],gon,tron,ton,bgon);
+    VCstore = (VCReg1[0]<<8 | VCReg2[0]);
+  }
+
+	opaq = 1;//1:初回描画 0:重ね合わせ(td 1:Text_TrFla含む 0:通常の重ね合わせ)
+	int32_t tdrawed=0;//TX Drawed flg
+	//(Text_TrFlag 0x01:TX重ね合わせ 0x02:BG重ね合わせ)
+
+	//== 優先順描画 [xx][SP][TX][GR]  (00 > 01 > 10) 正常系6パターン ==
+	switch(priK)
+	{
+	  case 0b00000110://SP0 TX1 GR2 (基本系)
+		if (gon){//GR2
+			WinDraw_DrawGrpLine(opaq);//GR2(初回BASE)
+			opaq = 0;
 		}
-		if ( ((VCReg1[0]&0x0c)==0x0c)&&(ton) )
-		{
-			if ( ((VCReg2[0]&0x5d)==0x1d)&&((VCReg1[0]&0x03)!=0x0c)&&(tron) )
-				WinDraw_DrawTextLineTR(opaq);
-			else
-				WinDraw_DrawTextLine(opaq, /*tdrawed*/((VCReg1[0]&0x30)==0x30));
+		if (tron) {//GR2 SPなし
+			WinDraw_DrawGrpLineNonSP(opaq);
+			opaq = 0;
+		}
+		if (ton){//TX1
+			WinDraw_DrawTextLine(opaq, gon);// TXをBGに重ね合わせ
 			opaq = 0;
 			tdrawed = 1;
 		}
-#endif
-
-		// Pri = 1 or 2（最下位）に設定されている画面を表示
-		// プライオリティが同じ場合は、GRP<SP<TEXT？（ドラスピ、桃伝、YsIII等）
-
-		// GrpよりTextが上にある場合にTextとの半透明を行うと、SPのプライオリティも
-		// Textに引きずられる？（つまり、Grpより下にあってもSPが表示される？）
-
-		// KnightArmsとかを見ると、半透明のベースプレーンは一番上になるみたい…。
-
-		if ( (VCReg1[0]&0x02) )// GR2
-		{
-			if (gon)
-			{
-				WinDraw_DrawGrpLine(opaq);
-				opaq = 0;
-			}
-			if (tron)
-			{
+		if (bgon) {//SP0 (TX1/2、BGの上)
+			WinDraw_DrawBGLine(opaq,1);
+			opaq = 0;
+			tdrawed = 1;
+		}
+	   break;
+	  case 0b00001001://SP0 TX2 GR1 (アルゴスの戦士)(中華大戦)(NewseaLandStory)(ああっお姫様)(FULLTHROTTLE)(STARLUSTERop)(悪魔状ドラキュラ)
+		if (ton){//TX2
+			if( (tron) && ((VCReg2[0]&0x5d)==0x1d) )//TX2 GR0/1 半透明(Ibit)
+				WinDraw_DrawTextLineTR(opaq);
+			else
+				WinDraw_DrawTextLine(opaq, tdrawed);// (非透過)
+			opaq = 0;
+			tdrawed = 1;
+		}
+		if (gon){//GR1
+			WinDraw_DrawGrpLine(opaq);//GR(初回BASE)
+			opaq = 0;
+			if( (tron) && (VCReg2[0]&0x10) ){//GR1 EXON
 				WinDraw_DrawGrpLineNonSP(opaq);
 				opaq = 0;
 			}
 		}
-		if ( (VCReg1[0]&0x20)&&(bgon) )// SP2
-		{
-			if ( ((VCReg2[0]&0x5d)==0x1d)&&((VCReg1[0]&0x03)!=0x02)&&(tron) )
-			{
-				if ( (VCReg1[0]&3)<((VCReg1[0]>>2)&3) )
-				{
-					WinDraw_DrawBGLineTR(opaq);
-					tdrawed = 1;
-					opaq = 0;
-				}
-			}
-			else
-			{
-				WinDraw_DrawBGLine(opaq, /*0*/tdrawed);
-				tdrawed = 1;
-				opaq = 0;
-			}
-		}
-		if ( (VCReg1[0]&0x08)&&(ton) )//TX2
-		{
-			if ( ((VCReg2[0]&0x5d)==0x1d)&&((VCReg1[0]&0x03)!=0x02)&&(tron) )
-				WinDraw_DrawTextLineTR(opaq);
-			else
-				WinDraw_DrawTextLine(opaq, tdrawed/*((VCReg1[0]&0x30)>=0x20)*/);
+		if (bgon) {//SP0
+			WinDraw_DrawBGLine(opaq,1);// (TX1/2) (BG透過)
 			opaq = 0;
 			tdrawed = 1;
 		}
-
-		// Pri = 1（2番目）に設定されている画面を表示
-		if ( ((VCReg1[0]&0x03)==0x01)&&(gon) )//GR1
-		{
-			WinDraw_DrawGrpLine(opaq);
+	   break;
+	  case 0b00010010://SP1 TX0 GR2 (AlienSyndrome)(Phalanx)(Gradius)(DynamiteDuke)(Garou)(A-JAX)(CodeZero)(大魔界村)他多数
+		if (gon){//GR2
+			WinDraw_DrawGrpLine(opaq);//GR2(初回BASE)
 			opaq = 0;
 		}
-		if ( ((VCReg1[0]&0x30)==0x10)&&(bgon) )//SP1
-		{
-			if ( ((VCReg2[0]&0x5d)==0x1d)&&(!(VCReg1[0]&0x03))&&(tron) )
-			{
-				if ( (VCReg1[0]&3)<((VCReg1[0]>>2)&3) )
-				{
-					WinDraw_DrawBGLineTR(opaq);
-					tdrawed = 1;
-					opaq = 0;
-				}
-			}
+		if (tron) {//GR2 SPなし
+			WinDraw_DrawGrpLineNonSP(opaq);
+			opaq = 0;
+		}
+		if (bgon) {//SP1 GR2
+			WinDraw_DrawBGLine(opaq, 0); //（TX0だから)
+			opaq = 0;
+			tdrawed = 1;
+		}
+		if (ton) {//TX0
+			WinDraw_DrawTextLine(opaq, 1);// (透過)
+			opaq = 0;
+			tdrawed = 1;
+		}
+	   break;
+	  case 0b00011000://SP1 TX2 GR0(SP1見直すこと) (STARLUSTER)(SYNTHIAop)
+		if (ton){//TX2
+			if( (tron) && ((VCReg2[0]&0x5d)==0x1d))//GR+TX透過
+				WinDraw_DrawTextLineTR(opaq);
 			else
-			{
-				WinDraw_DrawBGLine(opaq, ((VCReg1[0]&0xc)==0x8));
+				WinDraw_DrawTextLine(opaq, tdrawed);//(非透過)
+			opaq = 0;
+			tdrawed = 1;
+		}
+		if (bgon) {//SP1
+			if ( (tron) && ((VCReg2[0]&0x5d)==0x1d) ) //G/T透過
+				WinDraw_DrawBGLineTR(opaq);
+			else
+				WinDraw_DrawBGLine(opaq, 1);//（TX2だから透過?) TX2だからtdは1？
+			opaq = 0;
+			tdrawed = 1;
+		}
+		if (gon) {
+			WinDraw_DrawGrpLine(opaq);// GR0 (あんまりありえない)
+			opaq = 0;
+		}
+		if ( (tron) && (VCReg2[0]&0x10) ){//GR0 EXON
+			WinDraw_DrawGrpLineNonSP(opaq);
+			opaq = 0;
+		}
+	   break;
+	  case 0b00100001://SP2 TX0 GR1 (Phalanx) (KnightArms)(Y2)(FULLTHROTTLE)(MetalOrangeEX)
+		if (bgon) {//SP2
+			if ( (tron) && ((VCReg2[0]&0x5d)==0x1d) ){//G/T透過
+				//G/T透過:GR描画後に優先度変更
+			}
+			else {
+				WinDraw_DrawBGLine(opaq, 0);//GR描画(BASE)
+				opaq = 0;
 				tdrawed = 1;
+			}
+		}
+		if (gon) {//GR1
+			WinDraw_DrawGrpLine(opaq); // GR1 BG重ね合わせ
+			opaq = 0;
+			if ( (tron) && (VCReg2[0]&0x10) ){//GR1 EXON
+				WinDraw_DrawGrpLineNonSP(opaq);
 				opaq = 0;
 			}
 		}
-
-		// TX1 GR1/2 SP>GR    (TX1 GR1 SP2):異常な設定
-		if ( ((VCReg1[0]&0x0c)==0x04) && ((VCReg2[0]&0x5c)==0x1c) && (VCReg1[0]&0x03) && (((VCReg1[0]>>4)&3)>(VCReg1[0]&3)) && (bgon) && (tron) )
-		{
-			if( (VCReg2[0]&0x5d)==0x1d )//G/Tの重ね合わせ
-			{
-			  WinDraw_DrawBGLineTR(opaq);
-			  tdrawed = 1;
-			  opaq = 0;
-			  WinDraw_DrawGrpLineNonSP(opaq);
+		if (bgon) {//GR1 & SP2 重ね合わせ
+			if( (tron) && ((VCReg2[0]&0x5d)==0x1d) ){//TX0 SP>GR G/X
+			 WinDraw_DrawBGLineTR(opaq);//GR描画(BASE)
+			 opaq = 0;
+			 tdrawed = 1;
+			 WinDraw_DrawGrpLineNonSP(opaq);
 			}
-			if( (VCReg2[0]&0x5e)==0x1e )//G/Gの重ね合わせ
-			{
+			if( (tron) && ((VCReg2[0]&0x5e)==0x1e) ){//TX0 SP>GR G/G
 			 if ( (VCReg1[1]&3) <= ((VCReg1[1]>>4)&3) ) {//GP0<=GP2 優先画面はどっち？
-			   Grp_DrawLine8TR(1,1);}//GR画面1 再Load（有効かどうかを見てないけどいい？）
+			   Grp_DrawLine8TR(1,1);}//GR画面1 再Load
 			 else
-			   Grp_DrawLine8TR(0,1);//GR画面0 再Load（有効かどうかを見てないけどいい？）
-			  WinDraw_DrawGrpLine(opaq);//GR描画
-			  opaq = 0;
-			  WinDraw_DrawGrpLineNonSP(opaq);
+			   Grp_DrawLine8TR(0,1);//GR画面0 再Load
+			 WinDraw_DrawGrpLine(opaq);//GR描画
+			 opaq = 0;
+			 WinDraw_DrawGrpLineNonSP(opaq);//SP上書きカモだけどOK
 			}
 		}
-		else if ( ((VCReg1[0]&0x03)==0x01)&&(tron)&&(gon)&&(VCReg2[0]&0x10) )
-		{
-			WinDraw_DrawGrpLineNonSP(opaq);
-			opaq = 0;
-		}
-		if ( ((VCReg1[0]&0x0c)==0x04)&&(ton) )//TX1
-		{
-			if ( ((VCReg2[0]&0x5d)==0x1d)&&(!(VCReg1[0]&0x03))&&(tron) )
-				WinDraw_DrawTextLineTR(opaq);
-			else
-				WinDraw_DrawTextLine(opaq, ((VCReg1[0]&0x30)>=0x10));
+		if (ton)  {//TX0
+			WinDraw_DrawTextLine(opaq, 1 );// TX0 GR透過
 			opaq = 0;
 			tdrawed = 1;
 		}
-
-		// Pri = 0（最優先）に設定されている画面を表示
-		if ( (!(VCReg1[0]&0x03))&&(gon) )// GR0
-		{
+	   break;
+	  case 0b00100100://SP2 TX1 GR0 (KnightArms)(MetalOrangeEX)(ChaseHQ)
+		if (bgon ) {//SP2
+			if ( (tron) && ((VCReg2[0]&0x5d)==0x1d) )//GR0  GR<TX
+				WinDraw_DrawBGLineTR(opaq); //BASE(透過はありえない？)
+			else
+				WinDraw_DrawBGLine(opaq,tdrawed);// (0)
+			opaq = 0;
+			tdrawed = 1;
+		}
+		if (ton){//TX1
+			if ( (tron) && ((VCReg2[0]&0x5d)==0x1d) )//G/T
+				WinDraw_DrawTextLineTR(opaq); //BASE(透過はありえない？)
+			else
+				WinDraw_DrawTextLine(opaq,1);// SP2透過
+			opaq = 0;
+			tdrawed = 1;
+		}
+		if (gon) {//GR0
 			WinDraw_DrawGrpLine(opaq);
 			opaq = 0;
 		}
-		if ( (!(VCReg1[0]&0x30))&&(bgon) )//SP0
-		{
-			WinDraw_DrawBGLine(opaq, /*tdrawed*/((VCReg1[0]&0xc)>=0x4));
-			tdrawed = 1;
-			opaq = 0;
-		}
-		if ( (!(VCReg1[0]&0x0c)) && ((VCReg2[0]&0x5c)==0x1c) && (((VCReg1[0]>>4)&3)>(VCReg1[0]&3)) && (bgon) && (tron) )//TX0
-		{
-			if( (VCReg2[0]&0x5d)==0x1d )//G/Tの重ね合わせ
-			{
-			  WinDraw_DrawBGLineTR(opaq);
-			  tdrawed = 1;
-			  opaq = 0;
-			}
-			if( (VCReg2[0]&0x5e)==0x1e )//G/Gの重ね合わせ
-			{
-			  Grp_DrawLine8TR(1,1);//GR画面1 再Load （有効かどうかを見てないけどいい？）
-			  WinDraw_DrawGrpLine(opaq);//GR描画
-			  opaq = 0;
-			}
-			WinDraw_DrawGrpLineNonSP(opaq);
-		}
-		else if ( (!(VCReg1[0]&0x03))&&(tron)&&(VCReg2[0]&0x10) )//GR0
-		{
+		if ( (tron) && (VCReg2[0]&0x10) ){//GR0 EXON SP重ね合わせ
 			WinDraw_DrawGrpLineNonSP(opaq);
 			opaq = 0;
 		}
-		if ( (!(VCReg1[0]&0x0c))&&(ton) )//TX0
-		{
-			WinDraw_DrawTextLine(opaq, 1);
-			tdrawed = 1;
-			opaq = 0;
-		}
+	   break;
+	  default:
+		p6logd("No Draw:Priority Fail:%2X\n", VCReg1[0]);
+	   break;
+	}
 
 #define _DL_SUB(SUFFIX) 		\
 {								\
