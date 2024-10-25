@@ -89,15 +89,14 @@ uint8_t FASTCALL BG_Read(uint32_t adr)
 //   I/O Write
 // -----------------------------------------------------------------------
 
-#define UPDATE_TDL(t)				\
-{						\
-	int_fast16_t i;					\
-	for (i = 0; i < 16; i++) {		\
-		TextDirtyLine[(t)] = 1;		\
-		(t) = ((t) + 1) & 0x3ff;	\
-	}					\
+#define UPDATE_TDL(t)			\
+{								\
+	int_fast16_t i;				\
+	for (i = 0; i < 16; i++) {	\
+		TextDirtyLine[(t)] = 1;	\
+		(t) = ((t) + 1) & 0x3ff;\
+	}							\
 }
-
 
 void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 {
@@ -413,7 +412,7 @@ void bg_drawline_loopx8(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY, 
                } else if ((bl - 0x40) & 0x80) {
                        esi = &BGCHR8[si + 0x3f - ebp];
                        d = -1;
-               } else if (bl >= 0x40) {
+               } else if ((int8_t)bl >= 0x40) {// このキャストは大事！
                        esi = &BGCHR8[si + ebp + 7];
                        d = -1;
                } else {
@@ -453,7 +452,7 @@ void bg_drawline_loopx16(uint16_t BGTOP, uint32_t BGScrollX, uint32_t BGScrollY,
 		} else if ((bl - 0x40) & 0x80) {
 			esi = &BGCHR16[si + 0xff - ebp];
 			d = -1;
-		} else if (bl >= 0x40) {
+		} else if ((int8_t)bl >= 0x40) {// このキャストは大事！
 			esi = &BGCHR16[si + ebp + 15];
 			d = -1;
 		} else {
