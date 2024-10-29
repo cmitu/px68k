@@ -363,7 +363,6 @@ WinX68k_Reset(void)
 	SCC_Init();
 	Keyboard_Init();
 	PIA_Init();
-	GameController_Init();
 	RTC_Init();
 	TVRAM_Init();
 	GVRAM_Init();
@@ -827,7 +826,7 @@ int main(int argc, char *argv[])
 	SysPort_Init();
 	Mouse_Init();
 	WinX68k_Reset();
-	GameController_Open(); // Mapping XBOX like Game Controller
+	GameController_Init();
 	Timer_Init();
 
 	//MIDI_Init();
@@ -1096,35 +1095,10 @@ int main(int argc, char *argv[])
 				break;
 			//case SDL_JOYDEVICEADDED:
 			case SDL_CONTROLLERDEVICEADDED:
-				strcpy(menu_items[13][ev.cdevice.which],SDL_GameControllerNameForIndex(ev.cdevice.which));
-				strcpy(menu_items[13][ev.cdevice.which +1],"\0"); // Menu item END
-				if ( ev.cdevice.which == 0 ){// No Device +1 ?
-				 sdl_gamepad = SDL_GameControllerOpen( ev.cdevice.which );
-				}
-				p6logd("GameController %s Connected.\n",SDL_GameControllerNameForIndex(ev.cdevice.which));
+				GameController_Add(ev.cdevice.which);
 				break;
 			case SDL_CONTROLLERDEVICEREMOVED:
-				  SDL_GameControllerClose( sdl_gamepad );//閉じる
-				  p6logd("GameController Disconnected.\n");
-
-				uint32_t nr_joys;
-				nr_joys = SDL_NumJoysticks();
-				if (nr_joys == 0){
-				 strcpy(menu_items[13][0],"No device found");
-				 strcpy(menu_items[13][1],"\0"); // Menu item END
-				 break;
-				}
-				uint32_t i;
-				for (i = 0; i < nr_joys; i++) {
-				  if ( SDL_IsGameController(i) ){
-				    strcpy(menu_items[13][i],SDL_GameControllerNameForIndex(i));
-				  }
-				  else{
-				    strcpy(menu_items[13][i],"Not compatible GameController");
-				  }
-				}
-				strcpy(menu_items[13][i],"\0"); // Menu item END
-				sdl_gamepad = SDL_GameControllerOpen(0);//defaultに戻す
+				GameController_Removed(ev.cdevice.which);
 				break;
 			case SDL_CONTROLLERAXISMOTION:
 				GameControllerAxis_Update(ev.caxis.which, ev.caxis.axis, ev.caxis.value);
@@ -1141,7 +1115,7 @@ int main(int argc, char *argv[])
 				GameControllerButton_Update(ev.cbutton.which, ev.cbutton.button, 0);
 				break;
 			case SDL_CONTROLLERDEVICEREMAPPED:
-				p6logd("Game Controller Re-mapped.\n");
+				GameController_Remapped(ev.cdevice.which);
 				break;
 			case SDL_DROPTEXT:
 				break;

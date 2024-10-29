@@ -39,12 +39,6 @@ typedef struct _vbtn_points {
 uint8_t FASTCALL Joystick_Read(uint8_t num);
 void FASTCALL Joystick_Write(uint8_t num, uint8_t data);
 
-//#if !SDL_VERSION_ATLEAST(2, 0, 0)
-//typedef signed int SDL_Keycode;
-//#else
-extern SDL_Gamepad *sdl_gamepad;
-//#endif
-
 void GamePad_Init(void);
 void GamePad_Open(void);
 void GamePad_Change(uint32_t Pad_No);

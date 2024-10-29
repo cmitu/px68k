@@ -45,7 +45,7 @@ CyberStick(Analog)
 //char joybtnname[2][MAX_BUTTON][MAX_PATH];
 //uint8_t joybtnnum[2] = {0, 0};
 
-uint8_t joy[2];
+uint8_t PadNo[2];//menu何番目がPort0,Port1
 uint8_t JoyKeyState;
 uint8_t JoyKeyState0;
 uint8_t JoyKeyState1;
@@ -179,11 +179,13 @@ uint8_t Joystick_get_vbtn_state(uint16_t n)
 
 #endif
 
-SDL_GameController *sdl_gamepad;
 SDL_Joystick *sdl_joy; //DUMMY
+SDL_GameController *sdl_gamepad;
+static SDL_JoystickID GamePadID[10];//menu-instanceID格納用
+static const char No_GamePad[] = "No device found";
 static uint32_t	cyber_tick = 0;//時間計測用
 
-void GameController_Open(void)
+void GameController_Open(void)//未使用
 {
 	int32_t nr_joys;
 	const char *name;
@@ -191,7 +193,7 @@ void GameController_Open(void)
 
 	nr_joys = SDL_NumJoysticks();
 	if (nr_joys == 0){
-	 strcpy(menu_items[13][0],"No device found");
+	 strcpy(menu_items[13][0],No_GamePad);
 	 strcpy(menu_items[13][1],"\0"); // Menu END
 	 return;
 	}
@@ -218,10 +220,10 @@ void GameController_Open(void)
 
 void GamePad_Change(uint32_t Pad_No)
 {
-	SDL_GameControllerClose(sdl_gamepad);
-	sdl_gamepad = SDL_GameControllerOpen(Pad_No);// Re-Open
+	PadNo[0] = GamePadID[Pad_No]; //Port0
 
-	if(sdl_gamepad == NULL) sdl_gamepad = SDL_GameControllerOpen(0);// default
+	if(Pad_No == 0) PadNo[1] = GamePadID[1];
+	if(Pad_No == 1) PadNo[1] = GamePadID[0];
 
  return;
 }
@@ -233,20 +235,24 @@ void GameController_Init(void)
 	const char *gamepad_db;
 	int num;
 
-	SDL_Init(SDL_INIT_GAMECONTROLLER);
-
-	// GamePad をイベントで駆動する
-	SDL_JoystickEventState(SDL_ENABLE);
-	SDL_GameControllerEventState(SDL_ENABLE);
-
+	//GameController 定義File読み込み
 	gamepad_db = File_Getcd((char *)gamepaddb_filename);
 	num = SDL_GameControllerAddMappingsFromFile((char *)gamepad_db);
 	if(num > 0) p6logd("%d Game Controller mapped.\n",num);
 
-	sdl_gamepad = NULL;
+	SDL_Init(SDL_INIT_GAMECONTROLLER);
 
-	joy[0] = 1;  // active only one
-	joy[1] = 0;
+	strcpy(menu_items[13][0],No_GamePad);
+	strcpy(menu_items[13][1],"\0"); // Menu END
+
+	sdl_gamepad = NULL;
+	PadNo[0] = 0;
+	PadNo[1] = 0;
+	memset(GamePadID, 0, sizeof(GamePadID));
+
+	// GameController をイベントで駆動する
+	SDL_GameControllerEventState(SDL_ENABLE);
+
 	JoyKeyState = 0;
 	JoyKeyState0 = 0;
 	JoyKeyState1 = 0;
@@ -282,6 +288,50 @@ void GameController_Cleanup(void)
 	if(sdl_gamepad){
 		SDL_GameControllerClose(sdl_gamepad);
 	}
+}
+
+void GameController_Add(int padid)
+{
+  int id;
+  int flg = 0;
+
+	for(id=0; id<10; id++){
+	 if(strncmp(menu_items[13][id],No_GamePad,sizeof(No_GamePad))==0){ flg = 0; break; }
+	 if(strncmp(menu_items[13][id],"\0",sizeof("\0"))==0){ flg = 1; break; }
+	}
+
+	sdl_gamepad = SDL_GameControllerOpen( padid );
+	GamePadID[id] = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(sdl_gamepad));
+	strcpy(menu_items[13][id],SDL_GameControllerNameForIndex(padid));
+	if(flg==1) strcpy(menu_items[13][id+1],"\0"); // Menu item END
+
+	p6logd("Add %s as %d.\n",menu_items[13][id],GamePadID[id]);
+	GamePad_Change(0);//常に0＝Port0がDefault
+	return;
+}
+
+void GameController_Removed(SDL_JoystickID padid)
+{
+  int id;
+
+	 for(id=0; id<10; id++){
+	  if(GamePadID[id] == padid){
+		GamePadID[id] = 0;//無効化
+		p6logd("Removed %s as %d.\n",menu_items[13][id],padid);
+		strcpy(menu_items[13][id],No_GamePad);
+		//strcpy(menu_items[13][id+1],"\0"); // Menu item END
+	  }
+	 }
+
+	
+
+	return;
+}
+
+void GameController_Remapped(SDL_JoystickID padid)
+{
+	p6logd("GamePad Re-mapped.\n");
+	return;
 }
 
 // Read from X68000
@@ -357,10 +407,8 @@ uint8_t FASTCALL Joystick_Read(uint8_t num)
    else{//=== for ATARI Stick Mode ===
 		if (Config.JoySwap) joynum ^= 1;
 
-		if (joy[num]) {
-		  ret0 = JoyState0[num];
-		  ret1 = JoyState1[num];
-		}
+		ret0 = JoyState0[num];
+		ret1 = JoyState1[num];
 
 		if (Config.JoyKey)
 		{
@@ -394,9 +442,10 @@ void FASTCALL Joystick_Write(uint8_t num, uint8_t data)
 	JoyPortData[num] = data;
 }
 
-// GamePad Analog input for X68000 (like CyberKtick)
+// GamePad Analog input for X68000 (like CyberStick)
 void FASTCALL GameControllerAxis_Update(int32_t which, uint8_t axis, int32_t value)
 {
+	if(which != PadNo[0]) return; // Analog is Port0 only
 
 	// XBOX like GamePad update Analog value
 	value /=236;// ±140程度に縮める
@@ -495,18 +544,30 @@ void FASTCALL GameControllerButton_Update(int32_t which, uint8_t button, uint8_t
 	}
 
 	if(on){// Switch ON!
+	  if(which == PadNo[0]){//Port0
 		JoyState0[0] &= ~ret0;
 		JoyState1[0] &= ~ret1;
 		CyberST[0]  &= ~CyberST0;
 		CyberST[1]  &= ~CyberST1;
 		CyberST[10] &= ~CyberST10;
+	  }
+	  if(which == PadNo[1]){//Port1
+		JoyState0[1] &= ~ret0;
+		JoyState1[1] &= ~ret1;
+	  }
 	}
 	else{// Switch OFF!
+	  if(which == PadNo[0]){//Port0
 		JoyState0[0] |= ret0;
 		JoyState1[0] |= ret1;
 		CyberST[0] |= CyberST0;
 		CyberST[1] |= CyberST1;
 		CyberST[10] |= CyberST10;
+	  }
+	  if(which == PadNo[1]){//Port1
+		JoyState0[1] |= ret0;
+		JoyState1[1] |= ret1;
+	  }
 	}
 	//固定値(念のため)
 	CyberST[0]  |= 0x90;//init A B C D 
