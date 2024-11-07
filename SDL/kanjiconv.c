@@ -7272,7 +7272,8 @@ uint32_t conv_utf8tosjis(char *dst,char *src)
 {
 	uint8_t h;
 	uint32_t i,c,c2;
-	int32_t flg=0;
+	int32_t ok_flg = 0;
+	int32_t ng_flg = 0;
 
 
 	while ((h = *src ++)) {/*loop*/
@@ -7315,42 +7316,45 @@ uint32_t conv_utf8tosjis(char *dst,char *src)
 		{
 			if((conv_unicode[i][2] == c) && (UNI == 0)){
 				c2 = conv_unicode[i][1];
-				if(flg<500) flg++;/*2/3byte code count*/
+				ok_flg++;/*2/3byte code count*/
 				break;
 			}
 			if(conv_unicode[i][0] == 0){UNI = 1;}
 
 			if((x68_hikanji[i+1][2] == c) && (HIKA == 0)){
 				c2 = x68_hikanji[i+1][1];
-				if(flg<500) flg++;/*2/3byte code count*/
+				ok_flg++;/*2/3byte code count*/
 				break;
 			}
 			if(x68_hikanji[i][0] == 0){HIKA = 1;}
 
 			if((x68_kanji1[i+1][2] == c) && (JIS1 == 0)){
 				c2 = x68_kanji1[i+1][1];
-				if(flg<500) flg++;/*2/3byte code count*/
+				ok_flg++;/*2/3byte code count*/
 				break;
 			}
 			if(x68_kanji1[i][0] == 0){JIS1 = 1;}
 
 			if(x68_kanji2[i+1][2] == c){
 				c2 = x68_kanji2[i+1][1];
-				if(flg<500) flg++;/*2/3byte code count*/
+				ok_flg++;/*2/3byte code count*/
 				break;
 			}
 		}
-		if((c2 & 0xff000000) == 0xf0000000){ if(flg<500) flg++; }/*4byte code count*/
+		if(!x68_kanji2[i][0]) ng_flg++;//変換候補なしCount
+
+		if((c2 & 0xff000000) == 0xf0000000){ ok_flg++; }/*4byte code count*/
 
 		/* Store S-JIS code */
 		if((c2 & 0x00ff) != c2){ /*3byte half kana support*/
-		*dst++ = (unsigned char)((c2 & 0xff00) >> 8);
+		*dst++ = (uint8_t)((c2 & 0xff00) >> 8);
 		}
-		*dst++ = (unsigned char)(c2 & 0x00ff);
+		*dst++ = (uint8_t)(c2 & 0x00ff);
 
 		/*UTF8MAC to UTF8*/
 		if((c2==0x814a)||(c2==0x814b)){// ゛濁点 ゜半濁点
-		  if(((*(dst-4)&0xff) == 0x82) || ((*(dst-4)&0xff) == 0x83)){//か〜ポ範囲
+		  uint8_t dt = (uint8_t)*(dst-4);
+		  if( (dt == 0x82) || (dt == 0x83) ){//か〜ポ範囲
 		   dst -=2;//１文字戻す
 		   if(c2==0x814a)  *(dst-1)+=1;//濁点付きへ変換
 		   else            *(dst-1)+=2;//半濁点付きへ変換
@@ -7375,6 +7379,10 @@ uint32_t conv_utf8tosjis(char *dst,char *src)
 
 	*dst++ = '\0';
 
-return flg;/*変換できた数*/
+	if(ok_flg){
+		if(ng_flg > 2) ok_flg = 0;//変換不可があった場合はutf8変換できなかったとみなす
+	}
+
+return ok_flg;/*変換できた数*/
 
 }

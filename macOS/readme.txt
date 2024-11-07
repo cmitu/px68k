@@ -72,7 +72,7 @@ and..
 [cgrom.tmpの生成機能]
 配布されていないcgromをOSのTrueTypeから生成する場合は、
 % make cgrom
-% ./SDL2/tool/mkcgrom で実行、生成。
+% ./mkcgrom で実行、生成。
 できあがったcgrom.tmpを.keropiに入れておいてください。
 
 [必要なIPL]

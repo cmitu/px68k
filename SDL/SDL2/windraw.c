@@ -1876,16 +1876,13 @@ void WinDraw_DrawMenu(int32_t menu_state, int32_t mkey_pos, int32_t mkey_y, int3
 			 if (!strncmp(cur_dir_str, p, cur_dir_slen)) {
 				p += cur_dir_slen;
 			 }
-			 char str_sjis[MAX_PATH];
-			 if(conv_utf8tosjis(str_sjis,p) == 0){strcpy(str_sjis,p);}/*sjisに変換*/
-			 p=str_sjis;
 			 if(strlen(p)>44){ /*24dotで44文字以上*/
 			  set_mfs(16);
 			  if(strlen(p)>66){/*16dotで66文字以上*/
 			   p += (strlen(p)-66);
 			  }
 			 }
-			 draw_str(p,0);
+			 draw_str(p,0);//Auto(S-JIS/UTF8)
 			 set_mfs(24);/*元に戻す*/
 			}
 		} else {
