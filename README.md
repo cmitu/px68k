@@ -78,8 +78,9 @@ or
 
 ## Chg Menu Language
 * edit `config` file in .keropi folder.
-   MenuLanguage=0  default(Japanese Menu)
-   MenuLanguage=1  option (English  Menu)
+
+      MenuLanguage=0  default(Japanese Menu)
+      MenuLanguage=1  option (English  Menu)
 
 ## Limitation
  * SCSI対応は現状IOCSレベル。よってNetBSD/X68kはboot不可
