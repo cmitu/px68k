@@ -1,10 +1,10 @@
 #
-# cmake for px68k  X68000 Emulator
+#  cmake for px68k  X68000 Emulator
 #  for macOS and Linux and MinGW
 #  written by kameya  2023/6/2
 #
 
-cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.31 FATAL_ERROR)
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
   message(FATAL_ERROR "DO NOT BUILD in-tree.")
@@ -42,7 +42,7 @@ add_definitions(
 	-DHAVE_STDINT_H
 	)
 
-if (NO_MERCURY)
+if(NO_MERCURY)
 add_definitions(
 	-DNO_MERCURY
 	)
@@ -264,10 +264,9 @@ endif()
 if(CMAKE_STRIP)
   add_custom_command(
     TARGET ${BIN_TARGET} POST_BUILD
-    DEPENDS ${BIN_TARGET}
     COMMAND $<$<CONFIG:Release>:${CMAKE_STRIP}>
             $<$<CONFIG:MinSizeRel>:${CMAKE_STRIP}>
-    ARGS $<TARGET_FILE:${BIN_TARGET}>)
+    ARGS --strip-all $<TARGET_FILE:${BIN_TARGET}>)
 endif()
 
 if(APPLE)
@@ -285,7 +284,7 @@ if(APPLE)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9.0")
   option(MACOSX_STANDALONE_APP_BUNDLE "Generate a portable app bundle to use on other devices (requires sudo)" OFF)
 
-  install (TARGETS ${BIN_TARGET} DESTINATION ./)
+  install_targets( ./bin ${BIN_TARGET} )
 
   if(MACOSX_STANDALONE_APP_BUNDLE)
       install(CODE "

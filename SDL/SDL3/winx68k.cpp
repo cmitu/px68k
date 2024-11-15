@@ -909,6 +909,8 @@ int main(int argc, char *argv[])
 			case SDL_EVENT_WINDOW_RESIZED:
 				ScreenClearFlg = 1;
 			break;
+			case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+			break;
 			case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
 					if(ev.window.windowID == SDL_GetWindowID(sdl_window)){ goto end_loop; }
 					if(ev.window.windowID == SDL_GetWindowID(sft_kbd_window)){ Soft_kbd_Show(0); }//消す
