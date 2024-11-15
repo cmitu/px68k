@@ -4,7 +4,7 @@
 #  written by kameya  2023/6/2
 #
 
-cmake_minimum_required(VERSION 3.31 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.27 FATAL_ERROR)
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
   message(FATAL_ERROR "DO NOT BUILD in-tree.")
