@@ -1205,12 +1205,17 @@ void WinDraw_DrawLine(void)
 	  case 0b00010000://SP1 TX0 GR0
 	  case 0b00100000://SP2 TX0 GR0
 	  case 0b00110000://SP3 TX0 GR0
+	  case 0b00110001://SP3 TX0 GR1(信長)(GUNDAM)(Augasta)
 		priK = 0b00100001;//SP2 TX0 GR1
 		break;
 	  case 0b00000100://SP0 TX1 GR0
 	  case 0b00001000://SP0 TX2 GR0
 	  case 0b00001100://SP0 TX3 GR0
+	  case 0b00001101://SP0 TX3 GR1 (NOVELWARE)
 		priK = 0b00001001;//SP0 TX2 GR1
+		break;
+	  case 0b00110100:// SP3 TX1 GR0 (R-TYPE)(GUNDAM)(Augasta)
+		priK = 0b00100100; // SP2 TX1 GR0 
 		break;
 	  case 0b00011110://SP1 TX3 GR2 (ArcusOdyssey)
 	  default:

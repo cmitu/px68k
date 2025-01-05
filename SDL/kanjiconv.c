@@ -7276,7 +7276,7 @@ uint32_t conv_utf8tosjis(char *dst,char *src)
 	int32_t ng_flg = 0;
 
 
-	while ((h = *src ++)) {/*loop*/
+	while ((h = (uint8_t)*src ++)) {/*loop*/
 
 		if (h == '\0') break;		/* strings end */
 
@@ -7285,21 +7285,21 @@ uint32_t conv_utf8tosjis(char *dst,char *src)
 		c = h;
 	    } else if (h < 0xe0) {		    /* 2byte    110xxxxx */
 		    c = h << 8;
-		    if ((h = *src++) == '\0') break;
+		    if ((h = (uint8_t)*src++) == '\0') break;
 		    c |= h;
 		} else if (h < 0xf0) {		    /* 3byte    1110xxxx */
 		    c = h << 16;
-		    if ((h = *src++) == '\0') break;
+		    if ((h = (uint8_t)*src++) == '\0') break;
 		    c |= h << 8;
-		    if ((h = *src++) == '\0') break;
+		    if ((h = (uint8_t)*src++) == '\0') break;
 		    c |= h;
 		} else if (h < 0xf8) {		    /* 4byte    11110xxx */
 		    c = h << 24;
-		    if ((h = *src++) == '\0') break;
+		    if ((h = (uint8_t)*src++) == '\0') break;
 		    c |= h << 16;
-		    if ((h = *src++) == '\0') break;
+		    if ((h = (uint8_t)*src++) == '\0') break;
 		    c |= h << 8;
-		    if ((h = *src++) == '\0') break;
+		    if ((h = (uint8_t)*src++) == '\0') break;
 		    c |= h;
 		} else {			    /* 5〜6byte          */
 		    continue;
@@ -7307,7 +7307,7 @@ uint32_t conv_utf8tosjis(char *dst,char *src)
 
 
 	 if (c <= 0x82) { /* store 1byte code */
-		*dst++ = (unsigned char)(c & 0x00ff);
+		*dst++ = (uint8_t)(c & 0x00ff);
 	 }
 	 else{
 		uint32_t UNI=0, HIKA=0, JIS1=0;

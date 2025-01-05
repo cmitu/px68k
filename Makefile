@@ -83,8 +83,8 @@ include version.txt
 
 # CC	 = clang -std=c17 -arch x86_64 -arch arm64
 # CXX	 = clang++ -std=c++17 -arch x86_64 -arch arm64
-CC	 = gcc
-CXX	 = g++
+CC	 = gcc -std=c11
+CXX	 = g++ -std=c++14
 
 CXXLINK	 = $(CXX)
 RM	 = rm -rf

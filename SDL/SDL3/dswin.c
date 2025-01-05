@@ -29,9 +29,8 @@
 #include	"prop.h"
 #include	"adpcm.h"
 #include	"mercury.h"
-#include	"fmg_wrap.h"
+#include	"ymfm_wrap.h"
 
-uint32_t   ratebase = 44100;
 uint16_t   playing  = FALSE;
 int32_t    audio_fd = -1;
 
@@ -41,12 +40,16 @@ int32_t    audio_fd = -1;
 #include	"SDL3/SDL_audio.h"
 
 //for SDL3
-SDL_AudioDeviceID audio_dev;
 SDL_AudioSpec fmt_pc; //PC出力
-SDL_AudioSpec fmt_x68; //X68出力
-SDL_AudioStream *stream;
+SDL_AudioDeviceID audio_dev16;
+SDL_AudioDeviceID audio_dev32;
+SDL_AudioSpec fmt_x68_16; //X68 16bitAudio出力
+SDL_AudioSpec fmt_x68_32; //X68 32bitAudio出力
+SDL_AudioStream *stream16;
+SDL_AudioStream *stream32;
 
-static void sdlaudio_callback(void *userdata, SDL_AudioStream *stream, int len , int total);
+static void sdlaudio_callback16(void *userdata, SDL_AudioStream *stream16, int len , int total);
+static void sdlaudio_callback32(void *userdata, SDL_AudioStream *stream32, int len , int total);
 
 int32_t
 DSound_Init(uint32_t rate)
@@ -56,38 +59,55 @@ DSound_Init(uint32_t rate)
 		return FALSE;
 	}
 
-	if (rate == 0) {
+	if (rate == 0) {//44100 or 22050 or 11025
 		audio_fd = -1;
 		return TRUE;
 	}
 
-	ratebase = rate;
-
+	//PC 出力
 	memset(&fmt_pc, 0, sizeof(fmt_pc));
 
 	fmt_pc.freq = rate;
 	fmt_pc.channels = 2;
-	fmt_pc.format = SDL_AUDIO_S16LE;
-	audio_dev = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &fmt_pc);
-	if (audio_dev == 0) {
+	fmt_pc.format = SDL_AUDIO_S32LE;
+	audio_dev32 = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &fmt_pc);
+	if (audio_dev32 == 0) {
 	    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_OpenAudioDevice() failed: %s\n", SDL_GetError());
 	    return FALSE;
 	}
 
-	memset(&fmt_x68, 0, sizeof(fmt_x68));
+	//ADPCM 出力(16bitPCM)
+	memset(&fmt_x68_16, 0, sizeof(fmt_x68_16));
 
-	fmt_x68.freq = rate;
-	fmt_x68.channels = 2;
-	fmt_x68.format = SDL_AUDIO_S16LE;
-	stream = SDL_CreateAudioStream(&fmt_x68, &fmt_pc);
-	if (stream == NULL) {
+	fmt_x68_16.freq = rate;
+	fmt_x68_16.channels = 2;
+	fmt_x68_16.format = SDL_AUDIO_S16LE;
+	stream16 = SDL_CreateAudioStream(&fmt_x68_16, &fmt_pc);
+	if (stream16 == NULL) {
 	    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_CreateAudioStream() failed: %s\n", SDL_GetError());
-	    SDL_CloseAudioDevice(audio_dev);
+	    SDL_CloseAudioDevice(audio_dev32);
 	    return FALSE;
 	}
-	SDL_BindAudioStream(audio_dev,stream);
 
-	SDL_SetAudioStreamGetCallback(stream, sdlaudio_callback, NULL);
+	//FM 出力(32bitPCM)
+	memset(&fmt_x68_32, 0, sizeof(fmt_x68_32));
+
+	fmt_x68_32.freq = rate;
+	fmt_x68_32.channels = 2;
+	fmt_x68_32.format = SDL_AUDIO_S32LE;
+	stream32 = SDL_CreateAudioStream(&fmt_x68_32, &fmt_pc);
+	if (stream32 == NULL) {
+	    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_CreateAudioStream() failed: %s\n", SDL_GetError());
+	    SDL_CloseAudioDevice(audio_dev32);
+	    return FALSE;
+	}
+
+	//Streaming
+	SDL_BindAudioStream(audio_dev32,stream32);
+	SDL_SetAudioStreamGetCallback(stream32, sdlaudio_callback32, NULL);
+
+	SDL_BindAudioStream(audio_dev32,stream16);
+	SDL_SetAudioStreamGetCallback(stream16, sdlaudio_callback16, NULL);
 
 	audio_fd = 1; //flag
 	playing = TRUE;
@@ -125,28 +145,42 @@ DSound_Cleanup(void)
 	playing = FALSE;
 
 	if (audio_fd >= 0) {
-		SDL_CloseAudioDevice(audio_dev);//SDL2/3
-		SDL_DestroyAudioStream(stream);//SDL3
+		SDL_CloseAudioDevice(audio_dev32);
+		SDL_DestroyAudioStream(stream16);
+		SDL_DestroyAudioStream(stream32);
 		audio_fd = -1;
 	}
 	return TRUE;
 }
 
 static void
-sdlaudio_callback(void *userdata, SDL_AudioStream *stream, int len , int total)
+sdlaudio_callback16(void *userdata, SDL_AudioStream *stream16, int len , int total)
 {
 	int16_t pcmbuffer[len + 2];
 
 	//波形生成
-	ADPCM_Update((int16_t *)pcmbuffer, len /4, pcmbuffer, &pcmbuffer[len]);
-	OPM_Update  ((int16_t *)pcmbuffer, len /4, pcmbuffer, &pcmbuffer[len]);
+	ADPCM_Update((int16_t *)pcmbuffer, len / 4, pcmbuffer, &pcmbuffer[len]);
 #ifndef	NO_MERCURY
 	Mcry_Update((int16_t *)pcmbuffer, len / 4);
 #endif
 
 	//Streaming!
-	SDL_PutAudioStreamData(stream, pcmbuffer, len );
-	SDL_FlushAudioStream(stream);
+	SDL_PutAudioStreamData(stream16, pcmbuffer, len );
+	SDL_FlushAudioStream(stream16);
+
+ return;
+}
+
+static void
+sdlaudio_callback32(void *userdata, SDL_AudioStream *stream32, int len , int total)
+{
+	int32_t pcmbuffer[len + 2];
+	//波形生成
+	OPM_Update  ((int32_t *)pcmbuffer, len / 4 );
+
+	//Streaming!
+	SDL_PutAudioStreamData(stream32, pcmbuffer, len );
+	SDL_FlushAudioStream(stream32);
 
  return;
 }

@@ -22,12 +22,10 @@ extern "C" {
 #include "../m68000/c68k/c68k.h"
 #include "../x68k/x68kmemory.h"
 #include "mfp.h"
-#include "opm.h"
 #include "bg.h"
 #include "adpcm.h"
 #include "mercury.h"
 #include "crtc.h"
-#include "mfp.h"
 #include "fdc.h"
 #include "fdd.h"
 #include "dmac.h"
@@ -49,6 +47,7 @@ extern "C" {
 #include "mouse.h"
 
 #include "dswin.h"
+#include "opm.h"
 #include "fmg_wrap.h"
 
 #ifdef USE_OGLES20
@@ -949,14 +948,14 @@ int main(int argc, char *argv[])
 				 }
 				 else if(ev.window.windowID == SDL_GetWindowID(sdl_window)){// SDL Window
 					if(menu_mode == menu_in){//menu mode
-					  int x, y;
-					  SDL_GetWindowPosition(sdl_window, &x, &y);
 					  if(menu_state==ms_file) menu_mouse_area_yd += 90;//file選択モードは範囲拡大
 					  if((ev.button.x > menu_mouse_area_xr)&&(ev.button.x < menu_mouse_area_xl)&&
 					     (ev.button.y > menu_mouse_area_yu)&&(ev.button.y < menu_mouse_area_yd)){
 					   menu_key_down = 0x1b; // click Right button = esc
 					  }
 					  else{
+					   int x, y;
+					   SDL_GetWindowPosition(sdl_window, &x, &y);
 					   SDL_SetWindowPosition(sft_kbd_window, ev.button.x + x, ev.button.y + y);
 					   Soft_kbd_Show(1);// SoftKey Window ON	
 					  }

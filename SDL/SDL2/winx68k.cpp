@@ -25,12 +25,10 @@ extern "C" {
 #include "../m68000/c68k/c68k.h"
 #include "../x68k/x68kmemory.h"
 #include "mfp.h"
-#include "opm.h"
 #include "bg.h"
 #include "adpcm.h"
 #include "mercury.h"
 #include "crtc.h"
-#include "mfp.h"
 #include "fdc.h"
 #include "fdd.h"
 #include "dmac.h"
@@ -52,6 +50,7 @@ extern "C" {
 #include "mouse.h"
 
 #include "dswin.h"
+#include "opm.h"
 #include "fmg_wrap.h"
 
 #ifdef USE_OGLES20
