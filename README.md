@@ -5,10 +5,10 @@
 * Original fork from hissorii(https://github.com/hissorii/px68k)
 
 ## License
-* 大元のオリジナルソースの著作は、けんじょさん(http://retropc.net/kenjo/)のWinX68k(けろぴー)です。
+* 大元のオリジナルソースの著作は、けんじょさんのWinX68k(けろぴー)です。(http://retropc.net/kenjo)
 * MC68000エミュレータはStephane Dallongeville氏がyabauseの一部としてGPLv2で公開されているものです。
 * FM音源合成のfmgenは、cisc氏(cisc@retropc.net)の著作物です。(詳しくはfmgen/readme.txt参照)
-* YMFM(https://github.com/aaronsgiles/ymfm)はBSD-licensedで公開されています。(詳しくはymfm/README.md参照)
+* YMFMはBSD-licensedで公開されています。(詳しくはymfm/README.md参照)(https://github.com/aaronsgiles/ymfm)
 
 ## About
 * 単独アプリ形式のエミュレータの改良を目指します。
