@@ -41,8 +41,7 @@ int32_t    audio_fd = -1;
 
 //for SDL3
 SDL_AudioSpec fmt_pc; //PC出力
-SDL_AudioDeviceID audio_dev16;
-SDL_AudioDeviceID audio_dev32;
+SDL_AudioDeviceID audio_devPC;
 SDL_AudioSpec fmt_x68_16; //X68 16bitAudio出力
 SDL_AudioSpec fmt_x68_32; //X68 32bitAudio出力
 SDL_AudioStream *stream16;
@@ -70,8 +69,8 @@ DSound_Init(uint32_t rate)
 	fmt_pc.freq = rate;
 	fmt_pc.channels = 2;
 	fmt_pc.format = SDL_AUDIO_S32LE;
-	audio_dev32 = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &fmt_pc);
-	if (audio_dev32 == 0) {
+	audio_devPC = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &fmt_pc);
+	if (audio_devPC == 0) {
 	    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_OpenAudioDevice() failed: %s\n", SDL_GetError());
 	    return FALSE;
 	}
@@ -85,7 +84,7 @@ DSound_Init(uint32_t rate)
 	stream16 = SDL_CreateAudioStream(&fmt_x68_16, &fmt_pc);
 	if (stream16 == NULL) {
 	    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_CreateAudioStream() failed: %s\n", SDL_GetError());
-	    SDL_CloseAudioDevice(audio_dev32);
+	    SDL_CloseAudioDevice(audio_devPC);
 	    return FALSE;
 	}
 
@@ -98,15 +97,15 @@ DSound_Init(uint32_t rate)
 	stream32 = SDL_CreateAudioStream(&fmt_x68_32, &fmt_pc);
 	if (stream32 == NULL) {
 	    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_CreateAudioStream() failed: %s\n", SDL_GetError());
-	    SDL_CloseAudioDevice(audio_dev32);
+	    SDL_CloseAudioDevice(audio_devPC);
 	    return FALSE;
 	}
 
 	//Streaming
-	SDL_BindAudioStream(audio_dev32,stream32);
+	SDL_BindAudioStream(audio_devPC,stream32);
 	SDL_SetAudioStreamGetCallback(stream32, sdlaudio_callback32, NULL);
 
-	SDL_BindAudioStream(audio_dev32,stream16);
+	SDL_BindAudioStream(audio_devPC,stream16);
 	SDL_SetAudioStreamGetCallback(stream16, sdlaudio_callback16, NULL);
 
 	audio_fd = 1; //flag
@@ -124,6 +123,8 @@ DSound_Play(void)
 #ifndef	NO_MERCURY
 		Mcry_SetVolume((uint8_t)Config.MCR_VOL);
 #endif
+
+		SDL_ResumeAudioDevice(audio_devPC);
 	}
 }
 
@@ -131,11 +132,7 @@ void
 DSound_Stop(void)
 {
 	if (audio_fd >= 0){
-		ADPCM_SetVolume(0);
-		OPM_SetVolume(0);
-#ifndef	NO_MERCURY
-		Mcry_SetVolume(0);
-#endif
+		SDL_PauseAudioDevice(audio_devPC);
 	}
 }
 
@@ -145,7 +142,7 @@ DSound_Cleanup(void)
 	playing = FALSE;
 
 	if (audio_fd >= 0) {
-		SDL_CloseAudioDevice(audio_dev32);
+		SDL_CloseAudioDevice(audio_devPC);
 		SDL_DestroyAudioStream(stream16);
 		SDL_DestroyAudioStream(stream32);
 		audio_fd = -1;

@@ -22,10 +22,15 @@ project(px68k VERSION ${PROJECT_VERSION})
 string(TIMESTAMP TIMESTAMP "%Y%m%d")
 
 # == option ==
-option(SDL3 "Use SDL3" OFF)
+option(SDL3 "Use SDL3"        OFF)
 option(NO_MIDI "No MIDI Play" OFF)
 option(FLUID "Use fluidsynth" OFF)
+option(YMFM "Use YMFM"        OFF)
 option(NO_MERCURY "No Mercury" ON)
+
+# ==Set compile version ==
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_C_STANDARD 11)
 
 # ==Set compile options ==
 add_compile_options(
@@ -45,6 +50,13 @@ add_definitions(
 if(NO_MERCURY)
 add_definitions(
 	-DNO_MERCURY
+	)
+endif()
+
+if(YMFM)
+  message(" - define YMFM")
+add_definitions(
+	-DYMFM
 	)
 endif()
 
@@ -126,18 +138,13 @@ set(x68k_sources
   x68k/adpcm.c
   x68k/mercury.c
   x68k/midi.c
-#  x68k/midi_non.c
-#  x68k/midi_win.c
-#  x68k/midi_darwin.c
-#  x68k/midi_fluid.c
-#  x68k/midi_alsa.c
   win32api/dosio.c
   win32api/fake.c
   win32api/peace.c
 )
 
+# FMGEN  OPM:YM2151 OPN3-L:YMF288
 set(fmgen_sources
-  fmgen/fmg_wrap.cpp
   fmgen/fmgen.cpp
   fmgen/file.cpp
   fmgen/fmtimer.cpp
@@ -145,6 +152,22 @@ set(fmgen_sources
   fmgen/opna.cpp
   fmgen/psg.cpp
 )
+
+# YMFM  OPM:YM2151 OPN:YM2203 OPNA:YM2608 PSG:YM2149 OPL:YM3526
+if(SDL3)
+  list(APPEND fmgen_sources
+  SDL/SDL3/ymfm_wrap.cpp
+  ymfm/src/ymfm_opm.cpp
+  ymfm/src/ymfm_adpcm.cpp
+  ymfm/src/ymfm_pcm.cpp
+  ymfm/src/ymfm_ssg.cpp
+  ymfm/src/ymfm_opl.cpp
+  ymfm/src/ymfm_opn.cpp
+  ymfm/src/ymfm_misc.cpp
+)
+else()
+  list(APPEND fmgen_sources  fmgen/fmg_wrap.cpp )
+endif()
 
 set(SDL_sources
 #  SDL/mkcgrom.c
@@ -239,6 +262,7 @@ include_directories(
     x68k
     win32api
     fmgen
+	ymfm/src
     SDL
     ${SDL_INCLUDE_DIR}
     SDL/tool

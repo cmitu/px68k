@@ -19,7 +19,11 @@ endif
 endif
 
 # for SDL2/3
-ifndef SDL3
+ifdef SDL3
+ifdef YMFM
+CDEBUGFLAGS = -DYMFM
+endif
+else
 CDEBUGFLAGS = -DSDL2
 endif
 
@@ -183,7 +187,7 @@ endif
 endif
 endif
 
-EXTRA_INCLUDES= -I./SDL -I./x68k -I./fmgen -I./win32api $(SDL_INCLUDE) $(FLUID_INCLUDE) $(SDL_TTF_INC)
+EXTRA_INCLUDES= -I./SDL -I./x68k -I./fmgen -I./ymfm/src -I./win32api $(SDL_INCLUDE) $(FLUID_INCLUDE) $(SDL_TTF_INC)
 
 CXXDEBUGFLAGS= $(CDEBUGFLAGS)
 
@@ -197,7 +201,14 @@ C68KOBJS= m68000/c68k/c68k.o m68000/c68k/c68kexec.o
 
 X68KOBJS= x68k/adpcm.o x68k/bg.o x68k/crtc.o x68k/dmac.o x68k/fdc.o x68k/fdd.o x68k/disk_d88.o x68k/disk_dim.o x68k/disk_xdf.o x68k/gvram.o x68k/ioc.o x68k/irqh.o x68k/mem_wrap.o x68k/mercury.o x68k/mfp.o x68k/palette.o x68k/midi.o x68k/pia.o x68k/rtc.o x68k/sasi.o x68k/scc.o x68k/scsi.o x68k/sram.o x68k/sysport.o x68k/tvram.o
 
-FMGENOBJS= fmgen/fmgen.o fmgen/fmg_wrap.o fmgen/file.o fmgen/fmtimer.o fmgen/opm.o fmgen/opna.o fmgen/psg.o
+ifdef SDL3
+FMGENOBJS =  SDL/SDL3/ymfm_wrap.o
+FMGENOBJS += fmgen/fmgen.o fmgen/opm.o fmgen/opna.o fmgen/file.o fmgen/fmtimer.o fmgen/psg.o
+FMGENOBJS += ymfm/src/ymfm_opm.o ymfm/src/ymfm_adpcm.o ymfm/src/ymfm_pcm.o ymfm/src/ymfm_ssg.o ymfm/src/ymfm_opl.o ymfm/src/ymfm_opn.o ymfm/src/ymfm_misc.o
+else
+FMGENOBJS =  fmgen/fmg_wrap.o
+FMGENOBJS += fmgen/fmgen.o fmgen/file.o fmgen/fmtimer.o fmgen/opm.o fmgen/opna.o fmgen/psg.o
+endif
 
 SDLOBJS= SDL/juliet.o SDL/mouse.o SDL/status.o SDL/timer.o SDL/common.o SDL/prop.o SDL/winui.o SDL/keyboard.o
 
@@ -233,7 +244,7 @@ MKCGROMOBJS	  = $(addprefix $(OBJDIR)/, $(WIN32APIOBJS))
 MKCGROMOBJS	 += $(addprefix $(OBJDIR)/, $(CGROMOBJS))
 
 OBJDIRS		= $(OBJDIR) $(OBJDIR)/m68000 $(OBJDIR)/m68000/c68k \
-		  	$(OBJDIR)/fmgen $(OBJDIR)/win32api \
+		  	$(OBJDIR)/fmgen $(OBJDIR)/win32api $(OBJDIR)/ymfm $(OBJDIR)/ymfm/src \
 		  	$(OBJDIR)/SDL $(OBJDIR)/SDL/tool $(OBJDIR)/SDL/SDL2 $(OBJDIR)/SDL/SDL3 \
 			$(OBJDIR)/x68k
 
@@ -252,6 +263,9 @@ $(OBJDIR)/m68000/%.o: m68000/%.c
 		$(CC) $(CFLAGS) -o $@ -c $<
 
 $(OBJDIR)/fmgen/%.o: fmgen/%.cpp
+		$(CXX) $(CXXFLAGS) -o $@ -c $<
+
+$(OBJDIR)/ymfm/src/%.o: ymfm/src/%.cpp
 		$(CXX) $(CXXFLAGS) -o $@ -c $<
 
 $(OBJDIR)/win32api/%.o: win32api/%.c

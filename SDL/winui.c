@@ -39,7 +39,6 @@
 #include "common.h"
 #include "keyboard.h"
 #include "windraw.h"
-#include "dswin.h"
 #include "prop.h"
 #include "status.h"
 #include "mouse.h"
@@ -71,8 +70,6 @@
 
 #include <dirent.h>
 #include <sys/stat.h>
-
-#include "fmg_wrap.h"
 
 extern	uint8_t		fdctrace;
 extern	uint8_t		traceflag;
@@ -712,22 +709,16 @@ int32_t WinUI_Menu(int32_t first)
 	  if(joy & JOY_RIGHT){
 		if((Config.OPM_VOL>0)&&(Config.PCM_VOL>0)/*&&(Config.MCR_VOL>0)*/){
 		Config.OPM_VOL --;
-		OPM_SetVolume((uint8_t)Config.OPM_VOL);
 		Config.PCM_VOL --;
-		ADPCM_SetVolume((uint8_t)Config.PCM_VOL);
 		Config.MCR_VOL --;
-		Mcry_SetVolume((uint8_t)Config.MCR_VOL);
 		menu_redraw = 1;
 		}
 	  }
 	  if(joy & JOY_LEFT) {
 		if((Config.OPM_VOL<16)&&(Config.PCM_VOL<16)/*&&(Config.MCR_VOL<16)*/){
 		Config.OPM_VOL ++;
-		OPM_SetVolume((uint8_t)Config.OPM_VOL);
 		Config.PCM_VOL ++;
-		ADPCM_SetVolume((uint8_t)Config.PCM_VOL);
 		Config.MCR_VOL ++;
-		Mcry_SetVolume((uint8_t)Config.MCR_VOL);
 		menu_redraw = 1;
 		}
 	  }

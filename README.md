@@ -4,6 +4,12 @@
 * fork from kenyahiro(https://github.com/kenyahiro/px68k)
 * Original fork from hissorii(https://github.com/hissorii/px68k)
 
+## License
+* 大元のオリジナルソースの著作は、けんじょさん(http://retropc.net/kenjo/)のWinX68k(けろぴー)です。
+* MC68000エミュレータはStephane Dallongeville氏がyabauseの一部としてGPLv2で公開されているものです。
+* FM音源合成のfmgenは、cisc氏(cisc@retropc.net)の著作物です。(詳しくはfmgen/readme.txt参照)
+* YMFM(https://github.com/aaronsgiles/ymfm)はBSD-licensedで公開されています。(詳しくはymfm/README.md参照)
+
 ## About
 * 単独アプリ形式のエミュレータの改良を目指します。
 * (DWORD)-1 で頻繁に異常終了する問題に対処
@@ -20,6 +26,7 @@
 * Add support CyberStick! (DIGITAL/ANALOG mode)
 * `FileNameのutf8/sjis` 自動判別日本語表示(専用table変換)
 * 日本語TrueTypeから cgrom.tmp 生成可能
+* YM2151(FM音源)のエミュレートにfmgen/YMFMが使用可能
 * macOS/Linux/MinGW64(win) で動作確認
 
 ## for macOS
@@ -44,8 +51,12 @@
  
 [option]
  $ make SDL3=ON  (SDL3 test drive!)
- $ make NO_MIDI=ON (No MIDI Support)
+or
+ $ make SDL3=ON YMFM=ON (use YMFM for YM2151)
+ 
  $ make FLUID=ON (use fluidsynth for MIDI)
+ $ make NO_MIDI=ON (No MIDI Support)
+
 
  $ make clean (お掃除)
  $ make cgrom (app for Generate cgrom.tmp)
@@ -60,6 +71,9 @@
  $ cmake --build .
 or
  $ cmake -DSDL3=ON .. (SDL3 test drive!)
+ $ cmake --build .
+or
+ $ cmake -DSDL3=ON -DYMFM=ON .. (use YMFM for YM2151)
  $ cmake --build .
 ```
 

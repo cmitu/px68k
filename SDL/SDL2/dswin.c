@@ -111,6 +111,12 @@ void
 DSound_Play(void)
 {
 	if (audio_fd >= 0){
+		ADPCM_SetVolume((uint8_t)Config.PCM_VOL);
+		OPM_SetVolume((uint8_t)Config.OPM_VOL);
+#ifndef	NO_MERCURY
+		Mcry_SetVolume((uint8_t)Config.MCR_VOL);
+#endif
+
 		SDL_PauseAudioDevice(audio_dev,0);
 	}
 }
