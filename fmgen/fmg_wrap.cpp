@@ -9,7 +9,6 @@ extern "C" {
 
 #include "common.h"
 #include "winx68k.h"
-#include "dswin.h"
 #include "prop.h"
 #include "juliet.h"
 #include "mfp.h"

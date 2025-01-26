@@ -255,7 +255,7 @@ return;
 }
 
 
-//static int dispflag = 0;
+/*=起動時の初期化用=*/
 void WinDraw_StartupScreen(void)
 {
 	/*clear screen:一度全画面描画更新しておく*/
@@ -263,6 +263,7 @@ void WinDraw_StartupScreen(void)
 	return;
 }
 
+/*=終了時=*/
 void WinDraw_CleanupScreen(void)
 {
 	SDL_DestroySurface(sdl_x68screen);
@@ -1115,7 +1116,8 @@ void WinDraw_DrawLine(void)
 	}
 	}
 
-	//  VCR1[0]: [xx][SP][TX][GR] 優先順描画前処理
+	//  VCR1[0]:優先順描画  [ xx ][ SP ][ TX ][ GR ]
+	//  VCR1[1]:Grp優先順位 [GP3 ][GP2 ][GP1 ][GP0 ]
 	//  VCR2[1]:画面ON/OFF [ 0][SON][TON][GS4][GS3][GS2][GS1][GS0]
 	if ( ((VCReg1[0]&0x30)>>2) < (VCReg1[0]&0x0c) )//SP < TX ?
 	{						// SP<TX  SPの方が上
@@ -1351,7 +1353,7 @@ void WinDraw_DrawLine(void)
 			 tdrawed = 1;
 			 WinDraw_DrawGrpLineNonSP(opaq);
 			}
-			if( (tron) && ((VCReg2[0]&0x5e)==0x1e) ){//TX0 SP>GR G/G
+			else if( (tron) && ((VCReg2[0]&0x5e)==0x1e) ){//TX0 SP>GR G/G
 			 if ( (VCReg1[1]&3) <= ((VCReg1[1]>>4)&3) ) {//GP0<=GP2 優先画面はどっち？
 			   Grp_DrawLine8TR(1,1);}//GR画面1 再Load
 			 else

@@ -46,9 +46,9 @@ extern "C" {
 #include "tvram.h"
 #include "mouse.h"
 
+//#include "opm.h"
 #include "dswin.h"
-#include "opm.h"
-#include "fmg_wrap.h"
+#include "ymfm_wrap.h"
 
 #ifdef USE_OGLES20
 SDL_DisplayMode sdl_dispmode;
@@ -903,6 +903,8 @@ int main(int argc, char *argv[])
 
 		while (SDL_PollEvent(&ev)) {
 			switch (ev.type) {
+			case SDL_EVENT_DISPLAY_FIRST...SDL_EVENT_DISPLAY_LAST:
+				break;
 			case SDL_EVENT_QUIT:
 				goto end_loop;
 			case SDL_EVENT_WINDOW_RESIZED:
