@@ -9,8 +9,9 @@ extern "C" {
 
 #include "common.h"
 #include "winx68k.h"
+//#include "dswin.h"
 #include "prop.h"
-#include "juliet.h"
+//#include "juliet.h"
 #include "mfp.h"
 #include "adpcm.h"
 #include "mercury.h"
@@ -62,26 +63,6 @@ void MyOPM::WriteIO(uint32_t adr, uint8_t data)
 			::FDC_SetForceReady((data>>6)&1);
 		}
 		SetReg((int)CurReg, (int)data);
-		if ( (juliet_YM2151IsEnable())&&(Config.SoundROMEO) ) {
-			int32_t newptr = (RMPtrW+1)%RMBUFSIZE;
-			if ( newptr!=RMPtrR ) {
-#if 0
-				RMData[RMPtrW].time = timeGetTime();
-				RMData[RMPtrW].reg  = CurReg;
-if ( CurReg==0x14 ) data &= 0xf3;	// Int Enableはマスクする
-				RMData[RMPtrW].data = data;
-				RMPtrW = newptr;
-			}
-#else
-				OPM_RomeoOut(Config.BufferSize*5);
-			}
-			RMData[RMPtrW].time = timeGetTime();
-			RMData[RMPtrW].reg  = CurReg;
-if ( CurReg==0x14 ) data &= 0xf3;	// Int Enableはマスクする
-			RMData[RMPtrW].data = data;
-			RMPtrW = newptr;
-#endif
-		}
 	} else {
 		CurReg = (int)data;
 	}
@@ -105,8 +86,8 @@ static MyOPM* opm = NULL;
 
 int32_t OPM_Init(int32_t clock, int32_t rate)
 {
-	juliet_load();
-	juliet_prepare();
+	//juliet_load();
+	//juliet_prepare();
 
 	RMPtrW = RMPtrR = 0;
 	memset(RMData, 0, sizeof(RMData));
@@ -124,8 +105,8 @@ int32_t OPM_Init(int32_t clock, int32_t rate)
 
 void OPM_Cleanup(void)
 {
-	juliet_YM2151Reset();
-	juliet_unload();
+	//juliet_YM2151Reset();
+	//juliet_unload();
 	delete opm;
 	opm = NULL;
 }
@@ -143,7 +124,7 @@ void OPM_Reset(void)
 	memset(RMData, 0, sizeof(RMData));
 
 	if ( opm ) opm->Reset();
-	juliet_YM2151Reset();
+	//juliet_YM2151Reset();
 }
 
 
@@ -152,10 +133,7 @@ uint8_t FASTCALL OPM_Read(uint16_t adr)
 	uint8_t ret = 0;
 	(void)adr;
 	if ( opm ) ret = opm->ReadStatus();
-	if ( (juliet_YM2151IsEnable())&&(Config.SoundROMEO) ) {
-		int32_t newptr = (RMPtrW+1)%RMBUFSIZE;
-		ret = (ret&0x7f)|((newptr==RMPtrR)?0x80:0x00);
-	}
+
 	return ret;
 }
 
@@ -168,7 +146,7 @@ void FASTCALL OPM_Write(uint32_t adr, uint8_t data)
 
 void OPM_Update(int16_t *buffer, int32_t length, int16_t *pbsp, int16_t *pbep)
 {
-	if ( (!juliet_YM2151IsEnable())||(!Config.SoundROMEO) )
+	//if ( (!juliet_YM2151IsEnable())||(!Config.SoundROMEO) )
 		if ( opm ) opm->Mix((FM::Sample*)buffer, length, pbsp, pbep);
 }
 
@@ -187,20 +165,12 @@ void OPM_SetVolume(uint8_t vol)
 	if ( opm ) opm->SetVolume(-v);
 }
 
-
+/*
 void OPM_RomeoOut(uint32_t delay)
 {
 	uint32_t t = timeGetTime();
-	if ( (juliet_YM2151IsEnable())&&(Config.SoundROMEO) ) {
-		while ( RMPtrW!=RMPtrR ) {
-			if ( (t-RMData[RMPtrR].time)>=delay ) {
-				juliet_YM2151W(RMData[RMPtrR].reg, RMData[RMPtrR].data);
-				RMPtrR = (RMPtrR+1)%RMBUFSIZE;
-			} else
-				break;
-		}
-	}
 }
+*/
 
 // ----------------------------------------------------------
 // ---------------------------- YMF288 (満開版ま〜きゅり〜)

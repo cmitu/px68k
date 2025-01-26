@@ -46,8 +46,7 @@ extern "C" {
 #include "tvram.h"
 #include "mouse.h"
 
-//#include "opm.h"
-#include "dswin.h"
+#include "SoundCtrl.h"
 #include "ymfm_wrap.h"
 
 #ifdef USE_OGLES20
@@ -371,9 +370,9 @@ WinX68k_Reset(void)
 	ICount = 0;
 	ScreenClearFlg = 1;  /* clear screen く*/
 
-	DSound_Stop();
+	DSound_Pause();
 	SRAM_VirusCheck();
-	DSound_Play();
+	DSound_Resume();
 
 	return TRUE;
 }
@@ -854,7 +853,7 @@ int main(int argc, char *argv[])
 #ifndef	NO_MERCURY
 	Mcry_SetVolume((uint8_t)Config.MCR_VOL);
 #endif
-	DSound_Play();
+	DSound_Resume();
 
 	// command lineから実行 引数あり
 	if(argc > 1){
@@ -1013,10 +1012,10 @@ int main(int argc, char *argv[])
 				break;
 #if defined(ANDROID) || TARGET_OS_IPHONE
 			case SDL_APP_WILLENTERBACKGROUND:
-				DSound_Stop();
+				DSound_Pause();
 				break;
 			case SDL_APP_WILLENTERFOREGROUND:
-				DSound_Play();
+				DSound_Resume();
 				break;
 			case SDL_FINGERDOWN:
 				//p6logd("FINGERDOWN: tid: %lld,,, x:%f y:%f", ev.tfinger.touchId, ev.tfinger.x, ev.tfinger.y);
@@ -1063,9 +1062,9 @@ int main(int argc, char *argv[])
 				case SDLK_MENU:
 					if (menu_mode == menu_out) {
 						menu_mode = menu_enter;
-						DSound_Stop();
+						DSound_Pause();
 					} else {
-						DSound_Play();
+						DSound_Resume();
 						menu_mode = menu_out;
 					}
 					break;
@@ -1080,9 +1079,9 @@ int main(int argc, char *argv[])
 				if (ev.key.key == SDLK_F12) {
 					if (menu_mode == menu_out) {
 						menu_mode = menu_enter;
-						DSound_Stop();
+						DSound_Pause();
 					} else {
-						DSound_Play();
+						DSound_Resume();
 						menu_mode = menu_out;
 						ScreenClearFlg = 1;
 						break;
@@ -1117,7 +1116,7 @@ int main(int argc, char *argv[])
 				if((menu_mode == menu_out) && (get_joy_downstate() == (JOY_HOME ^ 0xff)) ){// HOME(Menu in)
 				  menu_mode = menu_enter;
 				  reset_joy_downstate();
-				  DSound_Stop();
+				  DSound_Pause();
 				}
 				break;
 			case SDL_EVENT_GAMEPAD_BUTTON_UP:
@@ -1152,7 +1151,7 @@ int main(int argc, char *argv[])
 				menu_cnt = -2;
 			}
 			if (state == VBTN_ON && menu_cnt == -2) {
-				DSound_Play();
+				DSound_Resume();
 				menu_mode = menu_out;
 			}
 		} else if (menu_mode == menu_out) {
@@ -1168,7 +1167,7 @@ int main(int argc, char *argv[])
 			if (menu_cnt == 0) {
 				p6logd("menu mode on");
 				menu_mode = menu_enter;
-				DSound_Stop();
+				DSound_Pause();
 			}
 		}
 
@@ -1185,7 +1184,7 @@ int main(int argc, char *argv[])
 			ret = WinUI_Menu(menu_mode == menu_enter);
 			menu_mode = menu_in;
 			if (ret == WUM_MENU_END) {
-				DSound_Play();
+				DSound_Resume();
 				menu_mode = menu_out;
 			} else if (ret == WUM_EMU_QUIT) {
 				goto end_loop;
@@ -1217,7 +1216,7 @@ int main(int argc, char *argv[])
 	}
 end_loop:
 
-	DSound_Stop();
+	DSound_Pause();
 
 	WinX68k_Reset();
 	for(uint_fast32_t i=0; i<130; i++){WinX68k_Exec();}// Reset and run(few step)

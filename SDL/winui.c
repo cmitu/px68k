@@ -44,7 +44,6 @@
 #include "mouse.h"
 #include "winx68k.h"
 #include "version.h"
-#include "juliet.h"
 #include "fdd.h"
 #include "irqh.h"
 #include "../m68000/m68000.h"

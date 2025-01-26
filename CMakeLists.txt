@@ -143,20 +143,17 @@ set(x68k_sources
   win32api/peace.c
 )
 
-# FMGEN  OPM:YM2151 OPN3-L:YMF288
-set(fmgen_sources
-  fmgen/fmgen.cpp
-  fmgen/file.cpp
-  fmgen/fmtimer.cpp
-  fmgen/opm.cpp
-  fmgen/opna.cpp
-  fmgen/psg.cpp
-)
-
-# YMFM  OPM:YM2151 OPN:YM2203 OPNA:YM2608 PSG:YM2149 OPL:YM3526
+if(YMFM)
 if(SDL3)
-  list(APPEND fmgen_sources
+set(fmgen_sources
   SDL/SDL3/ymfm_wrap.cpp
+)
+else()
+set(fmgen_sources
+  SDL/SDL2/ymfm_wrap.cpp
+)
+endif()
+list(APPEND fmgen_sources
   ymfm/src/ymfm_opm.cpp
   ymfm/src/ymfm_adpcm.cpp
   ymfm/src/ymfm_pcm.cpp
@@ -166,7 +163,16 @@ if(SDL3)
   ymfm/src/ymfm_misc.cpp
 )
 else()
-  list(APPEND fmgen_sources  fmgen/fmg_wrap.cpp )
+# FMGEN  OPM:YM2151 OPN3-L:YMF288
+set(fmgen_sources
+  fmgen/fmg_wrap.cpp
+  fmgen/fmgen.cpp
+  fmgen/file.cpp
+  fmgen/fmtimer.cpp
+  fmgen/opm.cpp
+  fmgen/opna.cpp
+  fmgen/psg.cpp
+)
 endif()
 
 set(SDL_sources
@@ -177,16 +183,16 @@ set(SDL_sources
   SDL/prop.c
   SDL/status.c
   SDL/mouse.c
-  SDL/juliet.c
   SDL/common.c
 )
+
 
 if(SDL3)
   list(APPEND SDL_sources
   SDL/SDL3/winx68k.cpp
   SDL/SDL3/windraw.c
   SDL/SDL3/GamePad.c
-  SDL/SDL3/dswin.c
+  SDL/SDL3/SoundCtrl.c
   SDL/SDL3/menudraw.c
   )
   list(APPEND SDL_INCLUDE_DIR

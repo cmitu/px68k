@@ -1,6 +1,5 @@
 //  2025/1/4  YMFM support by KAMEYA
-//  - YM2151をYMFM生成に変更 16bitPCMから32bitPCMで波形生成
-//  - SDL3のStreamingでADPCMとFM音源を別々に生成
+//  - YM2151をYMFM生成に変更 16bitPCM出力
 //  - MF288の実装は暫定
 
 //C++をCから参照する場合の共通宣言
@@ -11,7 +10,7 @@ extern "C" {
 #include "fdc.h"
 #include "adpcm.h"
 #include "mercury.h"
-#include "SoundCtrl.h"
+#include "dswin.h"
 #include "ymfm_wrap.h"
 
 };
@@ -235,8 +234,9 @@ void write_chip(chip_type type, uint8_t index, uint32_t reg, uint8_t data)
 }
 
 
+
+
 // YM2151 for X68000
-// wave gen by YMFM
 uint8_t  OPMReg;
 uint32_t CurCount;
 
@@ -378,7 +378,7 @@ void WriteIO(uint32_t reg, uint8_t data)
 		TimerWait=(20.75 * 10);//20.75μs
 	} else {
 		OPMReg = data;
-		TimerWait=(4.24 * 10);//4.24μs
+		TimerWait=(4.25 * 10);//4.24μs
 	}
 
   return;
@@ -454,24 +454,26 @@ void FASTCALL OPM_Write(uint32_t adr, uint8_t data)
 }
 
 // === YM2151 Genarate Sound ===
-void OPM_Update(int32_t *buffer, int32_t length )
+void OPM_Update(int16_t *buffer, int32_t length, int16_t *pbsp, int16_t *pbep )
 {
 
 	// YMFM callback (Streaming)
-	for(int32_t i=0; i<length; i+=2)
+	int32_t j=0;
+	for(int32_t i=0; i<length; i++)
 	{
 		int32_t outputs[2] = { 0 };
 		for (auto &chip : active_chips)
 			chip->generate(output_pos, YM2151_output_step, outputs);
 		output_pos += YM2151_output_step;
-		buffer[ i ] = outputs[0] * ymfm_ym2151_vol ;
-		buffer[i+1] = outputs[1] * ymfm_ym2151_vol ;
+		buffer[ j ] = int16_t(outputs[0] * ymfm_ym2151_vol / 40000) ;
+		buffer[j+1] = int16_t(outputs[1] * ymfm_ym2151_vol / 40000) ;
+		j+=2;
 	}
 
   return;
 }
 
-// === OPM YM2151 Timer ===
+// === YM2151 Timer ===
 void FASTCALL OPM_Timer(uint32_t step)
 {
 
@@ -483,7 +485,7 @@ void FASTCALL OPM_Timer(uint32_t step)
 
 }
 
-// === OPM YM2151 Volume ===
+// === YM2151 volume set ===
 void OPM_SetVolume(uint8_t vol)
 {
 	if ( vol>16 ) vol=16;// vol:0~16
@@ -492,9 +494,10 @@ void OPM_SetVolume(uint8_t vol)
 
 }
 
-// +++++++++++++++++++++++++++++++++
-// ++  YMF288 x2 (満開製 MK-MU1O)
-// +++++++++++++++++++++++++++++++++
+
+// ----------------------------------------
+// ---- YMF288 2個 (満開版ま〜きゅり〜)
+// ----------------------------------------
 
 	int32_t YM288CurReg[2];
 	uint32_t YM288CurCount;
@@ -503,7 +506,8 @@ void OPM_SetVolume(uint8_t vol)
 
 uint8_t YMF288_ReadIO(uint32_t adr)
 {
-	uint8_t ret = 0;
+	uint8_t ret = 0x00;
+
 	if ( adr&1 ) {
 		//ret = GetReg(((adr&2)?(CurReg[1]+0x100):CurReg[0]));
 	} else {
@@ -526,6 +530,7 @@ void YMF288_Count2(uint32_t clock)
 	//YM288CurCount %= 10;
 }
 
+
 int32_t M288_Init(int32_t clock, int32_t rate, const char* path)
 {
 
@@ -538,33 +543,25 @@ int32_t M288_Init(int32_t clock, int32_t rate, const char* path)
 
 void M288_Cleanup(void)
 {
-// none
+//none
 }
 
 
 void M288_SetRate(int32_t clock, int32_t rate)
 {
-// none
+//none
 }
 
 
 void M288_Reset(void)
 {
-// none
+//none
 }
 
 
 uint8_t FASTCALL M288_Read(uint8_t adr)
 {
 uint8_t ret = 0x00;
-
-/*
-	if ( adr<=3 ) {
-		if ( ymf288a )	ret = ymf288a->ReadIO(adr);
-	} else {
-		if ( ymf288b )	ret = ymf288b->ReadIO(adr&3);
-	}
-*/
 
 return ret;
 }
@@ -588,23 +585,21 @@ void FASTCALL M288_Write(uint8_t adr, uint8_t data)
 		  adr_B288 = data;
 		}
 	}
-return;
-}
 
+}
 
 void M288_Update(int16_t *buffer, int32_t length)
 {
-// none(YM2151と共通)
+//none
 }
-
 
 void FASTCALL M288_Timer(uint32_t step)
 {
-//	none(使ってる？)
+//none
 }
 
 
 void M288_SetVolume(uint8_t vol)
 {
-// none
+//none
 }
