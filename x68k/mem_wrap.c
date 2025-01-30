@@ -303,6 +303,10 @@ wm16_main(uint32_t addr, uint16_t val)
   case 0xe82400 ... 0xe826ff: /*VCtrl*/
 	VCtrl_Write16(addr,val);
 	break;
+  case 0xe92000 ... 0xe93fff: /*ADPCM*/
+	ADPCM_Write(addr|1,(uint8_t)(val & 0xff));
+    break;
+  //case 0xe9e000 ... 0xe9e07f: /*68881*/
   case 0xed0000 ... 0xed3fff: /*SRAM*/
 	/* through write control */
   default:

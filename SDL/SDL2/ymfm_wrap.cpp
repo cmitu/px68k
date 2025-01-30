@@ -353,10 +353,6 @@ void WriteIO(uint32_t reg, uint8_t data)
 	uint32_t tmp;
 
 	if( reg & 1 ) {
-		if ( OPMReg==0x1b ) {
-			::ADPCM_SetClock((data>>5)&4);
-			::FDC_SetForceReady((data>>6)&1);
-		}
 		write_chip(CHIP_YM2151, 0, (uint32_t)OPMReg, (uint8_t)data);//YMFM
 		switch (OPMReg & 0xff)
 		{
@@ -371,6 +367,10 @@ void WriteIO(uint32_t reg, uint8_t data)
 		    break;
 		  case 0x14:		// CSM, TIMER
 		    SetTimerControl(data);
+		    break;
+		  case 0x1B:		// ADPCM clock & FDC Ready
+			::ADPCM_SetClock((data>>5)&4);
+			::FDC_SetForceReady((data>>6)&1);
 		    break;
 		  default:
 		    break;
@@ -569,23 +569,25 @@ return ret;
 uint8_t adr_A288,adr_B288;
 void FASTCALL M288_Write(uint8_t adr, uint8_t data)
 {
-	if ( adr<=3 ) {
-		if(adr&0x01){
-		  write_chip(CHIP_YMF288, 0, (uint8_t)adr_A288, (uint8_t)data);//ymfm
-		}
-		else{
-		  adr_A288 = data;
-		}
-		
-	} else {
-		if(adr&0x01){
-		  write_chip(CHIP_YMF288, 1, (uint8_t)adr_B288, (uint8_t)data);//ymfm
-		}
-		else{
-		  adr_B288 = data;
-		}
+	switch (adr & 0x03)
+	{
+	case 0x00: // #1 YM288 set Reg
+	 adr_A288 = data;
+	 break;
+	case 0x01: // #1 YM288 set Parm
+	 write_chip(CHIP_YMF288, 0, (uint8_t)adr_A288, (uint8_t)data);//ymfm
+	 break;
+	case 0x02: // #2 YM288 set Reg
+	 adr_B288 = data;
+	 break;
+	case 0x03: // #2 YM288 set Parm.
+	 write_chip(CHIP_YMF288, 1, (uint8_t)adr_B288, (uint8_t)data);//ymfm
+	 break;
+	default:
+	 break;
 	}
 
+  return;
 }
 
 void M288_Update(int16_t *buffer, int32_t length)
