@@ -28,7 +28,7 @@ by kameya 2022/11/02
 
 #ifndef SDL2
 #include <SDL3/SDL.h>
-#include <SDL_ttf.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #else
 #include <SDL2/SDL.h>
 #include <SDL_ttf.h>
@@ -119,7 +119,11 @@ getfont(uint8_t *addr, uint32_t size_x, uint32_t size_y,int32_t fullw) {
    for(ch1=0; ch1<16; ch1++){
 	if(fullw == 0){set_utf1(ch,ch1);}//half width
 	else{set_utf(x68_ank[ch*16+ch1]);}//full width
+#ifndef SDL2
+	surface = TTF_RenderText_Blended(font, utf, 0, (SDL_Color){255,255,255});
+#else
 	surface = TTF_RenderUTF8_Blended(font, utf, (SDL_Color){255,255,255,255});
+#endif
 	fntbuf=surface->pixels;
 	for(y=0; y<surface->h; y++){
 	for(x=0; x<surface->w; x++){
@@ -168,7 +172,11 @@ getfont_j(uint8_t *addr, uint32_t size_x, uint32_t size_y, uint32_t flg) {
   ch=0;
   while(*(addr1+(ch*4)+2) != 0){
 	set_utf(*(addr1+(ch*4)+2));
+#ifndef SDL2
+	surface = TTF_RenderText_Blended(font, utf, 0, (SDL_Color){255,255,255});
+#else
 	surface = TTF_RenderUTF8_Blended(font, utf, (SDL_Color){255,255,255,255});
+#endif
 	fntbuf=surface->pixels;
 	for(y=0; y<surface->h; y++){
 	for(x=0; x<surface->w; x++){
@@ -318,8 +326,8 @@ make_cgromdat(uint8_t *buf, char *FONT1, char *FONT2, uint32_t x68030)
 	// Clear buffer
 	memset(buf, 0, 0xc0000);
 
-	//SDL2_TTF initialize
-	if ( TTF_Init() < 0 ){ return FALSE; }
+	//SDL2/3_TTF initialize(No Err check!)
+	TTF_Init();
 
 	// 8x16
 	size_x = 8;

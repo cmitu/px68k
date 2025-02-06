@@ -48,6 +48,8 @@ filechk = $(shell ls /Library/Frameworks | grep ${filename})
 ifeq (${filechk}, ${filename})
 SDL_INCLUDE= -F/Library/Frameworks -D_THREAD_SAFE
 SDL_LIB= -F/Library/Frameworks -framework SDL3
+SDL_TTF_INC = -I/Library/Frameworks/SDL3_ttf.framework/Headers
+SDL_TTF_LIB = -F/Library/Frameworks -framework SDL3_ttf
 endif
 endif
 endif
@@ -61,8 +63,10 @@ SDL_TTF_INC = $(shell pkg-config SDL2_ttf --cflags)
 SDL_TTF_LIB = $(shell pkg-config SDL2_ttf --libs)
 PROGRAM = px68k.sdl2
 else
-SDL_INCLUDE= $(shell pkg-config sdl3 --cflags)
-SDL_LIB= $(shell pkg-config sdl3 --libs)
+SDL_INCLUDE = $(shell pkg-config sdl3 --cflags)
+SDL_LIB     = $(shell pkg-config sdl3 --libs)
+SDL_TTF_INC = $(shell pkg-config SDL3_ttf --cflags)
+SDL_TTF_LIB = $(shell pkg-config SDL3_ttf --libs)
 PROGRAM = px68k.sdl3
 endif
 endif
@@ -98,7 +102,7 @@ DEPEND_DEFINES =
 
 # for debug
 # CDEBUGFLAGS += -g -O0 -fno-strict-aliasing
-CDEBUGFLAGS += -O0  -fstrict-aliasing
+CDEBUGFLAGS += -O2  -fstrict-aliasing
 
 #
 # disable sound
@@ -333,4 +337,4 @@ c68k::
 
 cgrom:: $(OBJDIRS) $(MKCGROMOBJS)
 	$(RM) mkcgrom
-	$(CXXLINK) -o mkcgrom $(MKCGROMOBJS) $(SDL_LIB) $(SDL_TTF_LIB)
+	$(CXXLINK) $(CXXFLAGS) -o mkcgrom $(MKCGROMOBJS) $(SDL_LIB) $(SDL_TTF_LIB)
