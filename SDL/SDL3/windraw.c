@@ -254,8 +254,7 @@ void WinGetRootSize(void)
 return;
 }
 
-
-//static int dispflag = 0;
+//=== Clear Screen ===
 void WinDraw_StartupScreen(void)
 {
 	/*clear screen:一度全画面描画更新しておく*/
@@ -263,6 +262,7 @@ void WinDraw_StartupScreen(void)
 	return;
 }
 
+// === Power OFF===
 void WinDraw_CleanupScreen(void)
 {
 	SDL_DestroySurface(sdl_x68screen);

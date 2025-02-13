@@ -1370,7 +1370,7 @@ void WinDraw_DrawLine(void)
 			  tdrawed = 1;
 			  opaq = 0;
 			}
-			if( (VCReg2[0]&0x5e)==0x1e )//G/Gの重ね合わせ
+			else if( (VCReg2[0]&0x5e)==0x1e )//G/Gの重ね合わせ
 			{
 			  Grp_DrawLine8TR(1,1);//GR画面1 再Load （有効かどうかを見てないけどいい？）
 			  WinDraw_DrawGrpLine(opaq);//GR描画

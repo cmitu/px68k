@@ -35,7 +35,7 @@
 * pngからiconリソース生成機能搭載(% make icon)
 
 ## Need
-* SDL2 (or test drive SDL3)(https://www.libsdl.org/)
+* SDL3 (or still support SDL2)(https://www.libsdl.org/)
 * `iplrom.dat` `cgrom.dat` and SCSI-IPL `scsiexrom.dat` into .keropi folder
 * On SDL2,`gamecontrollerdb.txt` into .keropi folder  (https://github.com/gabomdq/SDL_GameControllerDB)
 * On SDL3,`gamepaddb.txt` into .keropi folder.(change platform `Mac OS X` to `macOS`)
@@ -50,7 +50,7 @@
  $ make mac  (macOS only)
  
 [option]
- $ make SDL3=ON  (SDL3 test drive!)
+ $ make SDL3=ON  (SDL3 with fmgen for YM2151)
 or
  $ make SDL3=ON YMFM=ON (use YMFM for YM2151)
  
@@ -67,10 +67,10 @@ or
  $ mkdir build
  $ cd build
 
- $ cmake ..
+ $ cmake ..  (build with SDL2)
  $ cmake --build .
 or
- $ cmake -DSDL3=ON .. (SDL3 test drive!)
+ $ cmake -DSDL3=ON .. (build with SDL3)
  $ cmake --build .
 or
  $ cmake -DSDL3=ON -DYMFM=ON .. (use YMFM for YM2151)
@@ -105,7 +105,8 @@ or
  * MIDI-INは暫定対応(WinMM,and CoreMIDI)
  * CyberStickのアナログモードは確認継続中(認識不完全アリ)
  * SDL1のサポートは削除しました。
- * SDL3はまだ準備／テスト段階です。(SDL2推奨)
+ * SDL3に正式対応。(SDL2も絶賛サポート中)
+ * YMFMによるFM音源サポートはSDL3環境を推奨
  * BigEndianのCPUでは動きません。(例:Wii/U,Mac/G4)
 
 ## How to make `cgrom.tmp`

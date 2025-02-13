@@ -64,6 +64,7 @@ endif()
 if(SDL3)
   message(" - define SDL3")
  find_package(SDL3 REQUIRED)
+ find_package(SDL3_ttf REQUIRED)
 else()
   message(" - define SDL2")
  add_definitions( -DSDL2 )
@@ -333,7 +334,7 @@ set(CPACK On)
                         ${SDL2_LIBRARIES}
                         ${SDL2_TTF_LIBRARIES}
                         ${SDL3_LIBRARIES}
-                        ${SDL3_TTF_LIBRARY}
+                        ${SDL3_TTF_LIBRARIES}
   )
 
 # == Excute Packaging ==

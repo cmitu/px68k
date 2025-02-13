@@ -1,7 +1,7 @@
 //  2025/1/4  YMFM support by KAMEYA
 //  - YM2151をYMFM生成に変更 16bitPCMから32bitPCMで波形生成
 //  - SDL3のStreamingでADPCMとFM音源を別々に生成
-//  - MF288の実装は暫定
+//  - YMF288の実装は暫定
 
 //C++をCから参照する場合の共通宣言
 extern "C" {
@@ -256,7 +256,7 @@ void Intr(bool f)
 }
 
 // ===ステータスフラグ設定===
-void SetStatus(uint32_t bits)
+void SetStatus(uint8_t bits)
 {
 	if (!(status & bits))
 	{
@@ -266,7 +266,7 @@ void SetStatus(uint32_t bits)
 }
 
 // ===ステータスフラグ解除===
-void ResetStatus(uint32_t bits)
+void ResetStatus(uint8_t bits)
 {
 	if (status & bits)
 	{
@@ -277,31 +277,40 @@ void ResetStatus(uint32_t bits)
 }
 
 // ===タイマー制御===
-void SetTimerControl(uint32_t data)
+// [CSM][ - ][RST_B][RST_A][IRQ_B][IRG_A][LD_B][LD_A]
+void SetTimerControl(uint8_t data)
 {
-	uint32_t tmp = TimerCntl ^ data;
-	TimerCntl = uint8_t(data);//保存
 
-	if (data & 0x10) 
+	if (data & 0x10){//Reset TimerA flag 
 		ResetStatus(1);
-	if (data & 0x20) 
+	}
+	if (data & 0x20){//Reset TimerB Flag 
 		ResetStatus(2);
+	}
 
-	if (tmp & 0x01)
-		TimerA_count = (data & 1) ? TimerA : 0;
-	if (tmp & 0x02)
-		TimerB_count = (data & 2) ? TimerB : 0;
+
+	if ((TimerCntl & 0x01) == 0x00){//0→1 TimerA Start
+		if (data & 0x01) {
+		  TimerA_count = TimerA;
+		}
+	}
+
+	if ((TimerCntl & 0x02) == 0x00){//0→1 TimerB Start
+		if (data & 0x02) {
+		  TimerB_count = TimerB;
+		}
+	}
+
+	TimerCntl = uint8_t(data);//保存
 
   return;
 }
 
 // ===タイマー A 発生時イベント (CSM) ===
-void TimerA_event(void)
+void TimerA_CMS_event(void)
 {
-	if (TimerCntl & 0x80)// CSM bit check
-	{
-		for (uint8_t i=0; i<8; i++)
-		{
+	if (TimerCntl & 0x80){ // CSM bit check
+		for (uint8_t i=0; i<8; i++){
 			write_chip(CHIP_YM2151, 0, (uint32_t)0x08, (uint8_t)(0x78 | i));//All slot Key-ON
 		}
 	}
@@ -310,47 +319,42 @@ void TimerA_event(void)
 }
 
 // ===タイマー・カウント処理===
-bool Count(int32_t us)
+void Count(int32_t us)
 {
-	bool event = false;
 
-	if (TimerA_count)
-	{
+	if(TimerCntl & 0x01){//TimerA Start?
 		TimerA_count -= us << 16;
-		if (TimerA_count <= 0)
-		{
-			event = true;
-			TimerA_event();
+		if (TimerA_count <= 0){//OverFlow check
 
-			while (TimerA_count <= 0)
-				TimerA_count += TimerA;
-			
-			if (TimerCntl & 0x04)
-				SetStatus(1);
+			TimerA_CMS_event();
+
+			TimerA_count = TimerA;
+
+			if (TimerCntl & 0x04){// IRQ flg check
+				SetStatus(0x01);
+			}
 		}
 	}
 
-	if (TimerB_count)
-	{
+	if(TimerCntl & 0x02){//TimerB Start?
 		TimerB_count -= us << 12;
-		if (TimerB_count <= 0)
-		{
-			event = true;
-			while (TimerB_count <= 0)
-				TimerB_count += TimerB;
-			
-			if (TimerCntl & 0x08)
-				SetStatus(2);
+		if (TimerB_count <= 0){//OverFlow check
+
+			TimerB_count = TimerB;
+
+			if (TimerCntl & 0x08){// IRQ flg check
+				SetStatus(0x02);
+			}
 		}
 	}
 
-	return event;
+	return;
 }
 
 // === Write YM2151 ===
 void WriteIO(uint32_t reg, uint8_t data)
 {
-	uint32_t tmp;
+	uint16_t tmp;
 
 	if( reg & 1 ) {
 		write_chip(CHIP_YM2151, 0, (uint32_t)OPMReg, (uint8_t)data);//YMFM
@@ -359,7 +363,7 @@ void WriteIO(uint32_t reg, uint8_t data)
 		  case 0x10:		// CLKA0
 		  case 0x11:		// CLKA1
 		    TimerA_Reg[OPMReg & 0x01] = uint8_t(data);
-			tmp = (TimerA_Reg[0] << 2) + (TimerA_Reg[1] & 3);
+			tmp = (TimerA_Reg[0] << 2) | (TimerA_Reg[1] & 0x03);
 			TimerA = (1024-tmp) * timer_step;
 		    break;
 		  case 0x12:		// CLKB
@@ -369,8 +373,8 @@ void WriteIO(uint32_t reg, uint8_t data)
 		    SetTimerControl(data);
 		    break;
 		  case 0x1B:		// ADPCM clock & FDC Ready
-			::ADPCM_SetClock((data>>5)&4);
-			::FDC_SetForceReady((data>>6)&1);
+			::ADPCM_SetClock((data>>5) & 4);
+			::FDC_SetForceReady((data>>6) & 1);
 		    break;
 		  default:
 		    break;
@@ -385,7 +389,8 @@ void WriteIO(uint32_t reg, uint8_t data)
 }
 
 // === OPM YM2151 Initialize ===
-int32_t OPM_Init(int32_t clock, int32_t rate)
+// OPM 4MHz駆動 Samplingrate 11025/22050/44100/48000
+bool OPM_Init(int32_t clock, int32_t rate)
 {
 	timer_step = int32_t(1000000. * 65536 / (clock / 64));
 
@@ -431,18 +436,13 @@ void OPM_Reset(void)
 }
 
 // === OPM YM2151 Read ===
+//[busy]-------[TimerB flag][TimerA flag]
 uint8_t FASTCALL OPM_Read(uint32_t adr)
 {
-	uint8_t ret = 0x00;
+	uint8_t ret = (status & 0x03);
 
 	// 0x80:Write Busy(Addr:4.25μs/data:20.75μs)
-	if (TimerWait > 0) ret |= 0x80;
-
-	// 0x02:TimerB-overflow
-	if (TimerA_count <= 0) ret |= 0x01;
-
-	// 0x01:TimerA-overflow
-	if (TimerB_count <= 0) ret |= 0x02;
+	if (TimerWait > 0)  ret |= 0x80;
 
 	return ret;
 }
@@ -488,7 +488,7 @@ void OPM_SetVolume(uint8_t vol)
 {
 	if ( vol>16 ) vol=16;// vol:0~16
 
-	ymfm_ym2151_vol = (int32_t)vol * 1300;// YMFMはこのくらいかなぁ？
+	ymfm_ym2151_vol = (int32_t)vol * 1400;// YMFMはこのくらいかなぁ？
 
 }
 
@@ -526,7 +526,7 @@ void YMF288_Count2(uint32_t clock)
 	//YM288CurCount %= 10;
 }
 
-int32_t M288_Init(int32_t clock, int32_t rate, const char* path)
+bool M288_Init(int32_t clock, int32_t rate, const char* path)
 {
 
 	add_chips<ymfm::ymf288>(clock, CHIP_YMF288, "YMF288");//ymfm
@@ -540,13 +540,6 @@ void M288_Cleanup(void)
 {
 // none
 }
-
-
-void M288_SetRate(int32_t clock, int32_t rate)
-{
-// none
-}
-
 
 void M288_Reset(void)
 {
