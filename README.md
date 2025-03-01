@@ -7,7 +7,7 @@
 ## License
 * 大元のオリジナルソースの著作は、けんじょさんのWinX68k(けろぴー)です。(http://retropc.net/kenjo)
 * MC68000エミュレータはStephane Dallongeville氏がyabauseの一部としてGPLv2で公開されているものです。
-* FM音源合成のfmgenは、cisc氏(cisc@retropc.net)の著作物です。(詳しくはfmgen/readme.txt参照)
+* FM音源合成のfmgenは、cisc氏の著作物です。(詳しくはfmgen/readme.txt参照)
 * YMFMはBSD-licensedで公開されています。(https://github.com/aaronsgiles/ymfm)
 
 ## About

@@ -48,8 +48,8 @@ filechk = $(shell ls /Library/Frameworks | grep ${filename})
 ifeq (${filechk}, ${filename})
 SDL_INCLUDE= -F/Library/Frameworks -D_THREAD_SAFE
 SDL_LIB= -F/Library/Frameworks -framework SDL3
-SDL_TTF_INC = -I/Library/Frameworks/SDL3_ttf.framework/Headers
-SDL_TTF_LIB = -F/Library/Frameworks -framework SDL3_ttf
+# SDL_TTF_INC = -I/Library/Frameworks/SDL3_ttf.framework/Headers
+# SDL_TTF_LIB = -F/Library/Frameworks -framework SDL3_ttf
 endif
 endif
 endif
@@ -65,8 +65,8 @@ PROGRAM = px68k.sdl2
 else
 SDL_INCLUDE = $(shell pkg-config sdl3 --cflags)
 SDL_LIB     = $(shell pkg-config sdl3 --libs)
-SDL_TTF_INC = $(shell pkg-config SDL3_ttf --cflags)
-SDL_TTF_LIB = $(shell pkg-config SDL3_ttf --libs)
+# SDL_TTF_INC = $(shell pkg-config sdl3-ttf --cflags)
+# SDL_TTF_LIB = $(shell pkg-config sdl3-ttf --libs)
 PROGRAM = px68k.sdl3
 endif
 endif

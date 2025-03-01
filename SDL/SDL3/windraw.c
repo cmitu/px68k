@@ -737,14 +737,29 @@ WinDraw_Draw(void)
 	}						\
 }
 
-
-#define WD_SUB(SUFFIX, src)			\
-{						\
-	w = (src);				\
-	if (w != 0)				\
+// 通常重ね合わせ
+#define WD_SUB(SUFFIX, src)		\
+{								\
+	w = (src);					\
+	if (w != 0)					\
 		ScrBuf##SUFFIX[adr] = w;	\
 }
 
+// 半透明の重ね合わせ
+#define WD_SUB2(SUFFIX, src)	\
+{							\
+	w = (src);				\
+	if (w != 0)				\
+		w >>= 8;			\
+		v = ScrBuf##SUFFIX[adr];	\
+		v >>= 8;		\
+		v = (((v&0x00ff0000)+(w&0x00ff0000))>>1) & 0x00ff0000 |		\
+			(((v&0x0000ff00)+(w&0x0000ff00))>>1) & 0x0000ff00 |		\
+			(((v&0x000000ff)+(w&0x000000ff))>>1) & 0x000000ff; 		\
+		v <<= 8;		\
+		v &= Pal32_FullMask;		\
+		ScrBuf##SUFFIX[adr] = v;	\
+}
 
 INLINE void WinDraw_DrawGrpLine(int32_t opaq)
 {
@@ -941,6 +956,25 @@ INLINE void WinDraw_DrawBGLineTR(int32_t opaq)
 		WD_LOOP(16, TextDotX + 16, _DBL_TR_SUB);
 	} else {
 		WD_LOOP(16, TextDotX + 16, _DBL_TR_SUB2);
+	}
+
+}
+
+// GR0 + GR1 半透明で重ね合わせ用
+INLINE void WinDraw_DrawGrpLineTR(int32_t opaq)
+{
+
+#define _DGL_SUB2(SUFFIX) WD_SUB2(SUFFIX, Grp_LineBuf32[i])
+
+	uint32_t adr = VLINE*FULLSCREEN_WIDTH;
+	uint32_t v;
+	uint32_t w;
+	uint32_t i;
+
+	if (opaq) {
+		WD_MEMCPY(Grp_LineBuf32);//使ってない
+	} else {
+		WD_LOOP(0,  TextDotX, _DGL_SUB2);
 	}
 
 }
@@ -1351,12 +1385,12 @@ void WinDraw_DrawLine(void)
 			 tdrawed = 1;
 			 WinDraw_DrawGrpLineNonSP(opaq);
 			}
-			else if( (tron) && ((VCReg2[0]&0x5e)==0x1e) ){//TX0 SP>GR G/G
+			if( (tron) && ((VCReg2[0]&0x5e)==0x1e) ){//TX0 SP>GR G/G
 			 if ( (VCReg1[1]&3) <= ((VCReg1[1]>>4)&3) ) {//GP0<=GP2 優先画面はどっち？
 			   Grp_DrawLine8TR(1,1);}//GR画面1 再Load
 			 else
 			   Grp_DrawLine8TR(0,1);//GR画面0 再Load
-			 WinDraw_DrawGrpLine(opaq);//GR描画
+			 WinDraw_DrawGrpLineTR(opaq);//GR描画（半透明重ね合わせ）
 			 opaq = 0;
 			 WinDraw_DrawGrpLineNonSP(opaq);//SP上書きカモだけどOK
 			}
