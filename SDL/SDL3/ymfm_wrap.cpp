@@ -390,7 +390,7 @@ void WriteIO(uint32_t reg, uint8_t data)
 
 // === OPM YM2151 Initialize ===
 // OPM 4MHz駆動 Samplingrate 11025/22050/44100/48000
-bool OPM_Init(int32_t clock, int32_t rate)
+void OPM_Init(int32_t clock, int32_t rate)
 {
 	timer_step = int32_t(1000000. * 65536 / (clock / 64));
 
@@ -398,7 +398,7 @@ bool OPM_Init(int32_t clock, int32_t rate)
 	YM2151_output_step = 0x100000000ull / rate;
 	ymfm_ym2151_vol = 0;//volume
 
-	return TRUE;
+	return;
 }
 
 // === OPM YM2151 Quit ===
@@ -526,13 +526,13 @@ void YMF288_Count2(uint32_t clock)
 	//YM288CurCount %= 10;
 }
 
-bool M288_Init(int32_t clock, int32_t rate, const char* path)
+void M288_Init(int32_t clock, int32_t rate, const char* path)
 {
 
 	add_chips<ymfm::ymf288>(clock, CHIP_YMF288, "YMF288");//ymfm
 	add_chips<ymfm::ymf288>(clock, CHIP_YMF288, "YMF288");
 
-	return TRUE;
+	return;
 }
 
 

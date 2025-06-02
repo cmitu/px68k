@@ -960,7 +960,7 @@ INLINE void WinDraw_DrawBGLineTR(int32_t opaq)
 
 }
 
-// GR0 + GR1 半透明で重ね合わせ用
+// GR0 + GR1 (半透明重ね合わせ)
 INLINE void WinDraw_DrawGrpLineTR(int32_t opaq)
 {
 
@@ -972,9 +972,9 @@ INLINE void WinDraw_DrawGrpLineTR(int32_t opaq)
 	uint32_t i;
 
 	if (opaq) {
-		WD_MEMCPY(Grp_LineBuf32);//使ってない
+		WD_MEMCPY(Grp_LineBuf32);//not use
 	} else {
-		WD_LOOP(0,  TextDotX, _DGL_SUB2);
+		WD_LOOP(0,  TextDotX, _DGL_SUB2);// G + G (half)
 	}
 
 }

@@ -19,12 +19,16 @@ endif
 endif
 
 # for SDL2/3
-ifdef SDL3
-ifdef YMFM
-CDEBUGFLAGS = -DYMFM
-endif
-else
+ifndef SDL3
 CDEBUGFLAGS = -DSDL2
+endif
+
+ifdef SDL2
+CDEBUGFLAGS = -DSDL2
+endif
+
+ifdef YMFM
+CDEBUGFLAGS += -DYMFM
 endif
 
 SDL_INCLUDE=""
@@ -191,7 +195,7 @@ endif
 endif
 endif
 
-EXTRA_INCLUDES= -I./SDL -I./x68k -I./fmgen -I./ymfm/src -I./win32api $(SDL_INCLUDE) $(FLUID_INCLUDE) $(SDL_TTF_INC)
+EXTRA_INCLUDES= -I./SDL -I./x68k -I./win32api $(SDL_INCLUDE) $(FLUID_INCLUDE) $(SDL_TTF_INC)
 
 CXXDEBUGFLAGS= $(CDEBUGFLAGS)
 
@@ -212,9 +216,11 @@ else
 FMGENOBJS =  SDL/SDL2/ymfm_wrap.o
 endif
 FMGENOBJS += ymfm/src/ymfm_opm.o ymfm/src/ymfm_adpcm.o ymfm/src/ymfm_pcm.o ymfm/src/ymfm_ssg.o ymfm/src/ymfm_opl.o ymfm/src/ymfm_opn.o ymfm/src/ymfm_misc.o
+EXTRA_INCLUDES += -I./ymfm/src
 else
 FMGENOBJS =  fmgen/fmg_wrap.o
 FMGENOBJS += fmgen/fmgen.o fmgen/file.o fmgen/fmtimer.o fmgen/opm.o fmgen/opna.o fmgen/psg.o
+EXTRA_INCLUDES += -I./fmgen
 endif
 
 SDLOBJS= SDL/mouse.o SDL/status.o SDL/timer.o SDL/common.o SDL/prop.o SDL/winui.o SDL/keyboard.o
@@ -316,7 +322,7 @@ icon::
 	-iconutil -c icns "$(px68kicon)/AppIcon.iconset"
 	-rm -rf "$(px68kicon)/AppIcon.iconset"
 
-mac:: $(PROGRAM) icon
+mac:: $(OBJDIRS) $(PROGRAM) icon
 	-rm -rf "$(PROGRAM).app/"
 	mkdir "$(PROGRAM).app/"
 	mkdir "$(PROGRAM).app/Contents/"

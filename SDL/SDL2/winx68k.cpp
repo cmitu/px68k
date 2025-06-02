@@ -50,8 +50,11 @@ extern "C" {
 #include "mouse.h"
 
 #include "dswin.h"
-#include "opm.h"
+#ifdef	YMFM
+#include "ymfm_wrap.h"
+#else
 #include "fmg_wrap.h"
+#endif
 
 #ifdef USE_OGLES20
 SDL_DisplayMode sdl_dispmode;

@@ -2,13 +2,19 @@
 //  MERCURY.C - ま〜きゅり〜ゆにっと
 // ---------------------------------------------------------------------------------------
 
+#include <math.h>
+
 #include "common.h"
-#include "fmg_wrap.h"
 #include "dmac.h"
 #include "m68000.h"
 #include "irqh.h"
 #include "mercury.h"
-#include <math.h>
+
+#ifdef	YMFM
+#include "ymfm_wrap.h"
+#else
+#include "fmg_wrap.h"
+#endif
 
 #define MCRY_IRQ 4
 #define Mcry_BufSize		48000*2

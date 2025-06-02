@@ -29,7 +29,12 @@
 #include	"prop.h"
 #include	"adpcm.h"
 #include	"mercury.h"
-#include	"fmg_wrap.h"
+
+#ifdef	YMFM
+#include "ymfm_wrap.h"
+#else
+#include "fmg_wrap.h"
+#endif
 
 uint16_t	playing = FALSE;
 

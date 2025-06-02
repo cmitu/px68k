@@ -27,7 +27,11 @@
 #include "sysport.h"
 #include "tvram.h"
 
+#ifdef	YMFM
+#include "ymfm_wrap.h"
+#else
 #include "fmg_wrap.h"
+#endif
 
 void AdrError(uint32_t, int32_t);
 void BusError(uint32_t, int32_t);
