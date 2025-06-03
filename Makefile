@@ -344,3 +344,12 @@ c68k::
 cgrom:: $(OBJDIRS) $(MKCGROMOBJS)
 	$(RM) mkcgrom
 	$(CXXLINK) $(CXXFLAGS) -o mkcgrom $(MKCGROMOBJS) $(SDL_LIB) $(SDL_TTF_LIB)
+
+#
+#	Win用アプリのアイコン　　make win
+#
+wicon::
+	windres $(px68kicon)/icon.rc -o $(OBJDIR)/icon.o
+
+win:: $(OBJDIRS) $(OBJS) wicon
+	$(CXXLINK) $(MOPT) -o $(PROGRAM) $(CXXLDOPTIONS) $(OBJS) $(LDLIBS) $(SDL_LIB) $(FLUID_LIB) $(OBJDIR)/icon.o
