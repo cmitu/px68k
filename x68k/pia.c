@@ -7,8 +7,8 @@
 #include "adpcm.h"
 #include "m68000.h"
 
-extern uint8_t FASTCALL Joystick_Read();
-extern void FASTCALL Joystick_Write();
+extern uint8_t FASTCALL Joystick_Read(uint8_t);
+extern void FASTCALL Joystick_Write(uint8_t,uint8_t);
 
 typedef struct {
 	uint8_t PortA;

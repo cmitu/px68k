@@ -124,11 +124,16 @@ CDEBUGFLAGS+= -DNO_MERCURY
 # CDEBUGFLAGS+= -DRFMDRV
 
 #
+# CPU Big/little Endianess option
+#
+# CDEBUGFLAGS+= -D__LITTLE_ENDIAN__
+# CDEBUGFLAGS+= -D__BIG_ENDIAN__
+
+#
 # c68k (68000 Emurator) option 
 #
 # CDEBUGFLAGS+= -DC68K_NO_JUMP_TABLE
 # CDEBUGFLAGS+= -DC68K_CONST_JUMP_TABLE
-# CDEBUGFLAGS+= -DC68K_BIG_ENDIAN
 
 #
 # for Opt.
@@ -324,11 +329,8 @@ icon::
 
 mac:: $(OBJDIRS) $(PROGRAM) icon
 	-rm -rf "$(PROGRAM).app/"
-	mkdir "$(PROGRAM).app/"
-	mkdir "$(PROGRAM).app/Contents/"
-	mkdir "$(PROGRAM).app/Contents/MacOS"
-	mkdir "$(PROGRAM).app/Contents/Resources"
-	mkdir "$(PROGRAM).app/Contents/Resources/ja.lproj"
+	mkdir -p "$(PROGRAM).app/Contents/MacOS"
+	mkdir -p "$(PROGRAM).app/Contents/Resources/ja.lproj"
 	cp -r "macOS/AppIcon.icns" "$(PROGRAM).app/Contents/Resources/AppIcon.icns"
 	cp -r "macOS/Info.plist.make" "$(PROGRAM).app/Contents/Info.plist"
 	cp $(PROGRAM) "$(PROGRAM).app/Contents/MacOS/px68k"

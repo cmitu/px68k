@@ -69,16 +69,13 @@ enum {
 	HTYPE_CONSOLE,
 	HTYPE_KEY,
 };
-#ifdef _WIN32
-typedef unsigned int u_int;
-#define bzero(s,d) memset(s,0,d)
-#endif
+
 struct internal_handle {
-	void	*p;
-	u_int	flags;
-	size_t	psize;
-	u_int	refcount;
-	int	type;
+	void		*p;
+	uint32_t	flags;
+	size_t		psize;
+	uint32_t	refcount;
+	int			type;
 };
 
 struct internal_file {
@@ -102,13 +99,6 @@ struct internal_file {
 #define handletype(h)							\
     ((isfixed(h)) ?							\
         ptrtohandle(h)->type : (((struct internal_handle *)(h))->type))
-
-
-#ifdef	DEBUG
-#define DPRF(arg)		printf arg
-#else	/* !DEBUG */
-#define	DPRF(arg)
-#endif	/* DEBUG */
 
 
 /* for POSIX Kernel Time 1μs/unit */
@@ -426,7 +416,7 @@ GetPrivateProfileString(const char* sect, const char* key, const char* defvalue,
 		}
 	}
 notfound:
-	DPRF(("[%s]:%s not found\n", sect, key));
+	// printf(("[%s]:%s not found\n", sect, key));
 	fclose(fp);
 nofile:
 	strncpy(buf, defvalue, len);

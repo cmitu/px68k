@@ -414,7 +414,13 @@ static void upper(char *s)
 	}
 }
 
-int32_t fnamecmp();
+/*昇順にソートする比較関数*/
+int32_t fnamecmp(const void* p1, const void* p2) {
+    const char* str1 = (const char*)p1;
+    const char* str2 = (const char*)p2;
+    return strcmp(str1, str2);
+}
+
 /*------Open File List------*/
 static void menu_create_flist(int32_t v)
 {
@@ -523,13 +529,6 @@ static void menu_create_flist(int32_t v)
 	mfl.num = i;
 	mfl.ptr = 0;
 
-}
-
-/*昇順にソートする比較関数*/
-int32_t fnamecmp(const void* p1, const void* p2) {
-    const char* str1 = (const char*)p1;
-    const char* str2 = (const char*)p2;
-    return strcmp(str1, str2);
 }
 
 
