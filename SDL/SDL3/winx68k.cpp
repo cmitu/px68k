@@ -348,8 +348,8 @@ WinX68k_Reset(void)
 	OPM_Reset();
 
 	m68000_reset();
-	m68000_set_reg(M68K_A7,(IPL[0x30001]<<24)|(IPL[0x30000]<<16)|(IPL[0x30003]<<8)|IPL[0x30002]);
-	m68000_set_reg(M68K_PC,(IPL[0x30005]<<24)|(IPL[0x30004]<<16)|(IPL[0x30007]<<8)|IPL[0x30006]);
+	m68000_set_reg(M68K_A7,Memory_ReadD(0xff0000));
+	m68000_set_reg(M68K_PC,Memory_ReadD(0xff0004));
 
 	Memory_Init();
 	CRTC_Init();
