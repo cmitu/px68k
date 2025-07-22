@@ -5,7 +5,7 @@
 	M68000 CPUインタフェース関数
 
 ******************************************************************************/
-
+#include "irqh.h"
 #include "m68000.h"
 #include "c68k/c68k.h"
 #include "../x68k/x68kmemory.h"
@@ -20,7 +20,6 @@ int32_t ICount;
 /*--------------------------------------------------------
 	CPU初期化
 --------------------------------------------------------*/
-int32_t my_irqh_callback(int32_t level);
 
 void m68000_init(void)
 {
@@ -173,7 +172,7 @@ void m68000_set_reg(int32_t regnum, uint32_t val)
 STATE_SAVE( m68000 )
 {
 	int i;
-	UINT32 pc = C68k_Get_Reg(&C68K, C68K_PC);
+	uint32_t pc = C68k_Get_Reg(&C68K, C68K_PC);
 
 	for (i = 0; i < 8; i++)
 		state_save_long(&C68K.D[i], 1);
@@ -197,7 +196,7 @@ STATE_SAVE( m68000 )
 STATE_LOAD( m68000 )
 {
 	int i;
-	UINT32 pc;
+	uint32_t pc;
 
 	for (i = 0; i < 8; i++)
 		state_load_long(&C68K.D[i], 1);

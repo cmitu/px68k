@@ -22,7 +22,7 @@ extern "C" {
 #include "winui.h"
 //#include "../x68k/m68000.h" // xxx これはいずれいらなくなるはず
 #include "../m68000/m68000.h"
-#include "../m68000/c68k/c68k.h"
+//#include "../m68000/c68k/c68k.h"
 #include "../x68k/x68kmemory.h"
 #include "mfp.h"
 #include "bg.h"
@@ -260,7 +260,7 @@ WinX68k_SCSICheck()
 	}
 
 	// for little endian 
-#ifndef C68K_BIG_ENDIAN
+#ifndef __BIG_ENDIAN__
 	for (i = 0; i < 0x02000; i += 2) {
 	 tmp = *(uint16_t *)&SCSIIPL[i];
 	 *(uint16_t *)&SCSIIPL[i] = ((tmp >> 8)&0x00ff) | ((tmp << 8)&0xff00);
@@ -307,7 +307,7 @@ WinX68k_LoadROMs(void)
 	}
 
 // for little endian 
-#ifndef C68K_BIG_ENDIAN
+#ifndef __BIG_ENDIAN__
 	for (i = 0; i < 0x40000; i += 2) {
 	  tmp = *(uint16_t *)&IPL[i];
 	  *(uint16_t *)&IPL[i] = ((tmp >> 8) & 0x00ff) | ((tmp << 8) & 0xff00);
@@ -331,7 +331,7 @@ WinX68k_LoadROMs(void)
 	}
 
 // for little endian 
-#ifndef C68K_BIG_ENDIAN
+#ifndef __BIG_ENDIAN__
 	for (i = 0; i < 0xc0000; i += 2) {
 	  tmp = *(uint16_t *)&FONT[i];
 	  *(uint16_t *)&FONT[i] = ((tmp >> 8) & 0x00ff) | ((tmp << 8) & 0xff00);

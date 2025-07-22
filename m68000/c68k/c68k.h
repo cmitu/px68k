@@ -43,7 +43,7 @@ extern "C" {
 //#define C68K_GEN
 #define C68K_BYTE_SWAP_OPT
 
-#ifdef WORDS_BIGENDIAN
+#ifdef __BIG_ENDIAN__
 #define C68K_BIG_ENDIAN
 #endif
 

@@ -65,7 +65,7 @@ uint8_t FASTCALL BG_Read(uint32_t adr)
 	{
 	 case 0xeb0000 ... 0xeb03ff:
 		adr &= 0x0003ff;
-#ifndef C68K_BIG_ENDIAN
+#ifndef __BIG_ENDIAN__
 		adr ^= 1;
 #endif
 		return Sprite_Regs[adr];
@@ -117,7 +117,7 @@ void FASTCALL BG_Write(uint32_t adr, uint8_t data)
 		if((adr & 0x0007) == 0x0004) data &= 0xcf;
 		if((adr & 0x0007) == 0x0006) data &= 0x00;
 		if((adr & 0x0007) == 0x0007) data &= 0x03;
-#ifndef C68K_BIG_ENDIAN
+#ifndef __BIG_ENDIAN__
 		adr ^= 1;
 #endif
 		if (Sprite_Regs[adr] != data)

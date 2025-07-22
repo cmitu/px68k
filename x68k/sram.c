@@ -161,7 +161,7 @@ void SRAM_Init(void)
 	{
 		File_Read(fp, SRAM, 0x4000);
 		File_Close(fp);
-#ifndef C68K_BIG_ENDIAN
+#ifndef __BIG_ENDIAN__
 	/*for little endian guys!*/
 	for (i=0; i<0x4000; i+=2)
 	{
@@ -182,7 +182,7 @@ void SRAM_Cleanup(void)
 	FILEH fp;
 
 /*for little endian guys!*/
-#ifndef C68K_BIG_ENDIAN
+#ifndef __BIG_ENDIAN__
 	for (int_fast32_t i=0; i<0x4000; i+=2)
 	{
 		tmp = *(uint16_t *)&SRAM[i];
@@ -243,7 +243,7 @@ void FASTCALL SRAM_Write(uint32_t adr, uint8_t data)
 			}
 		}
 		adr &= 0x3fff;
-#ifndef C68K_BIG_ENDIAN
+#ifndef __BIG_ENDIAN__
 		adr ^= 1;
 #endif
 		SRAM[adr] = data;

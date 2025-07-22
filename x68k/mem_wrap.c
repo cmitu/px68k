@@ -265,7 +265,7 @@ wm_main(uint32_t addr, uint8_t val)
 
   switch(addr){
   case 0x000000 ... 0xbfffff: /* RAM */
-#ifndef C68K_BIG_ENDIAN
+#ifndef __BIG_ENDIAN__
     MEM[addr ^ 1] = val;
 #else
     MEM[addr    ] = val;

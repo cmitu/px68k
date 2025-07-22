@@ -14,7 +14,7 @@
 #include	"winx68k.h"
 #include	"scsi.h"
 #include	"../m68000/m68000.h"
-#include	"../m68000/c68k/c68k.h"
+//#include	"../m68000/c68k/c68k.h"
 
 // ----------------------
 //   define
@@ -713,7 +713,7 @@ uint32_t j;
 	case 0xea001f:
 	  break;
 	default:
-#ifndef C68K_BIG_ENDIAN
+#ifndef __BIG_ENDIAN__
 	  ret = SCSIIPL[(adr^1)&0x1fff];/*SCSI-IPL_ROM*/
 #else
 	  ret = SCSIIPL[(adr  )&0x1fff];/*SCSI-IPL_ROM*/

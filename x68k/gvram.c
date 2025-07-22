@@ -22,7 +22,7 @@
 	uint16_t	Pal16Adr[256];			// 16bit color パレットアドレス計算用
 
 
-#ifndef C68K_BIG_ENDIAN
+#ifndef __BIG_ENDIAN__
 	// xxx: for little endian only
 	#define GET_WORD_W8(src) (*(uint8_t *)(src) | *((uint8_t *)(src) + 1) << 8)
 #else
@@ -85,7 +85,7 @@ uint8_t FASTCALL GVRAM_Read(uint32_t adr)
 	uint8_t ret=0;
 	uint8_t page;
 	uint16_t *ram = (uint16_t *)(&GVRAM[adr&0x7fffe]);
-#ifndef C68K_BIG_ENDIAN
+#ifndef __BIG_ENDIAN__
 	adr ^= 1;
 #endif
 	// GVRAM:0x0c00000 ~ 0x0dfffff
@@ -150,7 +150,7 @@ void FASTCALL GVRAM_Write(uint32_t adr, uint8_t data)
 	uint16_t *ram = (uint16_t*)(&GVRAM[adr&0x7fffe]);
 	uint16_t temp;
 
-#ifndef C68K_BIG_ENDIAN
+#ifndef __BIG_ENDIAN__
 	adr ^= 1;
 #endif
 	// GVRAM:0x0c00000 ~ 0x0dfffff
