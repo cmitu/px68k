@@ -146,7 +146,7 @@ midiOutReset(HMIDIOUT hmo)
 }
 */
 static int32_t _WritePrivateProfileString_subr(
-			FILE **, int32_t, int32_t, const char*, const char*);
+			FILE **, long, long, const char*, const char*);
 
 BOOL
 WritePrivateProfileString(const char* sect, const char* key, const char* str, const char* inifile)
@@ -155,7 +155,7 @@ WritePrivateProfileString(const char* sect, const char* key, const char* str, co
 	char newbuf[256];
 	struct stat sb;
 	FILE *fp;
-	int32_t pos;
+	long pos;
 	int32_t found = 0;
 	int32_t notfound = 0;
 	int32_t delta;
@@ -206,7 +206,7 @@ WritePrivateProfileString(const char* sect, const char* key, const char* str, co
 		    && lbuf[strlen(key)] == '=') {
 			found = 1;
 			snprintf(newbuf, sizeof(newbuf), "%s=%s\n", key, str);
-			delta = strlen(newbuf) - strlen(lbuf);
+			delta = (int32_t)(strlen(newbuf) - strlen(lbuf));
 			if (delta == 0) {
 				if (!strncasecmp(newbuf, lbuf, strlen(newbuf)))
 					break;
@@ -254,7 +254,7 @@ writefail:
  * XXX: REWRITE ME!!!
  */
 static int32_t
-_WritePrivateProfileString_subr(FILE **fp, int32_t pos, int32_t nowpos,
+_WritePrivateProfileString_subr(FILE **fp, long pos, long nowpos,
 		const char* buf, const char* file)
 {
 	struct stat sb;

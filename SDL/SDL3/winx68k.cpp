@@ -598,7 +598,7 @@ get_cmd_line(int32_t argc, char *argv[])
 	   p6logd("for useage.\n$ px68k.sdl2 hoge0.xdf hoge1.xdf scsi0.hds\n");
 	  }
 	  else{
-	    len = strlen(argv[i]);
+	    len = (uint32_t)strlen(argv[i]);
 	    strcpy(strwork, argv[i] + len - 3);//拡張子GET
 	    for(len=0; len<3; len++){
 	     if (strwork[len] >= 'a' && strwork[len] <= 'z') {//大文字に変換
@@ -643,9 +643,8 @@ drop_file(const char* dropped_fileurl)
 {
   char strwork[20];
   char *p;
-  uint32_t len;
+  uint32_t len = (uint32_t)strlen(dropped_fileurl);
 
-	len = strlen(dropped_fileurl);
 	strcpy(strwork, dropped_fileurl + len - 3);//拡張子GET
 	for(len=0; len<3; len++){
 	  if (strwork[len] >= 'a' && strwork[len] <= 'z') {//大文字に変換

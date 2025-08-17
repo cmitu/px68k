@@ -145,7 +145,7 @@ void draw_soft_kbd(uint32_t ms_x,uint32_t ms_y, uint8_t keyboardLED)
 		SDL_FillSurfaceRect(keydraw_buffer, &keyrect, keycolor);
 
 		// KeyTop Charactor
-		x=kbd_key[i].x + (kbd_key[i].w-softkey_fontsize)/2 - ((strlen(kbd_key[i].s)-1)*2);
+		x=kbd_key[i].x + (kbd_key[i].w-softkey_fontsize)/2 - (((int32_t)strlen(kbd_key[i].s)-1)*2);
 		y=kbd_key[i].y + (kbd_key[i].h-softkey_fontsize)/2 - 1;
 		set_sbp(keydraw_buffer->pixels);//描画準備
 		set_mfs(softkey_fontsize);

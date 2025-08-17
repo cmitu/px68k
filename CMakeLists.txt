@@ -292,14 +292,6 @@ if(WIN32)
  add_executable(${BIN_TARGET} WIN32 ${x68k_sources} ${fmgen_sources} ${m68k_sources} ${SDL_sources} ${MIDI_SRC})
 endif()
 
-if(CMAKE_STRIP)
-  add_custom_command(
-    TARGET ${BIN_TARGET} POST_BUILD
-    COMMAND $<$<CONFIG:Release>:${CMAKE_STRIP}>
-            $<$<CONFIG:MinSizeRel>:${CMAKE_STRIP}>
-    ARGS --strip-all $<TARGET_FILE:${BIN_TARGET}>)
-endif()
-
 if(APPLE)
   set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/macOS/AppIcon.icns" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
   set_target_properties(${BIN_TARGET} PROPERTIES
@@ -310,9 +302,8 @@ if(APPLE)
       MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
       MACOSX_BUNDLE_LONG_VERSION_STRING "Version ${PROJECT_VERSION}(${TIMESTAMP})"
       MACOSX_BUNDLE_ICON_FILE "AppIcon"
-      MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/macOS/Info.plist"
   )
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9.0")
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13.0")
   option(MACOSX_STANDALONE_APP_BUNDLE "Generate a portable app bundle to use on other devices (requires sudo)" OFF)
 
   install_targets( ./bin ${BIN_TARGET} )

@@ -293,7 +293,7 @@ WinUI_Init(void)
 			strcat(cur_dir_str, "/");
 #endif
 
-	cur_dir_slen = strlen(cur_dir_str);
+	cur_dir_slen = (int32_t)strlen(cur_dir_str);
 	p6logd("cur_dir_str %s %d\n", cur_dir_str, cur_dir_slen);
 
 	for (i = 0; i < 4; i++) {
@@ -477,7 +477,7 @@ static void menu_create_flist(int32_t v)
 
 		if (!S_ISDIR(buf.st_mode)) {
 			// Check extension if this is file.
-			len = strlen(n);
+			len = (int32_t)strlen(n);
 			if (len < 4 || *(n + len - 4) != '.') {
 				i--;
 				continue;
@@ -638,7 +638,7 @@ static void shortcut_dir(int32_t drv)
 	char *p;
 
 	// len is larger than 2
-	len = strlen(mfl.dir[drv]);
+	len = (int32_t)strlen(mfl.dir[drv]);
 	p = mfl.dir[drv] + len - 2;
 	for (i = len - 2; i >= 0; i--) {
 #ifdef _WIN32

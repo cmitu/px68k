@@ -64,17 +64,21 @@ or
 ## Build (need cmake)
 
 ```sh
- $ mkdir build
- $ cd build
+[for macOS]
+$ cmake -G Xcode -S . -B build -D SDL3=ON -D YMFM=ON
+$ cmake --build build --config Release
 
- $ cmake ..  (build with SDL2)
- $ cmake --build .
-or
- $ cmake -DSDL3=ON .. (build with SDL3)
- $ cmake --build .
-or
- $ cmake -DSDL3=ON -DYMFM=ON .. (use YMFM for YM2151)
- $ cmake --build .
+[for Linux]
+$ cmake -S . -B build -D SDL3=ON -D YMFM=ON
+$ cmake --build build --config Release
+
+[for Win.]
+ $ cmake -S . -B build -D SDL3=ON -D YMFM=ON
+ $ cmake --build build --config Release
+ 
+[on SDL2 and use fmgen for YM2151]
+$ cmake -S . -B build
+$ cmake --build build --config (RelWithDebInfo/Debug/MinSizeRel)
 ```
 
 ## Run on command.

@@ -301,8 +301,8 @@ static void draw_str(char *cp, uint32_t flg)
 		if(ret == 0) strcpy((char *)show_str, (char *)cp);
 	}
 
-	len = strlen((char *)show_str);
-	s = (uint8_t *)show_str;
+	len = (uint32_t)strlen((char *)show_str);
+	s   = (uint8_t *)show_str;
 
 	for (i = 0; i < len; i++) {
 		if (isHankaku(*s)) {

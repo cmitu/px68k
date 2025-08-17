@@ -92,7 +92,7 @@ mid_outDevList(LPHMIDIOUT phmo)
 	mid_endpoint = 0;
 	//uint32_t core_mid_num = MIDIGetNumberOfDevices();//仮想ポート含まない
 	//mid_endpoint = MIDIGetDevice(core_mid_num);
-	uint32_t core_mid_num = MIDIGetNumberOfDestinations();//仮想ポート含む
+	uint32_t core_mid_num = (uint32_t)MIDIGetNumberOfDestinations();//仮想ポート含む
 	if (core_mid_num == 0)
 	{
 		  return Device_num; // No found
@@ -157,7 +157,7 @@ mid_inDevList(LPHMIDIOUT phmo)
     return Device_num; // No found
   }
 
-  uint32_t core_mid_num = MIDIGetNumberOfSources();
+  uint32_t core_mid_num = (uint32_t)MIDIGetNumberOfSources();
   if (core_mid_num == 0)
   {
     return Device_num; // No found

@@ -354,7 +354,7 @@ ex_a2i(char* str, int32_t min, int32_t max)
 void
 cutyen(char* str)
 {
-	int32_t pos = strlen(str) - 1;
+	int32_t pos = (int32_t)strlen(str) - 1;
 
 	if ((pos > 0) && (str[pos] == '/'))
 		str[pos] = '\0';
@@ -363,7 +363,7 @@ cutyen(char* str)
 void
 plusyen(char* str, int32_t len)
 {
-	int32_t	pos = strlen(str);
+	int32_t	pos = (int32_t)strlen(str);
 
 	if (pos) {
 		if (str[pos-1] == '/')
@@ -388,7 +388,7 @@ fname_mix(char* str, char* mix, int32_t size)
 	if (mix[0] == '/')
 		str[0] = '\0';
 
-	len = strlen(str);
+	len = (int32_t)strlen(str);
 	p = str + len;
 	check = '.';
 	while (len < size) {
@@ -407,7 +407,7 @@ fname_mix(char* str, char* mix, int32_t size)
 				mix += 2;
 				cutyen(str);
 				cutFileName(str);
-				len = strlen(str);
+				len = (int32_t)strlen(str);
 				p = str + len;
 				continue;
 			}
@@ -532,7 +532,7 @@ unix2dostime(time_t t, uint16_t *ddp, uint16_t *dtp, uint8_t *dhp)
 		 * time we did the computation then skip all this leap year
 		 * and month stuff.
 		 */
-		days = t / (24 * 60 * 60);
+		days = (uint32_t)(t / (24 * 60 * 60));
 		if (days != lastday) {
 			lastday = days;
 			for (year = 1970;; year++) {

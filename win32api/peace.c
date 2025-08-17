@@ -141,7 +141,7 @@ ReadFile(void *h, void* buf, uint32_t len, uint32_t* lp, LPOVERLAPPED lpov)
 		return FALSE;
 
 	fp = LocalLock(h);
-	*lp = read(fp->fd, buf, len);
+	*lp = (uint32_t)read(fp->fd, buf, len);
 	LocalUnlock(h);
 	if (*lp <= 0)
 		return FALSE;
@@ -159,7 +159,7 @@ WriteFile(void *h, const void* buf, uint32_t len, uint32_t* lp, LPOVERLAPPED lpo
 		return FALSE;
 
 	fp = LocalLock(h);
-	*lp = write(fp->fd, buf, len);
+	*lp = (uint32_t)write(fp->fd, buf, len);
 	LocalUnlock(h);
 	if (*lp <= 0)
 		return FALSE;
@@ -226,7 +226,7 @@ SetFilePointer(void *h, int32_t pos, int32_t* newposh, uint32_t whence)
 	fd = fp->fd;
 	LocalUnlock(h);
 	newpos = lseek(fd, (int)pos, whence);
-	return newpos;
+	return (uint32_t)newpos;
 }
 
 BOOL
@@ -412,7 +412,7 @@ GetPrivateProfileString(const char* sect, const char* key, const char* defvalue,
 				*dst++ = *src++;
 			*dst = '\0';
 			fclose(fp);
-			return strlen(buf);
+			return (uint32_t)strlen(buf);
 		}
 	}
 notfound:
@@ -421,7 +421,7 @@ notfound:
 nofile:
 	strncpy(buf, defvalue, len);
 	/* not include nul */
-	return strlen(buf);
+	return (uint32_t)strlen(buf);
 }
 
 uint32_t
